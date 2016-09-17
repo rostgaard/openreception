@@ -16,194 +16,218 @@
 /// Currently unused in the stack, but is meant to be implemented as a
 /// common method for configuring and launching processes for use with,
 /// among others, tests.
-
 library orf.config;
 
 import 'package:args/args.dart';
+import 'package:orf/src/constants/configuration.dart' as key;
+import 'package:orf/validation.dart';
 
-/// Configuration class for Datastore service.
-class Datastore {
-  /// ESL configuration values
-  final EslConfig eslconfig;
-
-  /// Creates a new [Datastore] configuration object.
-  ///
-  /// Optionally takes in [eslconfig], which defaults to a standard config
-  /// if omitted.
-  const Datastore({EslConfig this.eslconfig: const EslConfig()});
-
-  /// Creates a new [Datastore] configuration object from parsed
-  /// agument [results].
-  factory Datastore.fromArgs(ArgResults results) {
-    final EslConfig eslconfig = new EslConfig.fromArgs(results);
-
-    return new Datastore(eslconfig: eslconfig);
-  }
-
-  /// Creates a new [Datastore] object with default values.
-  factory Datastore.defaults() => const Datastore();
-}
-
-/// Configuration class for ESL configuration values.
-class EslConfig {
-  /// The hostname of the ESL server.
-  final String hostname;
-
-  /// The password for authenticating against the ESL server.
-  final String password;
-
-  /// The port of the ESL server.
-  final int port;
-
-  /// Creates a new [EslConfig] object.
-  ///
-  /// Optionally takes in [hostname], [password] and [port] that falls back
-  /// to default values if omitted.
-  const EslConfig(
-      {String this.hostname: 'localhost',
-      String this.password: 'ClueCon',
-      int this.port: 8021});
-
-  /// Creates a new [EslConfig] object from a [dsn] string.
-  ///
-  /// A dsn string for [EslConfig] has the form <password>@<host>:<port>,
-  /// where the port may be omitted.
-  ///
-  /// An example of a dsn is `ClueCon@pbx.example:8021`. This example will
-  /// create a config that connects to the host `pbx.example` on port `8021`
-  /// using password `ClueCon`.
-  factory EslConfig.fromDsn(String dsn) {
-    String hostname = '';
-    String password = '';
-    int port = 0;
-
-    {
-      final List<String> split = dsn.split('@');
-
-      if (split.length > 2) {
-        throw new FormatException('Dsn $dsn contains too many "@" characters');
-      } else if (split.length == 2) {
-        password = split.first;
-        dsn = split.last;
-      }
-    }
-
-    {
-      final List<String> split = dsn.split(':');
-      if (split.length > 2) {
-        throw new FormatException('Dsn $dsn contains too many ":" characters');
-      } else if (split.length == 2) {
-        port = int.parse(split.last);
-      }
-      hostname = split.first;
-    }
-
-    return new EslConfig(hostname: hostname, password: password, port: port);
-  }
-
-  /// Creates a new [EslConfig]  configuration object from parsed
-  /// agument [results].
-  factory EslConfig.fromArgs(ArgResults results) {
-    final String hostname = results['esl-hostname'];
-    final String password = results['esl-password'];
-    final int port = int.parse(results['esl-port']);
-
-    return new EslConfig(hostname: hostname, port: port, password: password);
-  }
-
-  /// A dsn represenation of the [EslConfig].
-  ///
-  /// The representation is suitable for creating a new [EslConfig] object
-  /// using the [EslConfig.fromDsn] constructor.
-  String toDsn() => password + '@' + hostname + ':' + port.toString();
-
-  /// An [ArgParser] suitable for parsing command line arguments.
-  ///
-  /// The [ArgParser] may be used to convert arguments into [ArgResults]
-  /// that can then be turned into [EslConfig] objects, using the
-  /// [EslConfig.fromArgs] constructor.
-  static ArgParser get argParser {
-    EslConfig defaults = const EslConfig();
-
-    return new ArgParser()
-      ..addOption('esl-hostname',
-          defaultsTo: defaults.hostname, help: 'The hostname of the ESL server')
-      ..addOption('esl-password',
-          defaultsTo: defaults.password,
-          help: 'The password for the ESL server')
-      ..addOption('esl-port',
-          defaultsTo: defaults.port.toString(),
-          help: 'The port of the ESL server');
-  }
-}
+part 'package:orf/src/configuration/authentication_server.dart';
+part 'package:orf/src/configuration/calendar_server.dart';
+part 'package:orf/src/configuration/callflow_control.dart';
+part 'package:orf/src/configuration/dialplan_server.dart';
+part 'package:orf/src/configuration/esl.dart';
+part 'package:orf/src/configuration/smtp.dart';
+part 'package:orf/src/configuration/cdr_server.dart';
+part 'package:orf/src/configuration/contact_server.dart';
+part 'package:orf/src/configuration/user_server.dart';
+part 'package:orf/src/configuration/message_server.dart';
+part 'package:orf/src/configuration/message_dispatcher.dart';
+part 'package:orf/src/configuration/notification_server.dart';
+part 'package:orf/src/configuration/config_server.dart';
 
 /// Standard configuration values, common among all server configurations.
-abstract class StandardConfig {
+class Configuration {
+  final EslConfig esl;
+
+  final CallFlowControl callflowService;
+  final SmtpConfig smtp;
+
+  final CdrServer cdrServer;
+  final CalendarServer calendarServer;
+  final ConfigServer configServer;
+  final ContactServer contactServer;
+  final DialplanServer dialplanServer;
+  final MessageServer messageServer;
+  final MessageDispatcher messageDispatcher;
+  final NotificationServer notificationServer;
+  final AuthServer authServer;
+
+  /// A list of telephone numbers that identify this system.
+  final List<String> myIdentifiers = const [];
+
+  /// Whether or not to hide the caller telephone number.
+  final bool hideInboundCallerId = true;
+  final String externalHostname;
+
+  /// May be 'en' or 'da'
+  final String systemLanguage = 'en';
+  final String filestorePath;
+  final bool experimentalRevisioning = false;
+
+  const Configuration(
+      this.esl,
+      this.smtp,
+      this.externalHostname,
+      this.filestorePath,
+      this.authServer,
+      this.callflowService,
+      this.calendarServer,
+      this.configServer,
+      this.contactServer,
+      this.cdrServer,
+      this.dialplanServer,
+      this.messageDispatcher,
+      this.messageServer,
+      this.notificationServer);
+
   /// Default constructor.
-  const StandardConfig();
-  String get externalHostName => 'localhost';
+  const Configuration.defaults()
+      : this.esl = const EslConfig(),
+        this.smtp = const SmtpConfig(),
+        this.externalHostname = 'localhost',
+        this.filestorePath = '',
+        this.authServer = const AuthServer(),
+        this.callflowService = const CallFlowControl(),
+        this.calendarServer = const CalendarServer(),
+        this.configServer = const ConfigServer(),
+        this.contactServer = const ContactServer(),
+        this.cdrServer = const CdrServer(),
+        this.dialplanServer = const DialplanServer(),
+        this.messageDispatcher = const MessageDispatcher(),
+        this.messageServer = const MessageServer(),
+        this.notificationServer = const NotificationServer();
 
-  String get serverToken => 'veeerysecret';
+  factory Configuration.fromJson(Map map) {
+    final CalendarServer calendarServer = map.containsKey(key.calendarServer)
+        ? new CalendarServer.fromJson(map[key.calendarServer])
+        : const CalendarServer();
 
-  int get httpPort;
+    final ConfigServer configServer = map.containsKey(key.configServer)
+        ? new ConfigServer.fromJson(map[key.configServer])
+        : const ConfigServer();
 
-  Uri get externalUri => Uri.parse('http://$externalHostName:$httpPort');
-}
+    final ContactServer contactServer = map.containsKey(key.contactServer)
+        ? new ContactServer.fromJson(map[key.contactServer])
+        : const ContactServer();
 
-/// Authentication server configuration values.
-class AuthServer extends StandardConfig {
-  final Duration tokenLifetime;
-  final String clientId;
-  final String clientSecret;
-  final String tokenDir;
+    final DialplanServer dialplanServer = map.containsKey(key.dialplanServer)
+        ? new DialplanServer.fromJson(map[key.dialplanServer])
+        : const DialplanServer();
 
-  @override
-  final int httpPort = 4050;
+    final MessageServer messageServer = map.containsKey(key.messageServer)
+        ? new MessageServer.fromJson(map[key.messageServer])
+        : const MessageServer();
 
-  const AuthServer(
-      {this.clientId: 'google-client-id',
-      this.tokenLifetime: const Duration(hours: 12),
-      this.clientSecret: 'google-client-secret',
-      this.tokenDir: ''});
+    final MessageDispatcher messageDispatcher =
+        map.containsKey(key.messageDispatcher)
+            ? new MessageDispatcher.fromJson(map[key.messageDispatcher])
+            : const MessageDispatcher();
 
-  /// Creates a new [AuthServer] configuration object from parsed
-  /// agument [results].
-  factory AuthServer.fromArgs(ArgResults results) {
-    final String clientId = results['google-client-id'];
-    final String clientSecret = results['google-client-secret'];
-    final Duration lifetime =
-        new Duration(seconds: int.parse(results['token-lifetime']));
-    final String tokenDir = results['token-dir'];
+    final NotificationServer notificationServer =
+        map.containsKey(key.notificationServer)
+            ? new NotificationServer.fromJson(map[key.notificationServer])
+            : const NotificationServer();
 
-    return new AuthServer(
-        clientId: clientId,
-        tokenLifetime: lifetime,
-        clientSecret: clientSecret,
-        tokenDir: tokenDir);
+    final AuthServer authServer = map.containsKey(key.authServer)
+        ? new AuthServer.fromJson(map[key.authServer])
+        : const AuthServer();
+
+    final EslConfig esl = map.containsKey(key.esl)
+        ? new EslConfig.fromJson(map[key.esl])
+        : const EslConfig();
+
+    final CdrServer cdr = map.containsKey(key.cdr)
+        ? new CdrServer.fromJson(map[key.cdr])
+        : const CdrServer();
+
+    final CallFlowControl callflow = map.containsKey(key.callflow)
+        ? new CallFlowControl.fromJson(map[key.callflow])
+        : const CallFlowControl();
+
+    final SmtpConfig smtp = map.containsKey(key.smtp)
+        ? new SmtpConfig.fromJson(map[key.smtp])
+        : const SmtpConfig();
+
+    final String exthost = map.containsKey(key.externalHostname)
+        ? map[key.externalHostname]
+        : 'localhost';
+
+    final String datastorePath =
+        map.containsKey(key.datastorePath) ? map[key.datastorePath] : '';
+
+    return new Configuration(
+        esl,
+        smtp,
+        exthost,
+        datastorePath,
+        authServer,
+        callflow,
+        calendarServer,
+        configServer,
+        contactServer,
+        cdr,
+        dialplanServer,
+        messageDispatcher,
+        messageServer,
+        notificationServer);
   }
 
-  Uri get clientUri => Uri.parse('http://localhost:8080');
+  final String serverToken = 'veeerysecret';
 
-  Uri get redirectUri => Uri.parse('$externalUri/token/oauth2callback');
-
-  /// An [ArgParser] suitable for parsing command line arguments.
-  ///
-  /// The [ArgParser] may be used to convert arguments into [ArgResults]
-  /// that can then be turned into [AuthServer] objects, using the
-  /// [AuthServer.fromArgs] constructor.
-  static ArgParser get argParser {
-    AuthServer defaults = const AuthServer();
-
-    return new ArgParser()
-      ..addOption('google-client-id',
-          defaultsTo: defaults.clientId, help: 'The Google client ID')
-      ..addOption('google-client-secret',
-          defaultsTo: defaults.clientSecret, help: 'The Google client secret')
-      ..addOption('token-lifetime',
-          defaultsTo: defaults.tokenLifetime.toString(),
-          help: 'The maximum lifetime of tokens (in seconds)')
-      ..addOption('token-dir',
-          defaultsTo: defaults.tokenDir,
-          help: 'The directory to load pre-made tokens from');
-  }
+  Map<String, dynamic> toJson() => new Map.unmodifiable({
+        key.externalHostname: externalHostname,
+        key.datastorePath: filestorePath,
+        key.serverToken: serverToken,
+        key.esl: esl.toJson(),
+        key.smtp: smtp.toJson(),
+        key.authServer: authServer.toJson(),
+        key.callflow: callflowService.toJson(),
+        key.calendarServer: calendarServer.toJson(),
+        key.cdr: cdrServer.toJson(),
+        key.contactServer: contactServer.toJson(),
+        key.configServer: configServer.toJson(),
+        key.dialplanServer: dialplanServer.toJson(),
+        key.messageDispatcher: messageDispatcher.toJson(),
+        key.messageServer: messageServer.toJson(),
+        key.notificationServer: notificationServer.toJson()
+      });
 }
+
+class _ModifiableConfiguration implements Configuration {
+  EslConfig esl;
+
+  CallFlowControl callflowService;
+  SmtpConfig smtp;
+
+  CdrServer cdrServer;
+  CalendarServer calendarServer;
+  ConfigServer configServer;
+  ContactServer contactServer;
+  DialplanServer dialplanServer;
+  MessageServer messageServer;
+  MessageDispatcher messageDispatcher;
+  NotificationServer notificationServer;
+  AuthServer authServer;
+
+  /// A list of telephone numbers that identify this system.
+  List<String> myIdentifiers = const [];
+
+  /// Whether or not to hide the caller telephone number.
+  bool hideInboundCallerId = true;
+  String externalHostname;
+
+  /// May be 'en' or 'da'
+  String systemLanguage = 'en';
+  String filestorePath;
+  bool experimentalRevisioning = false;
+}
+
+dynamic _coalesce(Iterable<dynamic> values) =>
+    values.firstWhere((value) => value != null);
+
+String authServerUri(Configuration config) =>
+    'http://${config.externalHostname}:${config.authServer.port}';
+
+String notificationServerUri(Configuration config) =>
+    'http://${config.externalHostname}:${config.notificationServer.port}';
