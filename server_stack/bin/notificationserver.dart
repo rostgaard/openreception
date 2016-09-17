@@ -25,8 +25,8 @@ import 'package:ors/router/router-notification.dart' as router;
 
 Future main(List<String> args) async {
   ///Init logging. Inherit standard values.
-  Logger.root.level = config.notificationServer.log.level;
-  Logger.root.onRecord.listen(config.notificationServer.log.onRecord);
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen(print);
 
   Logger log = new Logger('NotificationServer');
   ArgParser parser = new ArgParser()

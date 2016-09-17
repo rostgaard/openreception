@@ -20,7 +20,7 @@ import 'package:logging/logging.dart';
 import 'package:orf/model.dart' as model;
 import 'package:orf/service-io.dart' as service;
 import 'package:orf/storage.dart' as storage;
-import 'package:ors/configuration.dart' as conf;
+import 'package:orf/configuration.dart' as conf;
 import 'package:orf/exceptions.dart';
 import 'package:ors/googleauth.dart';
 import 'package:ors/response_utils.dart';
@@ -33,12 +33,16 @@ class Authentication {
   final Logger _log = new Logger('server.controller.authentication');
 
   final TokenVault _vault;
-  final conf.AuthServer _config;
+  final conf.Configuration _config;
   final storage.User _userStore;
 
-  service.Client httpClient = new service.Client();
+  final service.Client _httpClient = new service.Client();
 
   Authentication(this._config, this._userStore, this._vault);
+
+  String get redirectUri =>
+      'http://${_config.externalHostname}:${_config.authServer.port}'
+      '/token/oauth2callback';
 
   /**
    *
@@ -134,7 +138,7 @@ class Authentication {
     //Now we have the "code" which will be exchanged to a token.
     Map json;
     try {
-      final String response = await httpClient.postForm(
+      final String response = await _httpClient.postForm(
           tokenEndpoint, postBody as Map<String, dynamic>);
       json = JSON.decode(response);
     } catch (error) {
@@ -233,7 +237,7 @@ class Authentication {
         'grant_type': 'refresh_token'
       };
 
-      final String response = await httpClient.post(url, JSON.encode(body));
+      final String response = await _httpClient.post(url, JSON.encode(body));
 
       return new shelf.Response.ok(
           'BODY \n ==== \n${JSON.encode(body)} \n\n RESPONSE '

@@ -46,9 +46,19 @@ void main(List<String> args) {
   ArgParser parser = new ArgParser()
     ..addFlag('help', abbr: 'h', help: 'Output this help', negatable: false)
     ..addOption('filestore', abbr: 'f', help: 'Path to the filestore backend')
-    ..addOption('httpport',
-        help: 'The port the HTTP server listens on.',
-        defaultsTo: config.messageDispatcher.httpPort.toString());
+    ..addOption('port',
+        abbr: 'p',
+        defaultsTo: config.messageServer.httpPort.toString(),
+        help: 'The port the HTTP server listens on.')
+    ..addOption('host',
+        defaultsTo: config.messageServer.externalHostName,
+        help: 'The hostname or IP listen-address for the HTTP server')
+    ..addOption('auth-uri',
+        defaultsTo: config.authServer.externalUri.toString(),
+        help: 'The uri of the authentication server')
+    ..addOption('notification-uri',
+        defaultsTo: config.notificationServer.externalUri.toString(),
+        help: 'The uri of the notification server');
 
   ArgResults parsedArgs = parser.parse(args);
 

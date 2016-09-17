@@ -19,7 +19,7 @@ import 'dart:io' as io;
 import 'package:logging/logging.dart';
 import 'package:orf/exceptions.dart';
 import 'package:orf/service.dart' as service;
-import 'package:ors/configuration.dart';
+import 'package:orf/configuration.dart';
 import 'package:ors/controller/controller-calendar.dart' as controller;
 import 'package:ors/response_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -83,8 +83,7 @@ class Calendar {
   /**
    *
    */
-  Future<io.HttpServer> listen(
-      {String hostname: '0.0.0.0', int port: 4110}) async {
+  Future<io.HttpServer> listen(Configuration config) async {
     /**
      * Authentication middleware.
      */
@@ -98,15 +97,17 @@ class Calendar {
         .addMiddleware(
             shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(checkAuthentication)
-        .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
+        //.addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);
 
     _log.fine('Using server on ${_authService.host} as authentication backend');
     _log.fine('Using server on ${_notification.host} as notification backend');
-    _log.fine('Accepting incoming REST requests on http://$hostname:$port');
+    _log.fine('Accepting incoming REST requests on '
+        'http://${config.externalHostname}:${config.calendarServer.port}');
     _log.fine('Serving routes:');
     shelf_route.printRoutes(router, printer: (String item) => _log.fine(item));
 
-    return await shelf_io.serve(handler, hostname, port);
+    return await shelf_io.serve(
+        handler, config.externalHostname, config.calendarServer.port);
   }
 }

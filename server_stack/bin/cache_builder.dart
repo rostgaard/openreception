@@ -26,6 +26,7 @@ import 'package:orf/filestore.dart' as filestore;
 import 'package:orf/gzip_cache.dart' as gzip_cache;
 import 'package:orf/model.dart' as model;
 import 'package:ors/configuration.dart';
+import 'package:orf/configuration.dart';
 import 'package:ors/model.dart' as model;
 
 ArgResults _parsedArgs;
@@ -35,7 +36,7 @@ Logger _log = new Logger('cache_server');
 Future main(List<String> args) async {
   ///Init logging.
   Logger.root.level = Level.INFO;
-  Logger.root.onRecord.listen(config.calendarServer.log.onRecord);
+  Logger.root.onRecord.listen(print);
 
   /// Code block that may be used by a caching service to respond to
   /// datastore changes.
@@ -53,9 +54,7 @@ Future main(List<String> args) async {
   ArgParser parser = new ArgParser()
     ..addFlag('help', help: 'Output this help', negatable: false)
     ..addOption('filestore', abbr: 'f', help: 'Path to the filestore directory')
-    ..addOption('notification-uri',
-        defaultsTo: config.notificationServer.externalUri.toString(),
-        help: 'The uri of the notification server');
+    ..addOption('notification-uri', help: 'The uri of the notification server');
 
   ArgResults parsedArgs = parser.parse(args);
 

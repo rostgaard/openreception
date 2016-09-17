@@ -16,6 +16,7 @@ library ors.authentication;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
@@ -23,45 +24,40 @@ import 'package:ors/router/router-authentication.dart' as router;
 import 'package:ors/token_watcher.dart' as watcher;
 import 'package:ors/token_vault.dart';
 import 'package:ors/configuration.dart';
+import 'package:orf/configuration.dart' as conf;
 
 Future main(List<String> args) async {
   //Init logging.
-  Logger.root.level = config.authServer.log.level;
-  Logger.root.onRecord.listen(config.authServer.log.onRecord);
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen(print);
   final Logger log = new Logger('authserver');
 
   //Handle argument parsing.
-  final ArgParser parser = new ArgParser()
-    ..addFlag('help', help: 'Output this help', negatable: false)
-    ..addOption('filestore', abbr: 'f', help: 'Path to the filestore backend')
-    ..addOption('httpport',
-        abbr: 'p',
-        defaultsTo: config.authServer.httpPort.toString(),
-        help: 'The port the HTTP server listens on.')
-    ..addOption('host',
-        abbr: 'h',
-        defaultsTo: config.authServer.externalHostName,
-        help: 'The hostname or IP listen-address for the HTTP server')
-    ..addOption('servertokendir',
-        abbr: 'd',
-        help: 'Load predefined tokens from this path.',
-        defaultsTo: config.authServer.serverTokendir);
+  final ArgParser parser = conf.authServerArgParser();
 
   final ArgResults parsedArgs = parser.parse(args);
+  final List<String> configFilePaths = parsedArgs['config-file'] != null
+      ? [parsedArgs['config-file']]
+      : defaultConfigPaths;
+
+  Map loadedConf = loadConfig(paths: configFilePaths);
+  Map mergedConf = conf.mergeAuthArgResults(parsedArgs, loadedConf);
 
   if (parsedArgs['help']) {
     print(parser.usage);
     exit(1);
   }
 
-  if (parsedArgs['filestore'] == null) {
+  final config = new conf.Configuration.fromJson(mergedConf);
+
+  if (config.filestorePath.isEmpty) {
     print('Filestore path is required');
     print(parser.usage);
     exit(1);
   }
 
   watcher.setup();
-  await vault.loadFromDirectory(parsedArgs['servertokendir']);
+  await vault.loadFromDirectory(config.authServer.tokenDir);
 
   // Install "reload-token" mechanism.
   ProcessSignal.SIGHUP.watch().listen((_) async {
@@ -70,9 +66,6 @@ Future main(List<String> args) async {
     log.info('Reloaded tokens from disk');
   });
 
-  await (new router.Authentication()).start(
-      hostname: parsedArgs['host'],
-      port: int.parse(parsedArgs['httpport']),
-      filepath: parsedArgs['filestore']);
+  await (new router.Authentication()).start(config);
   log.info('Ready to handle requests');
 }

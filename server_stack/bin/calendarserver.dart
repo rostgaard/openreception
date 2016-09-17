@@ -26,7 +26,10 @@ import 'package:orf/gzip_cache.dart' as gzip_cache;
 import 'package:orf/service-io.dart' as service;
 import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
+import 'package:orf/configuration.dart';
+
 import 'package:ors/controller/controller-calendar.dart' as controller;
+
 import 'package:ors/router/router-calendar.dart' as router;
 
 ArgResults _parsedArgs;
@@ -34,82 +37,57 @@ ArgParser _parser = new ArgParser();
 
 Future main(List<String> args) async {
   ///Init logging.
-  Logger.root.level = config.calendarServer.log.level;
-  Logger.root.onRecord.listen(config.calendarServer.log.onRecord);
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen(print);
   Logger log = new Logger('calendarserver');
 
-  ///Handle argument parsing.
-  ArgParser parser = new ArgParser()
-    ..addFlag('help', help: 'Output this help', negatable: false)
-    ..addOption('filestore', abbr: 'f', help: 'Path to the filestore backend')
-    ..addOption('httpport',
-        abbr: 'p',
-        defaultsTo: config.calendarServer.httpPort.toString(),
-        help: 'The port the HTTP server listens on.')
-    ..addOption('host',
-        defaultsTo: config.calendarServer.externalHostName,
-        help: 'The hostname or IP listen-address for the HTTP server')
-    ..addOption('auth-uri',
-        defaultsTo: config.authServer.externalUri.toString(),
-        help: 'The uri of the authentication server')
-    ..addOption('notification-uri',
-        defaultsTo: config.notificationServer.externalUri.toString(),
-        help: 'The uri of the notification server')
-    ..addFlag('experimental-revisioning',
-        defaultsTo: false,
-        help: 'Enable or disable experimental Git revisioning on this server');
+  //Handle argument parsing.
+  final ArgParser parser = calendarServerArgParser();
 
-  ArgResults parsedArgs = parser.parse(args);
+  final ArgResults parsed = parser.parse(args);
+  final List<String> configFilePaths = parsed['config-file'] != null
+      ? [parsed['config-file']]
+      : defaultConfigPaths;
 
-  if (parsedArgs['help']) {
+  Map loadedConf = loadConfig(paths: configFilePaths);
+  Map mergedConf = mergeConfigArgResults(parsed, loadedConf);
+
+  if (parsed['help']) {
     print(parser.usage);
     exit(1);
   }
 
-  final String filepath = parsedArgs['filestore'];
-  if (filepath == null || filepath.isEmpty) {
+  final config = new Configuration.fromJson(mergedConf);
+
+  if (config.filestorePath.isEmpty) {
     stderr.writeln('Filestore path is required');
     print('');
     print(parser.usage);
     exit(1);
   }
 
-  int port;
-  try {
-    port = int.parse(parsedArgs['httpport']);
-    if (port < 1 || port > 65535) {
-      throw new FormatException();
-    }
-  } on FormatException {
-    stderr.writeln('Bad port argument: ${parsedArgs['httpport']}');
-    print('');
-    print(parser.usage);
-    exit(1);
-  }
-
-  final bool revisioning = parsedArgs['experimental-revisioning'];
-
-  filestore.GitEngine contactRevisionEngine = revisioning
-      ? new filestore.GitEngine(parsedArgs['filestore'] + '/contact')
+  filestore.GitEngine contactRevisionEngine = config.experimentalRevisioning
+      ? new filestore.GitEngine(config.filestorePath + '/contact')
       : null;
-  filestore.GitEngine receptionRevisionEngine = revisioning
-      ? new filestore.GitEngine(parsedArgs['filestore'] + '/reception')
+
+  filestore.GitEngine receptionRevisionEngine = config.experimentalRevisioning
+      ? new filestore.GitEngine(config.filestorePath + '/reception')
       : null;
 
   final service.Authentication _authentication = new service.Authentication(
-      Uri.parse(parsedArgs['auth-uri']),
-      config.calendarServer.serverToken,
+      Uri.parse(authServerUri(config)),
+      config.serverToken,
       new service.Client());
 
   final service.NotificationService _notification =
-      new service.NotificationService(Uri.parse(parsedArgs['notification-uri']),
-          config.calendarServer.serverToken, new service.Client());
+      new service.NotificationService(Uri.parse(notificationServerUri(config)),
+          config.serverToken, new service.Client());
 
   final filestore.Reception rStore = new filestore.Reception(
-      parsedArgs['filestore'] + '/reception', receptionRevisionEngine);
+      config.filestorePath + '/reception', receptionRevisionEngine);
 
   final filestore.Contact cStore = new filestore.Contact(
-      rStore, parsedArgs['filestore'] + '/contact', contactRevisionEngine);
+      rStore, config.filestorePath + '/contact', contactRevisionEngine);
 
   final controller.Calendar _calendarController = new controller.Calendar(
       cStore,
@@ -124,7 +102,7 @@ Future main(List<String> args) async {
   final router.Calendar calendarRouter =
       new router.Calendar(_authentication, _notification, _calendarController);
 
-  await calendarRouter.listen(port: port, hostname: parsedArgs['host']);
+  await calendarRouter.listen(config);
 
   log.info('Ready to handle requests');
 }

@@ -39,7 +39,6 @@ Future main(List<String> args) async {
         defaultsTo: config.messageServer.httpPort.toString(),
         help: 'The port the HTTP server listens on.')
     ..addOption('host',
-        abbr: 'h',
         defaultsTo: config.messageServer.externalHostName,
         help: 'The hostname or IP listen-address for the HTTP server')
     ..addOption('auth-uri',
