@@ -88,7 +88,6 @@ void main() {
   } else {
     Logger.root.level = Level.OFF;
   }
-  Logger.root.onRecord.listen((LogRecord record) => print(record.toString()));
   Logger.root.onRecord.listen(logMessage);
 
   /*
@@ -120,5 +119,11 @@ void main() {
    */
   group('post-test cleanup', () {
     test('finalize test environment', () => new TestEnvironment().finalize());
+  });
+
+  ProcessSignal.SIGINT.watch().listen((_) async {
+    await new TestEnvironment().finalize();
+
+    exit(0);
   });
 }

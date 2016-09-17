@@ -94,6 +94,8 @@ Future main(args) async {
   final calendarserver = env.requestCalendarserverProcess();
   final contactserver = env.requestContactserverProcess();
   final messageserver = env.requestMessageserverProcess();
+  final messagedispatcher = env.requestMessagedispatcherProcess();
+
   final receptionserver = env.requestReceptionserverProcess();
   final userserver = env.requestUserserverProcess();
   final configserver = env.requestConfigServerProcess();
@@ -105,7 +107,7 @@ Future main(args) async {
   configClient.register(
       service.ServerType.calendar, (await calendarserver).uri);
   configClient.register(service.ServerType.callflow, (await callflow).uri);
-  //configClient.register(key.cdr, cdrserver.uri);
+  //configClient.register(service.ServerType.messageDispatcher, messagedispatcher.uri);
   configClient.register(service.ServerType.contact, (await contactserver).uri);
   configClient.register(
       service.ServerType.dialplan, (await dialplanserver).uri);

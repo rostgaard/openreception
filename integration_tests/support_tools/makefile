@@ -1,10 +1,10 @@
 #export TARGET_NAME := x86_64-unknown-linux-gnu
 export LIB_DIR := "$(PWD)/build"
 
-PJVERSION=2.4
+PJVERSION=2.5.5
 
 PJBASE=$(PWD)/pjproject-${PJVERSION}
-PJOPTS=--enable-static  --enable-sound
+PJOPTS=--enable-static  --disable-sound
 -include $(PJBASE)/build.mak
 
 CC      = $(APP_CC)
@@ -50,6 +50,12 @@ pjproject-2.4: pjproject-2.4.5.tar.bz2
 	-ln -s pjproject-2.4.5 pjproject-2.4
 	touch $@
 
+pjproject-2.5.5: pjproject-2.5.5.tar.bz2
+	tar xf pjproject-2.5.5.tar.bz2
+	-ln -s pjproject-2.5.5 pjproject-2.4
+	touch $@
+
+
 pjlibs: pjproject-${PJVERSION} pjproject-${PJVERSION}/pjlib/include/pj/config_site.h
 	-mkdir $(LIB_DIR)
 	(cd pjproject-${PJVERSION}; ./configure --prefix=$(LIB_DIR) ${PJOPTS}  && make lib && make && make install)	
@@ -59,12 +65,12 @@ pjproject-2.1.tar.bz2:
 	wget http://www.pjsip.org/release/2.1/$@
 	touch $@
 
-pjproject-2.4.5.tar.bz2:
-	wget http://www.pjsip.org/release/2.4.5/pjproject-2.4.5.tar.bz2
+pjproject-2.5.5.tar.bz2:
+	wget http://pjsip.org/release/2.5.5/pjproject-2.5.5.tar.bz2
 	touch $@
 
 deps_install: pjlibs
-	(cd pjproject-2.4; make install);
+	(cd pjproject-2.5.5; make install);
 	touch $@
 
 .PHONY:  basic_agent

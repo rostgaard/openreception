@@ -84,11 +84,9 @@ class TestEnvironment {
   process.DialplanServer _dialplanProcess;
   process.ConfigServer _configProcess;
   process.CdrServer _cdrProcess;
-
   process.MessageDispatcher _messageDispatcher;
   process.MessageServer _messageProcess;
   process.NotificationServer _notificationProcess;
-
   process.ReceptionServer _receptionServer;
   process.UserServer _userServer;
 
@@ -176,6 +174,25 @@ class TestEnvironment {
     await _contactServer.whenReady;
 
     return _contactServer;
+  }
+
+  /**
+   *
+   */
+  Future<process.MessageDispatcher> requestMessagedispatcherProcess(
+      {bool withRevisioning: false}) async {
+    if (_messageDispatcher == null) {
+      _messageDispatcher = new process.MessageDispatcher(
+          config.serverStackPath, runpath.path,
+          bindAddress: envConfig.externalIp,
+          servicePort: nextNetworkport,
+          authUri: (await requestAuthserverProcess()).uri,
+          notificationUri: (await requestNotificationserverProcess()).uri);
+    }
+
+    await _messageDispatcher.whenReady;
+
+    return _messageDispatcher;
   }
 
   /**
@@ -582,6 +599,11 @@ class TestEnvironment {
       _log.info('Shutting down message server process $_messageProcess');
       await _messageProcess.terminate();
       _messageProcess = null;
+    }
+    if (_messageDispatcher != null) {
+      _log.info('Shutting down message dispatcher process $_messageDispatcher');
+      await _messageDispatcher.terminate();
+      _messageDispatcher = null;
     }
 
     if (_configProcess != null) {

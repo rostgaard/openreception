@@ -35,7 +35,7 @@ class MessageDispatcher implements ServiceProcess {
       '$path/bin/messagedispatcher.dart',
       '--filestore',
       storePath,
-      '--httpport',
+      '--port',
       servicePort.toString(),
       '--host',
       bindAddress

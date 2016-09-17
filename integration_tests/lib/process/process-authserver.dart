@@ -40,6 +40,7 @@ class AuthServer implements ServiceProcess {
 
     await _writeTokens();
     final arguments = [
+      '--checked',
       '$path/bin/authserver.dart',
       '-d',
       tokenDir.dir.absolute.path,
