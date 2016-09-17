@@ -225,14 +225,4 @@ class Call {
         key.arrivalTime: util.dateTimeToUnixTimestamp(arrived),
         key.answeredAt: util.dateTimeToUnixTimestamp(answeredAt)
       };
-
-  /// Validate call-id.
-  ///
-  /// Note: Should really be moved to validation library.
-  @deprecated
-  static void validateID(String callId) {
-    if (callId == null || callId.isEmpty) {
-      throw new FormatException('Invalid CallId: $callId');
-    }
-  }
 }

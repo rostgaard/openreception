@@ -433,3 +433,17 @@ List<ValidationException> validateOpeningHour(OpeningHour oh) {
   }
   return errors;
 }
+
+/// Validate call-id.
+void validateCallId(String callId) {
+  if (callId == null || callId.isEmpty) {
+    throw new ValidationException('Invalid CallId: $callId');
+  }
+}
+
+/// Validates a network [port].
+void validateNetworkport(int port) {
+  if (port < 1 || port > 65536) {
+    throw new ValidationException('Invalid network port: $port');
+  }
+}

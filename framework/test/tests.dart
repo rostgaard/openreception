@@ -13,50 +13,24 @@
 
 library orf.test;
 
-import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:logging/logging.dart';
 import 'package:orf/bus.dart';
+import 'package:orf/dialplan_tools.dart' as dpTools;
 import 'package:orf/event.dart' as event;
 import 'package:orf/model.dart' as model;
 import 'package:orf/resource.dart' as resource;
-import 'package:orf/dialplan_tools.dart' as dpTools;
-
-//import '../lib/service.dart'  as Service;
-
-import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
+import 'src/log_setup.dart';
 
 part 'src/bus.dart';
-part 'src/model/model-agent_history.dart';
-part 'src/model/model-base_contact.dart';
-part 'src/model/model-calendar_entry.dart';
-part 'src/model/model-calendar_entry_change.dart';
-part 'src/model/model-call.dart';
-part 'src/model/model-caller_info.dart';
-//part 'src/model-channel.dart';
-part 'src/model/model-client_configuration.dart';
-part 'src/model/model-client_connection.dart';
-part 'src/model/model-reception_attributes.dart';
-//part 'src/model-contact_filter.dart';
-part 'src/model/model-message.dart';
-part 'src/model/model-message_context.dart';
-//part 'src/model-message_header.dart';
-part 'src/model/model-message_endpoint.dart';
-part 'src/model/model-message_filter.dart';
-part 'src/model/model-message_queue_entry.dart';
-part 'src/model/model-organization.dart';
-//part 'src/model-peer.dart';
-part 'src/model/model-peer_account.dart';
-part 'src/model/model-phone_number.dart';
-part 'src/model/model-reception.dart';
-//part 'src/model-template.dart';
-//part 'src/model-template_email.dart';
-part 'src/model/model-user.dart';
-part 'src/model/model-user_status.dart';
-
+part 'src/dialplan_tools.dart';
+part 'src/event-calendar_change.dart';
+part 'src/event-message_change.dart';
+part 'src/event.dart';
 part 'src/model/dialplan/model-action.dart';
 part 'src/model/dialplan/model-enqueue.dart';
 part 'src/model/dialplan/model-hour_action.dart';
@@ -71,7 +45,26 @@ part 'src/model/dialplan/model-reception_transfer.dart';
 part 'src/model/dialplan/model-ring_tone.dart';
 part 'src/model/dialplan/model-transfer.dart';
 part 'src/model/dialplan/model-voicemail.dart';
-
+part 'src/model/model-agent_history.dart';
+part 'src/model/model-base_contact.dart';
+part 'src/model/model-calendar_entry.dart';
+part 'src/model/model-calendar_entry_change.dart';
+part 'src/model/model-call.dart';
+part 'src/model/model-caller_info.dart';
+part 'src/model/model-client_configuration.dart';
+part 'src/model/model-client_connection.dart';
+part 'src/model/model-message.dart';
+part 'src/model/model-message_context.dart';
+part 'src/model/model-message_endpoint.dart';
+part 'src/model/model-message_filter.dart';
+part 'src/model/model-message_queue_entry.dart';
+part 'src/model/model-organization.dart';
+part 'src/model/model-peer_account.dart';
+part 'src/model/model-phone_number.dart';
+part 'src/model/model-reception.dart';
+part 'src/model/model-reception_attributes.dart';
+part 'src/model/model-user.dart';
+part 'src/model/model-user_status.dart';
 part 'src/resource/resource-authentication.dart';
 part 'src/resource/resource-calendar.dart';
 part 'src/resource/resource-call_flow_control.dart';
@@ -83,64 +76,16 @@ part 'src/resource/resource-message.dart';
 part 'src/resource/resource-notification.dart';
 part 'src/resource/resource-organization.dart';
 part 'src/resource/resource-reception.dart';
-
-part 'src/dialplan_tools.dart';
-part 'src/event.dart';
-part 'src/event-calendar_change.dart';
-part 'src/event-message_change.dart';
+//import '../lib/service.dart'  as Service;
+//part 'src/model-channel.dart';
+//part 'src/model-contact_filter.dart';
+//part 'src/model-message_header.dart';
+//part 'src/model-peer.dart';
+//part 'src/model-template.dart';
+//part 'src/model-template_email.dart';
 
 void main() {
-  Map<String, String> env = Platform.environment;
-
-  if (env.containsKey('LOGLEVEL')) {
-    switch (env['LOGLEVEL']) {
-      case 'ALL':
-        Logger.root.level = Level.ALL;
-        break;
-
-      case 'FINEST':
-        Logger.root.level = Level.FINEST;
-        break;
-
-      case 'FINER':
-        Logger.root.level = Level.FINER;
-        break;
-
-      case 'FINE':
-        Logger.root.level = Level.FINE;
-        break;
-
-      case 'CONFIG':
-        Logger.root.level = Level.CONFIG;
-        break;
-
-      case 'INFO':
-        Logger.root.level = Level.INFO;
-        break;
-
-      case 'WARNING':
-        Logger.root.level = Level.WARNING;
-        break;
-
-      case 'SEVERE':
-        Logger.root.level = Level.SEVERE;
-        break;
-
-      case 'SHOUT':
-        Logger.root.level = Level.SHOUT;
-        break;
-
-      case 'OFF':
-        Logger.root.level = Level.OFF;
-        break;
-      default:
-        Logger.root.level = Level.OFF;
-        print('Warning: Bad loglevel value: ${env['LOGLEVEL']}');
-    }
-  } else {
-    Logger.root.level = Level.OFF;
-  }
-  Logger.root.onRecord.listen((LogRecord record) => print(record.toString()));
+  setupLogging();
 
   _testModelAction();
   _testModelEnqueue();
