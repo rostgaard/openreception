@@ -612,36 +612,46 @@ abstract class Randomizer {
    *
    * The returned object is does not have a valid ID, nor organizationID.
    */
-  static model.Reception randomReception() => new model.Reception.empty()
-    ..dialplan = randomPhoneNumber()
-    ..addresses =
-        new List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
-    ..alternateNames =
-        new List.generate(rand.nextInt(3) + 1, (_) => randomCompany())
-    ..bankingInformation =
-        new List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
-    ..customerTypes =
-        new List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
-    ..emailAddresses =
-        new List.generate(rand.nextInt(3) + 1, (_) => randomEmail())
-    ..enabled = rand.nextBool()
-    ..name = randomCompany()
-    ..greeting = randomString(10)
-    ..handlingInstructions =
-        new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
-    ..openingHours = new List.generate(
-        rand.nextInt(3), (_) => randomOpeningHour().toString())
-    ..otherData = randomString(10)
-    ..product = randomString(10)
-    ..salesMarketingHandling =
-        new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
-    ..shortGreeting = randomString(10)
-    ..phoneNumbers =
-        new List.generate(rand.nextInt(3) + 1, (_) => randomPhone())
-    ..vatNumbers =
-        new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
-    ..websites = new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
-    ..oid = model.Organization.noId;
+  static model.Reception randomReception() {
+    final String name = randomCompany();
+    final String greeting = 'Welcome to $name, how may I help you?';
+
+    return new model.Reception.empty()
+      ..dialplan = randomPhoneNumber()
+      ..addresses =
+          new List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
+      ..alternateNames =
+          new List.generate(rand.nextInt(3) + 1, (_) => randomCompany())
+      ..bankingInformation =
+          new List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
+      ..customerTypes =
+          new List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
+      ..emailAddresses =
+          new List.generate(rand.nextInt(3) + 1, (_) => randomEmail())
+      ..enabled = rand.nextBool()
+      ..name = name
+      ..greeting = greeting
+      ..handlingInstructions =
+          new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
+              .toSet()
+              .toList()
+      ..openingHours = new List.generate(
+          rand.nextInt(3), (_) => randomOpeningHour().toString())
+      ..otherData = randomString(10)
+      ..product = randomString(10)
+      ..salesMarketingHandling =
+          new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
+              .toSet()
+              .toList()
+      ..shortGreeting = greeting
+      ..phoneNumbers =
+          new List.generate(rand.nextInt(3) + 1, (_) => randomPhone())
+      ..vatNumbers =
+          new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
+      ..websites =
+          new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
+      ..oid = model.Organization.noId;
+  }
 
   /**
    * Constructs and returns a [Message] object with random content.
