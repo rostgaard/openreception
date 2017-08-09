@@ -549,6 +549,9 @@ abstract class Randomizer {
     ..note = randomDialplanNote()
     ..destination = randomPhoneNumber();
 
+static String randomProduct() => randomChoice(const
+  ['Bubbles','Vaporware', 'Hot air', 'Useless products']);
+
   /**
    *
    */
@@ -637,8 +640,8 @@ abstract class Randomizer {
               .toList()
       ..openingHours = new List.generate(
           rand.nextInt(3), (_) => randomOpeningHour().toString())
-      ..otherData = randomString(10)
-      ..product = randomString(10)
+      ..otherData = randomProduct()
+      ..product = randomProduct()
       ..salesMarketingHandling =
           new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
               .toSet()
