@@ -12,7 +12,6 @@ dependencies:
   logging: any
   okeyee: any
   random_string: any
-  route_hierarchical: any
   stream_channel: any
   google_charts: any
   orf:
