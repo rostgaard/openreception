@@ -1,5 +1,5 @@
 name: orc
-version: 0.5.0
+version: 0.5.9
 description: A receptionist web-app.
 environment:
   sdk: '>=1.0.0 <2.0.0'

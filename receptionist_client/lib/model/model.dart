@@ -22,7 +22,7 @@ import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:okeyee/okeyee.dart' as okeyee;
 import 'package:orf/bus.dart';
-import 'package:orf/event.dart' as event;
+import 'package:orf/event.dart' as or_event;
 import 'package:orf/model.dart' as model;
 import 'package:orf/util.dart' as util;
 import 'package:orf/util_html.dart' as util_html;

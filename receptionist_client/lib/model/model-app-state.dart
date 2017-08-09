@@ -69,8 +69,8 @@ class AppClientState {
    * Setup listeners needed for this object.
    */
   void _observers() {
-    _notification.onAnyCallStateChange.listen((event.CallEvent event) {
-      final model.Call call = event.call;
+    _notification.onAnyCallStateChange.listen((or_event.CallEvent e) {
+      final model.Call call = e.call;
 
       if (call.assignedTo != currentUser.id) {
         return;

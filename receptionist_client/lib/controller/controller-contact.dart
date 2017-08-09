@@ -22,11 +22,11 @@ class Contact {
    * Constructor.
    */
   Contact(this._store, this._notification) {
-    _notification.onReceptionDataChange.listen((event.ReceptionData e) {
+    _notification.onReceptionDataChange.listen((or_event.ReceptionData e) {
       _rcCache.remove(e.rid);
     });
 
-    _notification.onContactChange.listen((event.ContactChange e) {
+    _notification.onContactChange.listen((or_event.ContactChange e) {
       if (e.isUpdate) {
         _rcCache.clear();
       }

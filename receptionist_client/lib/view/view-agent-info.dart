@@ -117,14 +117,14 @@ class AgentInfo extends ViewWidget {
     });
 
     _notification.onClientConnectionStateChange
-        .listen((event.ClientConnectionState state) {
+        .listen((or_event.ClientConnectionState state) {
       _userConnectionCount[state.conn.userID] = state.conn.connectionCount;
       _log.info('View.AgentInfo got '
           'Model.ClientConnectionState: ${state.toJson()}');
       _updateCounters();
     });
 
-    _notification.onPeerStateChange.listen((event.PeerState state) {
+    _notification.onPeerStateChange.listen((or_event.PeerState state) {
       _log.info('View.AgentInfo got OREvent.PeerState: ${state.toJson()}');
       _peerState[state.peer.name] = state.peer.registered;
       _updateCounters();

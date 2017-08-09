@@ -103,9 +103,9 @@ class ReceptionSelector extends ViewWidget {
     });
 
     _notification.onReceptionChange
-        .listen((event.ReceptionChange _) => _refreshReceptionsCache = true);
+        .listen((or_event.ReceptionChange _) => _refreshReceptionsCache = true);
 
-    _notification.onAnyCallStateChange.listen((event.CallEvent event) {
+    _notification.onAnyCallStateChange.listen((or_event.CallEvent event) {
       if (event.call.assignedTo == _appState.currentUser.id &&
           event.call.state == model.CallState.hungup) {
         _pickedUpCalls.removeWhere((model.Call c) => c.id == event.call.id);

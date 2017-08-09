@@ -19,7 +19,7 @@ import 'dart:html' as html;
 import 'package:logging/logging.dart';
 import 'package:okeyee/okeyee.dart';
 import 'package:orf/bus.dart';
-import 'package:orf/event.dart' as event;
+import 'package:orf/event.dart' as or_event;
 import 'package:orf/exceptions.dart';
 import 'package:orf/model.dart' as model;
 import 'package:orf/service.dart' as service;

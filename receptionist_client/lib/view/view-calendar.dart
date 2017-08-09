@@ -167,7 +167,7 @@ class Calendar extends ViewWidget {
    * Check if changes to the contact calendar matches the currently selected
    * contact, and update accordingly if so.
    */
-  void _updateOnChange(event.CalendarChange calendarChange) {
+  void _updateOnChange(or_event.CalendarChange calendarChange) {
     final model.ReceptionContact rc = _contactSelector.selectedContact;
     final model.ReceptionReference rr = _receptionSelector.selectedReception;
     int cid = model.BaseContact.noId;

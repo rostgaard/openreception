@@ -175,7 +175,7 @@ class MyCallQueue extends ViewWidget {
   /**
    * Add, remove, update the queue list, depending on the `call` state of [event].
    */
-  void _handleCallStateChanges(event.CallEvent event) {
+  void _handleCallStateChanges(or_event.CallEvent event) {
     if (event.call.assignedTo != _appState.currentUser.id) {
       return;
     }

@@ -67,13 +67,13 @@ class GlobalCallQueue extends ViewWidget {
    * Add, remove, update the queue list, depending on the state of `call`
    * carried in [event].
    */
-  void _handleCallStateChanges(event.CallEvent event) {
+  void _handleCallStateChanges(or_event.CallEvent event) {
     final model.Call call = event.call;
 
-    if (event is event.CallOffer) {
+    if (event is or_event.CallOffer) {
       _ui.appendCall(call);
       _pling();
-    } else if (event is event.CallHangup ||
+    } else if (event is or_event.CallHangup ||
         call.assignedTo != model.User.noId) {
       _ui.removeCall(call);
     } else if (call.inbound) {

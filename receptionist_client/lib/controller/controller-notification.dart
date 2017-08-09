@@ -18,18 +18,18 @@ part of orc.controller;
  */
 class Notification {
   Bus<model.UserStatus> _agentStateChangeBus = new Bus<model.UserStatus>();
-  Bus<event.CalendarChange> _calendarChangeBus =
-      new Bus<event.CalendarChange>();
-  Bus<event.CallEvent> _callStateChangeBus = new Bus<event.CallEvent>();
-  Bus<event.ClientConnectionState> _clientConnectionStateBus =
-      new Bus<event.ClientConnectionState>();
+  Bus<or_event.CalendarChange> _calendarChangeBus =
+      new Bus<or_event.CalendarChange>();
+  Bus<or_event.CallEvent> _callStateChangeBus = new Bus<or_event.CallEvent>();
+  Bus<or_event.ClientConnectionState> _clientConnectionStateBus =
+      new Bus<or_event.ClientConnectionState>();
   final Logger _log = new Logger('$libraryName.Notification');
-  Bus<event.PeerState> _peerStateChangeBus = new Bus<event.PeerState>();
-  Bus<event.ReceptionChange> _receptionChangeBus =
-      new Bus<event.ReceptionChange>();
-  Bus<event.ContactChange> _contactChangeBus = new Bus<event.ContactChange>();
-  Bus<event.ReceptionData> _receptionDataChangeBus =
-      new Bus<event.ReceptionData>();
+  Bus<or_event.PeerState> _peerStateChangeBus = new Bus<or_event.PeerState>();
+  Bus<or_event.ReceptionChange> _receptionChangeBus =
+      new Bus<or_event.ReceptionChange>();
+  Bus<or_event.ContactChange> _contactChangeBus = new Bus<or_event.ContactChange>();
+  Bus<or_event.ReceptionData> _receptionDataChangeBus =
+      new Bus<or_event.ReceptionData>();
 
   final service.NotificationService _service;
   final service.NotificationSocket _socket;
@@ -51,47 +51,47 @@ class Notification {
   /**
    * Handle the [OREvent.CalendarChange] [event].
    */
-  void _calendarChange(event.CalendarChange event) {
+  void _calendarChange(or_event.CalendarChange event) {
     _calendarChangeBus.fire(event);
   }
 
   /**
    * Handle the [OREvent.CallEvent] [event].
    */
-  void _callEvent(event.CallEvent event) {
+  void _callEvent(or_event.CallEvent event) {
     _callStateChangeBus.fire(event);
   }
 
   /**
    * Handle the [OREvent.ClientConnectionState] [event].
    */
-  void _clientConnectionState(event.ClientConnectionState event) {
+  void _clientConnectionState(or_event.ClientConnectionState event) {
     _clientConnectionStateBus.fire(event);
   }
 
   /**
    * Fire [event] on relevant bus.
    */
-  void _dispatch(event.Event e) {
+  void _dispatch(or_event.Event e) {
     _log.finest(e.toJson());
 
-    if (e is event.CallEvent) {
+    if (e is or_event.CallEvent) {
       _callEvent(e);
-    } else if (e is event.CalendarChange) {
+    } else if (e is or_event.CalendarChange) {
       _calendarChange(e);
-    } else if (e is event.ClientConnectionState) {
+    } else if (e is or_event.ClientConnectionState) {
       _clientConnectionState(e);
-    } else if (e is event.MessageChange) {
+    } else if (e is or_event.MessageChange) {
       _messageChange(e);
-    } else if (e is event.UserState) {
+    } else if (e is or_event.UserState) {
       _userState(e);
-    } else if (e is event.PeerState) {
+    } else if (e is or_event.PeerState) {
       _peerStateChangeBus.fire(e);
-    } else if (e is event.ReceptionChange) {
+    } else if (e is or_event.ReceptionChange) {
       _receptionChangeBus.fire(e);
-    } else if (e is event.ReceptionData) {
+    } else if (e is or_event.ReceptionData) {
       _receptionDataChangeBus.fire(e);
-    } else if (e is event.ContactChange) {
+    } else if (e is or_event.ContactChange) {
       _contactChangeBus.fire(e);
     } else {
       _log.severe('Failed to dispatch event $e');
@@ -101,7 +101,7 @@ class Notification {
   /**
    * Handle the [OREvent.MessageChange] [event].
    */
-  void _messageChange(event.MessageChange event) {
+  void _messageChange(or_event.MessageChange event) {
     _log.info('Ignoring event $event');
   }
 
@@ -114,41 +114,41 @@ class Notification {
   /**
    * Call state change stream.
    */
-  Stream<event.CallEvent> get onAnyCallStateChange =>
+  Stream<or_event.CallEvent> get onAnyCallStateChange =>
       _callStateChangeBus.stream;
 
   /**
    * Calendar Event changes stream.
    */
-  Stream<event.CalendarChange> get onCalendarChange =>
+  Stream<or_event.CalendarChange> get onCalendarChange =>
       _calendarChangeBus.stream;
 
   /**
    * Client connection state change stream.
    */
-  Stream<event.ClientConnectionState> get onClientConnectionStateChange =>
+  Stream<or_event.ClientConnectionState> get onClientConnectionStateChange =>
       _clientConnectionStateBus.stream;
 
   /**
    * Agent state change stream.
    */
-  Stream<event.PeerState> get onPeerStateChange => _peerStateChangeBus.stream;
+  Stream<or_event.PeerState> get onPeerStateChange => _peerStateChangeBus.stream;
 
   /**
    * Reception change stream.
    */
-  Stream<event.ReceptionChange> get onReceptionChange =>
+  Stream<or_event.ReceptionChange> get onReceptionChange =>
       _receptionChangeBus.stream;
 
   /**
    * Contact change stream.
    */
-  Stream<event.ContactChange> get onContactChange => _contactChangeBus.stream;
+  Stream<or_event.ContactChange> get onContactChange => _contactChangeBus.stream;
 
   /**
    * ReceptionData change stream.
    */
-  Stream<event.ReceptionData> get onReceptionDataChange =>
+  Stream<or_event.ReceptionData> get onReceptionDataChange =>
       _receptionDataChangeBus.stream;
 
   /**
@@ -161,12 +161,12 @@ class Notification {
   /**
    * Handle the [OREvent.UserState] [event].
    */
-  void _userState(event.UserState event) {
+  void _userState(or_event.UserState event) {
     _agentStateChangeBus.fire(new model.UserStatus.fromJson(event.toJson()));
   }
 
   /**
    *
    */
-  Future notifySystem(event.Event e) => _service.send([0], e);
+  Future notifySystem(or_event.Event e) => _service.send([0], e);
 }
