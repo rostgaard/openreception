@@ -22,7 +22,7 @@ abstract class WebSocket {
 
   Future<WebSocket> connect(Uri path);
 
-  Future<Null> close();
+  Future<void> close();
 
   void checkResponseCode(int responseCode) {
     switch (responseCode) {
@@ -30,27 +30,27 @@ abstract class WebSocket {
         break;
 
       case 400:
-        throw new ClientError();
+        throw ClientError();
         break;
 
       case 401:
-        throw new NotAuthorized();
+        throw NotAuthorized();
         break;
 
       case 403:
-        throw new Forbidden();
+        throw Forbidden();
         break;
 
       case 404:
-        throw new NotFound();
+        throw NotFound();
         break;
 
       case 500:
-        throw new ServerError();
+        throw ServerError();
         break;
 
       default:
-        throw new StateError('Status ($responseCode):');
+        throw StateError('Status ($responseCode):');
     }
   }
 }

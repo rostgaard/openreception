@@ -26,7 +26,7 @@ abstract class _ModelPhoneNumber {
   static void serialization() {
     model.PhoneNumber builtObject = buildObject();
 
-    expect(() => JSON.encode(builtObject), returnsNormally);
+    expect(() => _json.encode(builtObject), returnsNormally);
   }
 
   /// Assert that no exceptions arise during a deserialization.
@@ -34,7 +34,7 @@ abstract class _ModelPhoneNumber {
     model.PhoneNumber built = buildObject();
 
     model.PhoneNumber decoded = new model.PhoneNumber.fromJson(
-        JSON.decode(JSON.encode(built)) as Map<String, dynamic>);
+        _json.decode(_json.encode(built)) as Map<String, dynamic>);
 
     expect(built.confidential, equals(decoded.confidential));
     expect(built.note, equals(decoded.note));

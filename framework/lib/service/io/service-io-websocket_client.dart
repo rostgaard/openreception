@@ -19,7 +19,7 @@ class WebSocketClient extends service.WebSocket {
   @override
   Future<service.WebSocket> connect(Uri path) async {
     if (_websocket != null && _websocket.closeCode != null) {
-      throw new StateError('WebSocket is already open. '
+      throw StateError('WebSocket is already open. '
           'Close it before opening.');
     }
     _websocket = await io.WebSocket.connect(path.toString());
@@ -29,5 +29,5 @@ class WebSocketClient extends service.WebSocket {
   }
 
   @override
-  Future<Null> close() => _websocket.close().then((_) => null);
+  Future<void> close() => _websocket.close().then((_) => null);
 }

@@ -61,10 +61,11 @@ class Reception {
         ..dialplan = receptionMap[key.dialplan];
 
       if (receptionMap[key.attributes] != null) {
-        attributes = receptionMap[key.attributes] as Map<String, dynamic>;
+        attributes = receptionMap[key.attributes];
       }
-    } catch (error) {
-      throw new ArgumentError('Invalid data in map');
+    } catch (error,s) {
+      print("$error  $s");
+      throw new ArgumentError('Invalid data in map' + receptionMap.toString());
     }
   }
 
@@ -107,23 +108,22 @@ class Reception {
         key.whenWhat: whenWhats.map((WhenWhat ww) => ww.toJson()).toList()
       };
 
-  set attributes(Map<String, dynamic> attributes) {
+  set attributes(Map<String, Object> attributes) {
     if (attributes.containsKey(key.whenWhat)) {
-      Iterable<dynamic> values = attributes[key.whenWhat];
+      List<Map<String, Object>> values = List.from(attributes[key.whenWhat]);
       whenWhats = values
-          .map((Map<String, dynamic> map) => new WhenWhat.fromJson(map))
+          .map((Map<String, Object> map) => new WhenWhat.fromJson(map))
           .toList();
     }
 
     this
-      ..addresses = attributes[key.addresses] as List<String>
-      ..alternateNames = attributes[key.alternateNames] as List<String>
-      ..bankingInformation = attributes[key.bankingInfo] as List<String>
-      ..customerTypes = attributes[key.customerTypes] as List<String>
-      ..emailAddresses = attributes[key.emailAdresses] as List<String>
+      ..addresses = List<String>.from(attributes[key.addresses])
+      ..alternateNames = List<String>.from(attributes[key.alternateNames])
+      ..bankingInformation = List<String>.from(attributes[key.bankingInfo])
+      ..customerTypes = List<String>.from(attributes[key.customerTypes])
+      ..emailAddresses = List<String>.from(attributes[key.emailAdresses])
       ..greeting = attributes[key.greeting] as String
-      ..handlingInstructions =
-          attributes[key.handlingInstructions] as List<String>
+      ..handlingInstructions = List<String>.from(attributes[key.handlingInstructions])
       ..miniWiki = attributes[key.miniWiki]
       ..phoneNumbers =
           (attributes[key.phoneNumbers] as Iterable<Map<String, dynamic>>)

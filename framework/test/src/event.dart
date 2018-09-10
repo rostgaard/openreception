@@ -13,6 +13,8 @@
 
 part of orf.test;
 
+const JsonCodec _json = const JsonCodec();
+
 void _testEvent() {
   group('Event.parse', () {
     test('contactChangeState', _EventTests.contactChangeState);
@@ -49,7 +51,7 @@ abstract class _EventTests {
         new event.OrganizationChange.create(oid, uid);
 
     event.OrganizationChange builtEvent = new event.Event.parse(
-        JSON.decode(JSON.encode(testEvent)) as Map<String, dynamic>);
+        _json.decode(_json.encode(testEvent)) as Map<String, dynamic>);
 
     expect(builtEvent.oid, equals(oid));
     expect(builtEvent.modifierUid, equals(uid));
@@ -98,7 +100,7 @@ abstract class _EventTests {
         new event.MessageChange.create(mid, uid, state, now);
 
     event.MessageChange builtEvent = new event.Event.parse(
-        JSON.decode(JSON.encode(testEvent)) as Map<String, dynamic>);
+        _json.decode(_json.encode(testEvent)) as Map<String, dynamic>);
 
     expect(builtEvent.mid, equals(mid));
     expect(builtEvent.modifierUid, equals(uid));
@@ -161,7 +163,7 @@ abstract class _EventTests {
     event.CallStateReload testEvent = new event.CallStateReload();
 
     event.Event builtEvent = new event.Event.parse(
-        JSON.decode(JSON.encode(testEvent)) as Map<String, dynamic>);
+        _json.decode(_json.encode(testEvent)) as Map<String, dynamic>);
 
     expect(
         builtEvent.timestamp
@@ -169,7 +171,7 @@ abstract class _EventTests {
             .inMilliseconds
             .abs(),
         lessThan(1000));
-    expect(builtEvent, new isInstanceOf<event.CallStateReload>());
+    expect(builtEvent, const TypeMatcher<event.CallStateReload>());
     expect(builtEvent.eventName, testEvent.eventName);
   }
 
@@ -188,7 +190,7 @@ abstract class _EventTests {
             .abs()
             .inMilliseconds,
         lessThan(1));
-    expect(builtEvent, new isInstanceOf<event.CallHangup>());
+    expect(builtEvent, const TypeMatcher<event.CallHangup>());
     expect(builtEvent.hangupCause, equals(testEvent.hangupCause));
     expect(builtEvent.eventName, testEvent.eventName);
   }

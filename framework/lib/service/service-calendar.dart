@@ -40,7 +40,10 @@ class RESTCalendarStore implements storage.Calendar {
         maps.map((Map<String, dynamic> map) =>
             new model.CalendarEntry.fromJson(map));
 
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    return this
+        ._backend
+        .get(url)
+        .then((final String s) => convertMaps(_json.decode(s)));
   }
 
   @override
@@ -48,7 +51,7 @@ class RESTCalendarStore implements storage.Calendar {
     Uri url = resource.Calendar.single(host, id, owner);
     url = _appendToken(url, this.token);
 
-    return this._backend.get(url).then(JSON.decode).then(
+    return this._backend.get(url).then(_json.decode).then(
         (Map<String, dynamic> map) => new model.CalendarEntry.fromJson(map));
   }
 
@@ -58,7 +61,7 @@ class RESTCalendarStore implements storage.Calendar {
     Uri url = resource.Calendar.ownerBase(host, owner);
     url = _appendToken(url, this.token);
 
-    return this._backend.post(url, JSON.encode(entry)).then(JSON.decode).then(
+    return this._backend.post(url, _json.encode(entry)).then(_json.decode).then(
         (Map<String, dynamic> map) => new model.CalendarEntry.fromJson(map));
   }
 
@@ -68,7 +71,7 @@ class RESTCalendarStore implements storage.Calendar {
     Uri url = resource.Calendar.single(host, entry.id, owner);
     url = _appendToken(url, this.token);
 
-    return _backend.put(url, JSON.encode(entry)).then(JSON.decode).then(
+    return _backend.put(url, _json.encode(entry)).then(_json.decode).then(
         (Map<String, dynamic> map) => new model.CalendarEntry.fromJson(map));
   }
 
@@ -88,7 +91,7 @@ class RESTCalendarStore implements storage.Calendar {
     Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
         maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
 
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    return this._backend.get(url).then(_json.decode).then(convertMaps);
   }
 
   Future<String> changelog(model.Owner owner) {

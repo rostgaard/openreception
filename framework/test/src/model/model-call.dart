@@ -35,7 +35,7 @@ abstract class _ModelCall {
   static void serialization() {
     model.Call builtObject = buildObject();
 
-    expect(() => JSON.encode(builtObject), returnsNormally);
+    expect(() => _json.encode(builtObject), returnsNormally);
   }
 
   /// Assert that the event stream actually spawns events.
@@ -50,7 +50,7 @@ abstract class _ModelCall {
 
     return new Future<Null>.delayed(new Duration(milliseconds: 20), () {
       expect(stateChanges.length, equals(initialStateChangeCount + 1));
-      expect(stateChanges.last, new isInstanceOf<event.Event>());
+      expect(stateChanges.last, const TypeMatcher<event.Event>());
     });
   }
 
@@ -69,8 +69,8 @@ abstract class _ModelCall {
     return new Future<Null>.delayed(new Duration(milliseconds: 20), () {
       expect(stateChanges.length, equals(initialStateChangeCount + 2));
       expect(stateChanges[stateChanges.length - 2],
-          new isInstanceOf<event.CallUnpark>());
-      expect(stateChanges.last, new isInstanceOf<event.CallHangup>());
+          const TypeMatcher<event.CallUnpark>());
+      expect(stateChanges.last, const TypeMatcher<event.CallHangup>());
     });
   }
 
@@ -90,8 +90,8 @@ abstract class _ModelCall {
     return new Future<Null>.delayed(new Duration(milliseconds: 20), () {
       expect(stateChanges.length, equals(initialStateChangeCount + 2));
       expect(stateChanges[stateChanges.length - 2],
-          new isInstanceOf<event.QueueLeave>());
-      expect(stateChanges.last, new isInstanceOf<event.CallHangup>());
+          const TypeMatcher<event.QueueLeave>());
+      expect(stateChanges.last, const TypeMatcher<event.CallHangup>());
     });
   }
 
@@ -166,9 +166,9 @@ abstract class _ModelCall {
   /// Asserts that no exceptions arise during serialization.
   static void deserialization() {
     model.Call builtCall = buildObject();
-    String serializedObject = JSON.encode(builtCall);
+    String serializedObject = _json.encode(builtCall);
     model.Call decodedCall = new model.Call.fromJson(
-        JSON.decode(serializedObject) as Map<String, dynamic>);
+        _json.decode(serializedObject) as Map<String, dynamic>);
 
     expect(builtCall.id, equals(decodedCall.id));
     expect(builtCall.arrived.difference(decodedCall.arrived).abs(),

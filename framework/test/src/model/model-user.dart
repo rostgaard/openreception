@@ -26,7 +26,7 @@ void _testModelUser() {
 abstract class _ModelUser {
   static void serialization() {
     model.User builtObject = buildObject();
-    String serializedString = JSON.encode(builtObject);
+    String serializedString = _json.encode(builtObject);
 
     expect(serializedString, isNotEmpty);
     expect(serializedString, isNotNull);
@@ -34,9 +34,9 @@ abstract class _ModelUser {
 
   static void deserialization() {
     model.User builtObject = buildObject();
-    String serializedString = JSON.encode(builtObject);
+    String serializedString = _json.encode(builtObject);
     model.User deserializedObject = new model.User.fromJson(
-        JSON.decode(serializedString) as Map<String, dynamic>);
+        _json.decode(serializedString) as Map<String, dynamic>);
 
     expect(builtObject.id, equals(deserializedObject.id));
     expect(builtObject.address, equals(deserializedObject.address));

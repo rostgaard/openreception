@@ -33,7 +33,7 @@ class PeerAccount {
     Uri url = resource.PeerAccount.single(host, accountName);
     url = _appendToken(url, token);
 
-    return _backend.get(url).then(JSON.decode).then(
+    return _backend.get(url).then(_json.decode).then(
         (Map<String, dynamic> map) => new model.PeerAccount.fromJson(map));
   }
 
@@ -43,7 +43,7 @@ class PeerAccount {
 
     return _backend
         .get(url)
-        .then(JSON.decode)
+        .then(_json.decode)
         .then((Iterable<String> value) => value);
   }
 
@@ -53,8 +53,8 @@ class PeerAccount {
     url = _appendToken(url, token);
 
     return _backend
-        .post(url, JSON.encode(account))
-        .then(JSON.decode)
+        .post(url, _json.encode(account))
+        .then(_json.decode)
         .then((Iterable<String> value) => value);
   }
 

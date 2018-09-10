@@ -187,7 +187,7 @@ class Organization implements storage.Organization {
 
     try {
       final model.Organization org = new model.Organization.fromJson(
-          JSON.decode(file.readAsStringSync()) as Map<String, dynamic>);
+          _json.decode(file.readAsStringSync()) as Map<String, dynamic>);
       return org;
     } catch (e) {
       throw e;
@@ -202,7 +202,7 @@ class Organization implements storage.Organization {
               _isDirectory(fse) &&
               new File(fse.path + '/organization.json').existsSync())
           .map((FileSystemEntity fse) => new model.Organization.fromJson(
-                  JSON.decode((new File(fse.path + '/organization.json'))
+                  _json.decode((new File(fse.path + '/organization.json'))
                       .readAsStringSync()) as Map<String, dynamic>)
               .reference);
 

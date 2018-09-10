@@ -203,7 +203,7 @@ class BaseContact {
   BaseContact.empty();
 
   /// Deserializing constructor.
-  BaseContact.fromJson(Map<String, dynamic> map)
+  BaseContact.fromJson(Map<String, Object> map)
       : id = map[key.id],
         name = map[key.name],
         type = map[key.contactType],

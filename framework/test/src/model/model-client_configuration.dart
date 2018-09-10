@@ -25,7 +25,7 @@ void _testModelClientConfiguration() {
 abstract class _ModelClientConfiguration {
   static void serialization() {
     model.ClientConfiguration builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -35,7 +35,7 @@ abstract class _ModelClientConfiguration {
     model.ClientConfiguration builtObject = buildObject();
     model.ClientConfiguration deserializedObject =
         new model.ClientConfiguration.fromJson(
-            JSON.decode(JSON.encode(builtObject)) as Map<String, dynamic>);
+            _json.decode(_json.encode(builtObject)) as Map<String, dynamic>);
 
     expect(builtObject.authServerUri, equals(deserializedObject.authServerUri));
     expect(builtObject.userServerUri, equals(deserializedObject.userServerUri));

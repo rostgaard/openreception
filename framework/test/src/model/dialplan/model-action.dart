@@ -116,6 +116,6 @@ abstract class _ModelAction {
 
   static void parseUndefined() {
     expect(() => model.Action.parse('wrong wrong (just wrong)'),
-        throwsA(new isInstanceOf<FormatException>()));
+        throwsA(const TypeMatcher<FormatException>()));
   }
 }

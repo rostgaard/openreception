@@ -27,7 +27,7 @@ void _testModelBaseContact() {
 abstract class _ModelBaseContact {
   static void serialization() {
     model.BaseContact builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -36,7 +36,7 @@ abstract class _ModelBaseContact {
   static void serializationDeserialization() {
     model.BaseContact builtObject = buildObject();
     model.BaseContact deserializedObject = new model.BaseContact.fromJson(
-        JSON.decode(JSON.encode(builtObject)) as Map<String, dynamic>);
+        _json.decode(_json.encode(builtObject)) as Map<String, dynamic>);
 
     expect(builtObject.id, equals(deserializedObject.id));
     expect(builtObject.enabled, equals(deserializedObject.enabled));

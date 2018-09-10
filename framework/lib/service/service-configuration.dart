@@ -94,7 +94,7 @@ class RESTConfiguration {
 
     return _backend.get(uri).then((String response) =>
         new model.ClientConfiguration.fromJson(
-            JSON.decode(response) as Map<String, dynamic>));
+            _json.decode(response) as Map<String, dynamic>));
   }
 
   ///Registers a server in the config server registry.
@@ -105,6 +105,6 @@ class RESTConfiguration {
       'uri': registerUri.toString()
     };
 
-    await _backend.post(uri, JSON.encode(body));
+    await _backend.post(uri, _json.encode(body));
   }
 }

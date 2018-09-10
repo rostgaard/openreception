@@ -26,9 +26,9 @@ abstract class _ModelUserStatus {
   /// Merely asserts that no exceptions arise during a deserialization.
   static void deserialization() {
     model.UserStatus built = buildObject();
-    String serializedObject = JSON.encode(built);
+    String serializedObject = _json.encode(built);
     model.UserStatus decoded = new model.UserStatus.fromJson(
-        JSON.decode(serializedObject) as Map<String, dynamic>);
+        _json.decode(serializedObject) as Map<String, dynamic>);
 
     expect(built.paused, equals(decoded.paused));
     expect(built.userId, equals(decoded.userId));
@@ -38,7 +38,7 @@ abstract class _ModelUserStatus {
 
   static void serialization() {
     model.UserStatus builtObject = buildObject();
-    String serializedString = JSON.encode(builtObject);
+    String serializedString = _json.encode(builtObject);
 
     expect(serializedString, isNotEmpty);
     expect(serializedString, isNotNull);

@@ -37,7 +37,7 @@ class Authentication {
     Uri uri = resource.Authentication.tokenToUser(this.host, token);
 
     return this._httpClient.get(uri).then((String response) =>
-        new model.User.fromJson(JSON.decode(response) as Map<String, dynamic>));
+        model.User.fromJson(_json.decode(response) as Map<String, dynamic>));
   }
 
   /// Validate [token]. Throws [NotFound] exception if the token is not

@@ -50,7 +50,7 @@ class NamedExtension implements Extension {
   NamedExtension(this.name, this.actions);
 
   /// Decode a [Map] into a new [NamedExtension] object.
-  factory NamedExtension.fromJson(Map<String, dynamic> map) {
+  factory NamedExtension.fromJson(Map<String, Object> map) {
     final Iterable<Action> actionIter =
         (map[key.actions] as Iterable<dynamic>).map(Action.parse);
 

@@ -27,27 +27,26 @@ abstract class Message {
   static Uri root(Uri host) =>
       Uri.parse('${util.removeTailingSlashes(host)}/$_ns');
 
-  static Uri list(Uri host, {model.MessageFilter filter: null}) {
+  static Uri list(Uri host, {model.MessageFilter filter}) {
     String filterParameter =
-        filter != null ? '?filter=${JSON.encode(filter)}' : '';
+        filter != null ? '?filter=${_json.encode(filter)}' : '';
 
-    return Uri
-        .parse('${util.removeTailingSlashes(host)}/$_ns/list$filterParameter');
+    return Uri.parse(
+        '${util.removeTailingSlashes(host)}/$_ns/list$filterParameter');
   }
 
-  static Uri listDay(Uri host, DateTime day,
-      {model.MessageFilter filter: null}) {
+  static Uri listDay(Uri host, DateTime day, {model.MessageFilter filter}) {
     final String filterParameter =
-        filter != null ? '?filter=${JSON.encode(filter)}' : '';
+        filter != null ? '?filter=${_json.encode(filter)}' : '';
 
     final String dateString = day.toIso8601String().split('T').first;
 
     return Uri.parse('$host/message/list/$dateString$filterParameter');
   }
 
-  static Uri listDrafts(Uri host, {model.MessageFilter filter: null}) {
+  static Uri listDrafts(Uri host, {model.MessageFilter filter}) {
     final String filterParameter =
-        filter != null ? '?filter=${JSON.encode(filter)}' : '';
+        filter != null ? '?filter=${_json.encode(filter)}' : '';
 
     return Uri.parse('$host/message/list/drafts$filterParameter');
   }

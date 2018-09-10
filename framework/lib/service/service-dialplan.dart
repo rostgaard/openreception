@@ -35,7 +35,7 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
     Uri url = resource.ReceptionDialplan.list(host);
     url = _appendToken(url, token);
 
-    return _backend.post(url, JSON.encode(rdp)).then(JSON.decode).then(
+    return _backend.post(url, _json.encode(rdp)).then(_json.decode).then(
         (Map<String, dynamic> map) =>
             new model.ReceptionDialplan.fromJson(map));
   }
@@ -45,7 +45,7 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
     Uri url = resource.ReceptionDialplan.single(host, extension);
     url = _appendToken(url, token);
 
-    return _backend.get(url).then(JSON.decode).then(
+    return _backend.get(url).then(_json.decode).then(
         (Map<String, dynamic> map) =>
             new model.ReceptionDialplan.fromJson(map));
   }
@@ -60,7 +60,7 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
         maps.map((Map<String, dynamic> map) =>
             new model.ReceptionDialplan.fromJson(map));
 
-    return _backend.get(url).then(JSON.decode).then(castMaps);
+    return _backend.get(url).then(_json.decode).then(castMaps);
   }
 
   @override
@@ -69,7 +69,7 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
     Uri url = resource.ReceptionDialplan.single(host, rdp.extension);
     url = _appendToken(url, token);
 
-    return _backend.put(url, JSON.encode(rdp)).then(JSON.decode).then(
+    return _backend.put(url, _json.encode(rdp)).then(_json.decode).then(
         (Map<String, dynamic> map) =>
             new model.ReceptionDialplan.fromJson(map));
   }
@@ -86,7 +86,7 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
     Uri url = resource.ReceptionDialplan.analyze(host, extension);
     url = _appendToken(url, token);
 
-    return await _backend.post(url, '').then(JSON.decode) as Iterable<String>;
+    return await _backend.post(url, '').then(_json.decode) as Iterable<String>;
   }
 
   /// (Re-)deploys a dialplan for a the reception identified by [rid]
@@ -94,7 +94,7 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
     Uri url = resource.ReceptionDialplan.deploy(host, extension, rid);
     url = _appendToken(url, token);
 
-    return JSON.decode(await _backend.post(url, '')) as Iterable<String>;
+    return _json.decode(await _backend.post(url, '')) as Iterable<String>;
   }
 
   /// Performs a PBX-reload of the deployed dialplan configuration.
@@ -102,7 +102,7 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
     Uri url = resource.ReceptionDialplan.reloadConfig(host);
     url = _appendToken(url, token);
 
-    await _backend.post(url, '').then(JSON.decode);
+    await _backend.post(url, '').then(_json.decode);
   }
 
   @override
@@ -113,7 +113,7 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
     Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
         maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
 
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    return this._backend.get(url).then(_json.decode).then(convertMaps);
   }
 
   Future<String> changelog(String extension) {

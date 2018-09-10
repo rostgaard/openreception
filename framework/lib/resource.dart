@@ -34,3 +34,5 @@ part 'resource/resource-peer_account.dart';
 part 'resource/resource-reception.dart';
 part 'resource/resource-reception_dialplan.dart';
 part 'resource/resource-user.dart';
+
+const JsonCodec _json = const JsonCodec();

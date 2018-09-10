@@ -44,6 +44,8 @@ part 'service/service-user.dart';
 part 'service/service-webservice.dart';
 part 'service/service-websocket.dart';
 
+const JsonCodec _json = const JsonCodec();
+
 Uri _appendToken(Uri uri, String token) =>
     _appendParameter(uri, 'token', token);
 

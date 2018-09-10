@@ -146,7 +146,7 @@ Iterable<String> ivrOf(model.ReceptionDialplan rdp) {
 
 /// Sanitizes [string] for use in dialplans by HTML escaping it.
 String _sanify(String string) =>
-    new HtmlEscape(HtmlEscapeMode.ATTRIBUTE).convert(string);
+    new HtmlEscape(HtmlEscapeMode.attribute).convert(string);
 
 /// Converts a [Map] of variables into a FreeSWITCH variable String.
 String _variablesToString(Map<String, dynamic> vars) {
@@ -223,7 +223,7 @@ List<String> _openingHourToXmlDialplan(
     DialplanCompilerOpts option,
     Environment env) {
   List<String> lines = new List<String>();
-  Iterable<String> actionLines = actions
+  final List<String> actionLines = actions
       .map((model.Action action) => _actionToXmlDialplan(action, option, env))
       .fold(
           new List<String>(),
@@ -268,7 +268,8 @@ List<String> _fallbackToDialplan(
         .fold(
             new List<String>(),
             (List<String> combined, List<String> current) =>
-                combined..addAll(current.map((String item) => _indent(item)))))
+                combined..addAll(current.map((String item) => _indent(item))))
+        .toList())
     ..add('    <action application="hangup"/>')
     ..add('  </condition>')
     ..add('</extension>');
@@ -281,7 +282,7 @@ Iterable<String> _hourActionToXmlDialplan(String extension,
       (model.OpeningHour oh) => _openingHourToXmlDialplan(
           extension, oh, hourAction.actions, option, new Environment()));
 
-  final Iterable<String> strings = has.fold(
+  final List<String> strings = has.fold(
       <String>[],
       (List<String> combined, Iterable<String> current) =>
           combined..addAll(current));
@@ -327,7 +328,7 @@ Iterable<String> _namedExtensionToDialPlan(model.NamedExtension extension,
           .fold(
               <String>[],
               (List<String> combined, Iterable<String> current) =>
-                  combined..addAll(current.map(_indent).map(_indent))))
+                  combined..addAll(current.map(_indent).map(_indent))).toList())
       ..add('    <action application="hangup"/>')
       ..add('  </condition>')
       ..add('</extension>');
@@ -341,7 +342,8 @@ Iterable<String> _extraExtensionsToDialplan(
         .fold(
             new List<String>(),
             (List<String> combined, Iterable<String> current) =>
-                combined..addAll(current));
+                combined..addAll(current))
+        .toList();
 
 /// Turn a [model.ReceptionDialplan] into an xml-dialplan as string.
 String _dialplanToXml(model.ReceptionDialplan dialplan,
@@ -623,7 +625,7 @@ String _generateXmlFromIvrMenu(
     ${(_ivrMenuToXml(menu, option)).join('\n    ')}
   </menu>
 
-  ${menu.submenus.map((model.IvrMenu menu) => _generateXmlFromIvrMenu (menu, option)).join('\n  ')}
+  ${menu.submenus.map((model.IvrMenu menu) => _generateXmlFromIvrMenu(menu, option)).join('\n  ')}
 ''';
 
 /// Wrap a [model.IvrMenu] in an include directive.

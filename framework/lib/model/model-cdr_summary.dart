@@ -98,7 +98,7 @@ class CdrSummary {
 
   /// JSON constructor.
   CdrSummary.fromJson(Map<dynamic, dynamic> json, {bool alsoCdrFiles: true}) {
-    (json[key.CdrKey.agentSummaries] as List<dynamic>)
+    (json[key.CdrKey.agentSummaries] as List<Map<String,String>>)
         .forEach((Map<dynamic, dynamic> value) {
       agentSummaries
           .add(new CdrAgentSummary.fromJson(value, alsoCdrFiles: alsoCdrFiles));

@@ -26,7 +26,7 @@ void _testModelNamedExtension() {
 abstract class _ModelNamedExtension {
   static void serialization() {
     model.NamedExtension builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -36,7 +36,7 @@ abstract class _ModelNamedExtension {
     model.NamedExtension builtObject = buildObject();
 
     final Map<String, dynamic> map =
-        JSON.decode(JSON.encode(builtObject)) as Map<String, dynamic>;
+        _json.decode(_json.encode(builtObject)) as Map<String, dynamic>;
 
     model.NamedExtension deserializedObject =
         new model.NamedExtension.fromJson(map);

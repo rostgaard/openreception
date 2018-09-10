@@ -25,7 +25,7 @@ abstract class _ModelCalendarEntryChange {
   static void deserialization() {
     model.Commit built = buildObject();
     model.Commit deserialized = new model.Commit.fromJson(
-        JSON.decode(JSON.encode(built)) as Map<String, dynamic>);
+        _json.decode(_json.encode(built)) as Map<String, dynamic>);
 
     expect(built.toJson(), equals(deserialized.toJson()));
 
@@ -39,7 +39,7 @@ abstract class _ModelCalendarEntryChange {
   /// Asserts that no exceptions arise during serialization.
   static void serialization() {
     model.Commit builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);

@@ -33,13 +33,13 @@ class FocusChange implements Event {
   FocusChange(this.uid, this.inFocus) : timestamp = new DateTime.now();
 
   /// Bluring constructor. Takes [uid] of the user changing the widget and
-  /// returns an event with [inFocus] set to [false].
+  /// returns an event with [inFocus] set to `false`.
   FocusChange.blur(this.uid)
       : inFocus = false,
         timestamp = new DateTime.now();
 
   /// Focusing constructor. Takes [uid] of the user changing the widget and
-  /// returns an event with [inFocus] set to [true].
+  /// returns an event with [inFocus] set to `true`.
   FocusChange.focus(this.uid)
       : inFocus = true,
         timestamp = new DateTime.now();

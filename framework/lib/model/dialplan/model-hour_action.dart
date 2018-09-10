@@ -26,9 +26,9 @@ class HourAction {
   String toString() => '${hours.join(', ')} - ${actions.join(',')}';
 
   /// Parse and create a new [HourAction] objec from a decoded [Map].
-  static HourAction parse(Map<String, dynamic> map) => new HourAction()
+  static HourAction parse(Map<String, Object> map) => new HourAction()
     ..hours = parseMultipleHours(map['hours']).toList()
-    ..actions = (map['actions'] as Iterable<String>).map(Action.parse).toList();
+    ..actions = List<String>.from(map['actions']).map(Action.parse).toList();
 
   /// Serialization function.
   Map<String, dynamic> toJson() => <String, dynamic>{

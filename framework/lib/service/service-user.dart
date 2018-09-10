@@ -37,7 +37,7 @@ class RESTUserStore implements storage.User {
     return this
         ._backend
         .get(url)
-        .then((String reponse) => JSON.decode(reponse))
+        .then((String reponse) => _json.decode(reponse))
         .then((Iterable<Map<String, dynamic>> userMaps) => userMaps.map(
             (Map<String, dynamic> map) =>
                 new model.UserReference.fromJson(map)));
@@ -51,7 +51,7 @@ class RESTUserStore implements storage.User {
     return this
         ._backend
         .get(url)
-        .then((String reponse) => JSON.decode(reponse))
+        .then((String reponse) => _json.decode(reponse))
         .then(((Map<String, dynamic> userMap) =>
             new model.User.fromJson(userMap)));
   }
@@ -61,7 +61,7 @@ class RESTUserStore implements storage.User {
     Uri url = resource.User.singleByIdentity(host, identity);
     url = _appendToken(url, this.token);
 
-    return _backend.get(url).then(JSON.decode).then(
+    return _backend.get(url).then(_json.decode).then(
         ((Map<String, dynamic> userMap) => new model.User.fromJson(userMap)));
   }
 
@@ -73,7 +73,7 @@ class RESTUserStore implements storage.User {
     return this
         ._backend
         .get(url)
-        .then((String reponse) => JSON.decode(reponse) as Iterable<String>);
+        .then((String reponse) => _json.decode(reponse) as Iterable<String>);
   }
 
   @override
@@ -83,8 +83,8 @@ class RESTUserStore implements storage.User {
 
     return this
         ._backend
-        .post(url, JSON.encode(user))
-        .then((String reponse) => JSON.decode(reponse))
+        .post(url, _json.encode(user))
+        .then((String reponse) => _json.decode(reponse))
         .then(((Map<String, dynamic> map) =>
             new model.UserReference.fromJson(map)));
   }
@@ -96,8 +96,8 @@ class RESTUserStore implements storage.User {
 
     return this
         ._backend
-        .put(url, JSON.encode(user))
-        .then((String reponse) => JSON.decode(reponse))
+        .put(url, _json.encode(user))
+        .then((String reponse) => _json.decode(reponse))
         .then(((Map<String, dynamic> map) =>
             new model.UserReference.fromJson(map)));
   }
@@ -117,7 +117,7 @@ class RESTUserStore implements storage.User {
 
     return _backend
         .get(uri)
-        .then(JSON.decode)
+        .then(_json.decode)
         .then((Map<String, dynamic> map) => new model.UserStatus.fromJson(map));
   }
 
@@ -132,7 +132,7 @@ class RESTUserStore implements storage.User {
 
     return _backend
         .post(uri, '')
-        .then(JSON.decode)
+        .then(_json.decode)
         .then((Map<String, dynamic> map) => new model.UserStatus.fromJson(map));
   }
 
@@ -142,7 +142,7 @@ class RESTUserStore implements storage.User {
     Uri uri = resource.User.userStateAll(host);
     uri = _appendToken(uri, token);
 
-    return _backend.get(uri).then(JSON.decode).then(
+    return _backend.get(uri).then(_json.decode).then(
         (Iterable<Map<String, dynamic>> maps) => maps.map(
             (Map<String, dynamic> map) => new model.UserStatus.fromJson(map)));
   }
@@ -158,7 +158,7 @@ class RESTUserStore implements storage.User {
 
     return _backend
         .post(uri, '')
-        .then(JSON.decode)
+        .then(_json.decode)
         .then((Map<String, dynamic> map) => new model.UserStatus.fromJson(map));
   }
 
@@ -170,7 +170,7 @@ class RESTUserStore implements storage.User {
     Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
         maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
 
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    return this._backend.get(url).then(_json.decode).then(convertMaps);
   }
 
   Future<String> changelog(int uid) {
@@ -186,7 +186,7 @@ class RESTUserStore implements storage.User {
 
     return _backend
         .get(url)
-        .then((String reponse) => JSON.decode(reponse))
+        .then((String reponse) => _json.decode(reponse))
         .then(((Map<String, dynamic> userMap) =>
             new model.DailyReport.fromJson(userMap)));
   }
@@ -197,8 +197,7 @@ class RESTUserStore implements storage.User {
 
     return _backend
         .get(url)
-        .then((String reponse) => JSON.decode(reponse))
-        .then(((Map<String, dynamic> userMap) =>
+        .then((String reponse) => _json.decode(reponse))
             new model.DailySummary.fromJson(userMap)));
   }
 }

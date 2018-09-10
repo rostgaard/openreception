@@ -32,7 +32,7 @@ void _testModelOpeningHour() {
 abstract class _ModelOpeningHour {
   static void serialization() {
     model.OpeningHour builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -42,7 +42,7 @@ abstract class _ModelOpeningHour {
     model.OpeningHour builtObject = buildObject();
 
     model.OpeningHour deserializedObject =
-        model.OpeningHour.parse(JSON.decode(JSON.encode(builtObject)));
+        model.OpeningHour.parse(_json.decode(_json.encode(builtObject)));
 
     expect(builtObject.toJson(), equals(deserializedObject.toJson()));
 
@@ -79,7 +79,7 @@ abstract class _ModelOpeningHour {
 
   static void parseSingleFormatException() {
     expect(() => model.Notify.parse('mon-ved 8-17'),
-        throwsA(new isInstanceOf<FormatException>()));
+        throwsA(const TypeMatcher<FormatException>()));
   }
 
   static void printFormat() {

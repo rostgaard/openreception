@@ -205,7 +205,7 @@ class Calendar implements storage.Calendar {
 
           if (file.existsSync()) {
             return new model.CalendarEntry.fromJson(
-                JSON.decode(file.readAsStringSync()) as Map<String, dynamic>);
+                _json.decode(file.readAsStringSync()) as Map<String, dynamic>);
           }
         }
       }
@@ -231,8 +231,8 @@ class Calendar implements storage.Calendar {
           .where((FileSystemEntity fse) =>
               _isFile(fse) && fse.path.endsWith('.json'))
           .map((FileSystemEntity fse) => new model.CalendarEntry.fromJson(
-              JSON.decode((fse as File).readAsStringSync())
-              as Map<String, dynamic>));
+              _json.decode((fse as File).readAsStringSync())
+                  as Map<String, dynamic>));
 
   /// Deletes the [model.CalendarEntry] associated with [eid] in the
   /// filestore.

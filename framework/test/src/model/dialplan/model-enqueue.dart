@@ -28,7 +28,7 @@ void _testModelEnqueue() {
 abstract class _ModelEnqueue {
   static void serialization() {
     model.Enqueue builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -38,7 +38,7 @@ abstract class _ModelEnqueue {
     model.Enqueue builtObject = buildObject();
 
     model.Enqueue deserializedObject =
-        model.Enqueue.parse(JSON.decode(JSON.encode(builtObject)));
+        model.Enqueue.parse(_json.decode(_json.encode(builtObject)));
 
     expect(builtObject.queueName, equals(deserializedObject.queueName));
     expect(builtObject.holdMusic, equals(deserializedObject.holdMusic));
@@ -99,6 +99,6 @@ abstract class _ModelEnqueue {
     expect(builtObject.toString(), isNotEmpty);
 
     expect(() => model.Enqueue.parse('equeue $queueName music $music'),
-        throwsA(new isInstanceOf<FormatException>()));
+        throwsA(const TypeMatcher<FormatException>()));
   }
 }

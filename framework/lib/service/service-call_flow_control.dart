@@ -39,7 +39,7 @@ class CallFlowControl {
         maps.map((Map<String, dynamic> map) =>
             new model.ActiveRecording.fromJson(map));
 
-    return _backend.get(uri).then(JSON.decode).then(decodeMaps);
+    return _backend.get(uri).then(_json.decode).then(decodeMaps);
   }
 
   /// Retrives the currently active recordings
@@ -47,7 +47,7 @@ class CallFlowControl {
     Uri uri = resource.CallFlowControl.activeRecording(host, channel);
     uri = _appendToken(uri, token);
 
-    return _backend.get(uri).then(JSON.decode).then(
+    return _backend.get(uri).then(_json.decode).then(
         (Map<String, dynamic> map) => new model.ActiveRecording.fromJson(map));
   }
 
@@ -61,7 +61,7 @@ class CallFlowControl {
         maps.map((Map<String, dynamic> map) =>
             new model.AgentStatistics.fromJson(map));
 
-    return _backend.get(uri).then(JSON.decode).then(decodeMaps);
+    return _backend.get(uri).then(_json.decode).then(decodeMaps);
   }
 
   /// Retrives the stats of a single agent.
@@ -69,7 +69,7 @@ class CallFlowControl {
     Uri uri = resource.CallFlowControl.agentStatistic(host, userId);
     uri = _appendToken(uri, token);
 
-    return _backend.get(uri).then(JSON.decode).then(
+    return _backend.get(uri).then(_json.decode).then(
         (Map<String, dynamic> map) => new model.AgentStatistics.fromJson(map));
   }
 
@@ -78,7 +78,7 @@ class CallFlowControl {
     Uri uri = resource.CallFlowControl.list(host);
     uri = _appendToken(uri, token);
 
-    return _backend.get(uri).then(JSON.decode).then(
+    return _backend.get(uri).then(_json.decode).then(
         (Iterable<Map<String, dynamic>> callMaps) => callMaps
             .map((Map<String, dynamic> map) => new model.Call.fromJson(map)));
   }
@@ -89,7 +89,7 @@ class CallFlowControl {
     uri = _appendToken(uri, token);
 
     return _backend.get(uri).then(
-        (String response) => (JSON.decode(response) as Map<String, dynamic>));
+        (String response) => (_json.decode(response) as Map<String, dynamic>));
   }
 
   /// Returns a single call resource.
@@ -99,7 +99,7 @@ class CallFlowControl {
 
     return _backend
         .get(uri)
-        .then(JSON.decode)
+        .then(_json.decode)
         .then((Map<String, dynamic> map) => new model.Call.fromJson(map));
   }
 
@@ -117,7 +117,7 @@ class CallFlowControl {
     Uri uri = resource.CallFlowControl.originate(host, extension, context);
     uri = _appendToken(uri, token);
 
-    return _backend.post(uri, '').then(JSON.decode).then(
+    return _backend.post(uri, '').then(_json.decode).then(
         (Map<String, dynamic> callMap) => new model.Call.fromJson(callMap));
   }
 
@@ -128,7 +128,7 @@ class CallFlowControl {
 
     return _backend
         .post(uri, '')
-        .then(JSON.decode)
+        .then(_json.decode)
         .then((Map<String, dynamic> map) => new model.Call.fromJson(map));
   }
 
@@ -139,7 +139,7 @@ class CallFlowControl {
 
     return _backend
         .get(uri)
-        .then((String response) => (JSON.decode(response)))
+        .then((String response) => (_json.decode(response)))
         .then((Iterable<Map<String, dynamic>> maps) => maps
             .map((Map<String, dynamic> map) => new model.Peer.fromJson(map)));
   }
@@ -149,7 +149,7 @@ class CallFlowControl {
     Uri uri = resource.CallFlowControl.pickup(host, callID);
     uri = _appendToken(uri, token);
 
-    return _backend.post(uri, '').then(JSON.decode).then(
+    return _backend.post(uri, '').then(_json.decode).then(
         (Map<String, dynamic> callMap) => new model.Call.fromJson(callMap));
   }
 

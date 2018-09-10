@@ -26,7 +26,7 @@ void _testModelPeerAccount() {
 abstract class _ModelPeerAccount {
   static void serialization() {
     model.PeerAccount builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -35,7 +35,7 @@ abstract class _ModelPeerAccount {
   static void deserialization() {
     model.PeerAccount built = _ModelPeerAccount.buildObject();
     model.PeerAccount deserialized = new model.PeerAccount.fromJson(
-        JSON.decode(JSON.encode(built)) as Map<String, dynamic>);
+        _json.decode(_json.encode(built)) as Map<String, dynamic>);
 
     expect(built.username, equals(deserialized.username));
     expect(built.password, equals(deserialized.password));

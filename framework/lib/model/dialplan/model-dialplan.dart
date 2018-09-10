@@ -42,19 +42,19 @@ const String _libaryName = 'model.dialplan';
 
 ///Converts a Dart DateTime WeekDay into a [WeekDay].
 WeekDay toWeekDay(int weekday) {
-  if (weekday == DateTime.MONDAY) {
+  if (weekday == DateTime.monday) {
     return WeekDay.mon;
-  } else if (weekday == DateTime.TUESDAY) {
+  } else if (weekday == DateTime.tuesday) {
     return WeekDay.tue;
-  } else if (weekday == DateTime.WEDNESDAY) {
+  } else if (weekday == DateTime.wednesday) {
     return WeekDay.wed;
-  } else if (weekday == DateTime.THURSDAY) {
+  } else if (weekday == DateTime.thursday) {
     return WeekDay.thur;
-  } else if (weekday == DateTime.FRIDAY) {
+  } else if (weekday == DateTime.friday) {
     return WeekDay.fri;
-  } else if (weekday == DateTime.SATURDAY) {
+  } else if (weekday == DateTime.saturday) {
     return WeekDay.sat;
-  } else if (weekday == DateTime.SUNDAY) {
+  } else if (weekday == DateTime.sunday) {
     return WeekDay.sun;
   }
 

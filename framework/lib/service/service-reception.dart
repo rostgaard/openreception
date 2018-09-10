@@ -35,7 +35,7 @@ class RESTReceptionStore implements storage.Reception {
     Uri url = resource.Reception.root(this.host);
     url = _appendToken(url, this.token);
 
-    return _backend.post(url, JSON.encode(reception)).then(JSON.decode).then(
+    return _backend.post(url, _json.encode(reception)).then(_json.decode).then(
         (Map<String, dynamic> map) =>
             new model.ReceptionReference.fromJson(map));
   }
@@ -47,7 +47,7 @@ class RESTReceptionStore implements storage.Reception {
 
     return this._backend.get(url).then((String response) =>
         new model.Reception.fromJson(
-            JSON.decode(response) as Map<String, dynamic>));
+            _json.decode(response) as Map<String, dynamic>));
   }
 
   @override
@@ -56,7 +56,7 @@ class RESTReceptionStore implements storage.Reception {
     url = _appendToken(url, this.token);
 
     return this._backend.get(url).then((String response) =>
-        (JSON.decode(response) as Iterable<Map<String, dynamic>>).map(
+        (_json.decode(response) as Iterable<Map<String, dynamic>>).map(
             (Map<String, dynamic> map) =>
                 new model.ReceptionReference.fromJson(map)));
   }
@@ -75,9 +75,9 @@ class RESTReceptionStore implements storage.Reception {
     Uri url = resource.Reception.single(this.host, reception.id);
     url = _appendToken(url, this.token);
 
-    String data = JSON.encode(reception);
+    String data = _json.encode(reception);
 
-    return this._backend.put(url, data).then(JSON.decode).then(
+    return this._backend.put(url, data).then(_json.decode).then(
         (Map<String, dynamic> map) =>
             new model.ReceptionReference.fromJson(map));
   }
@@ -90,7 +90,7 @@ class RESTReceptionStore implements storage.Reception {
     Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
         maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
 
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    return this._backend.get(url).then(_json.decode).then(convertMaps);
   }
 
   Future<String> changelog(int rid) {

@@ -110,7 +110,7 @@ class Ivr implements storage.Ivr {
 
     try {
       final model.IvrMenu menu = new model.IvrMenu.fromJson(
-          JSON.decode(file.readAsStringSync()) as Map<String, dynamic>);
+          _json.decode(file.readAsStringSync()) as Map<String, dynamic>);
       return menu;
     } catch (e) {
       throw e;
@@ -123,7 +123,7 @@ class Ivr implements storage.Ivr {
       .where((FileSystemEntity fse) =>
           _isDirectory(fse) && new File(fse.path + '/menu.json').existsSync())
       .map((FileSystemEntity fse) => new model.IvrMenu.fromJson(
-          JSON.decode((new File(fse.path + '/menu.json')).readAsStringSync())
+          _json.decode((new File(fse.path + '/menu.json')).readAsStringSync())
           as Map<String, dynamic>));
 
   @override

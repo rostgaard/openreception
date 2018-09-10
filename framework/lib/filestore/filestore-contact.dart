@@ -67,7 +67,7 @@ class Contact implements storage.Contact {
     }
 
     if (ge != null) {
-      ge.init().catchError((dynamic error, StackTrace stackTrace) => Logger.root
+      ge.init().catchError((Object error, StackTrace stackTrace) => Logger.root
           .shout('Failed to initialize git engine', error, stackTrace));
     }
 
@@ -249,7 +249,7 @@ class Contact implements storage.Contact {
     try {
       final String jsonString = file.readAsStringSync();
       final model.BaseContact bc = new model.BaseContact.fromJson(
-          JSON.decode(jsonString) as Map<String, dynamic>);
+          _json.decode(jsonString) as Map<String, Object>);
 
       return bc;
     } catch (e) {
@@ -265,7 +265,7 @@ class Contact implements storage.Contact {
     }
 
     return new model.ReceptionAttributes.fromJson(
-        JSON.decode(await file.readAsString()) as Map<String, dynamic>);
+        _json.decode(await file.readAsString()) as Map<String, Object>);
   }
 
   @override
@@ -344,17 +344,14 @@ class Contact implements storage.Contact {
 
         if (!bn.startsWith('.')) {
           final File contactFile = new File('${fse.path}/contact.json');
-          final Future<model.BaseContact> bc = contactFile
-              .readAsString()
-              .then(JSON.decode)
-              .then((Map<String, dynamic> map) =>
-                  new model.BaseContact.fromJson(map));
+          final Future<model.BaseContact> bc = contactFile.readAsString().then(
+              (final String s) =>
+                  new model.BaseContact.fromJson(_json.decode(s)));
 
           final Future<model.ReceptionAttributes> attr = ridFile
               .readAsString()
-              .then(JSON.decode)
-              .then((Map<String, dynamic> map) =>
-                  new model.ReceptionAttributes.fromJson(map));
+              .then((final String s) =>
+                  new model.ReceptionAttributes.fromJson(_json.decode(s)));
 
           rcs.add(new model.ReceptionContact(await bc, await attr));
         }

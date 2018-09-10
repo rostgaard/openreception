@@ -86,8 +86,7 @@ List<ValidationException> validateIvrMenu(IvrMenu menu) {
     }
   });
 
-  errors.addAll(menu.submenus.map(validateIvrMenu).fold(
-      new List<ValidationException>(),
+  errors.addAll(menu.submenus.map(validateIvrMenu).reduce(
       (List<ValidationException> list, List<ValidationException> e) =>
           list..addAll(e)));
 

@@ -20,10 +20,10 @@ class Client extends service.WebService {
   /// Throws subclasses of [StorageException] upon failure.
   @override
   Future<String> get(Uri resource) {
-    final Completer<String> completer = new Completer<String>();
+    final Completer<String> completer = Completer<String>();
 
     html.HttpRequest request;
-    request = new html.HttpRequest()
+    request = html.HttpRequest()
       ..open('GET', resource.toString())
       ..onLoad.listen((_) {
         try {
@@ -45,10 +45,10 @@ class Client extends service.WebService {
   /// Throws subclasses of [StorageException] upon failure.
   @override
   Future<String> put(Uri resource, String payload) {
-    final Completer<String> completer = new Completer<String>();
+    final Completer<String> completer = Completer<String>();
 
     html.HttpRequest request;
-    request = new html.HttpRequest()
+    request = html.HttpRequest()
       ..open('PUT', resource.toString())
       ..onLoad.listen((_) {
         try {
@@ -70,10 +70,10 @@ class Client extends service.WebService {
   /// Throws subclasses of [StorageException] upon failure.
   @override
   Future<String> post(Uri resource, String payload) {
-    final Completer<String> completer = new Completer<String>();
+    final Completer<String> completer = Completer<String>();
 
     html.HttpRequest request;
-    request = new html.HttpRequest()
+    request = html.HttpRequest()
       ..open('POST', resource.toString())
       ..onLoad.listen((_) {
         try {
@@ -95,10 +95,10 @@ class Client extends service.WebService {
   /// Throws subclasses of [StorageException] upon failure.
   @override
   Future<String> delete(Uri resource) {
-    final Completer<String> completer = new Completer<String>();
+    final Completer<String> completer = Completer<String>();
 
     html.HttpRequest request;
-    request = new html.HttpRequest()
+    request = html.HttpRequest()
       ..open('DELETE', resource.toString())
       ..onLoad.listen((_) {
         try {

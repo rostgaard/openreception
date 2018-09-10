@@ -26,7 +26,7 @@ void _testModelReceptionAttributes() {
 abstract class _ModelReceptionAttributes {
   static void serialization() {
     model.ReceptionAttributes builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -36,7 +36,7 @@ abstract class _ModelReceptionAttributes {
     model.ReceptionAttributes builtObject = buildObject();
     model.ReceptionAttributes deserializedObject =
         new model.ReceptionAttributes.fromJson(
-            JSON.decode(JSON.encode(builtObject)) as Map<String, dynamic>);
+            _json.decode(_json.encode(builtObject)) as Map<String, dynamic>);
 
     expect(builtObject.receptionId, equals(deserializedObject.receptionId));
     expect(builtObject.cid, equals(deserializedObject.cid));

@@ -44,10 +44,11 @@ class ReceptionDialplan {
   factory ReceptionDialplan.fromJson(Map<String, dynamic> map) =>
       new ReceptionDialplan()
         ..extension = map['extension']
-        ..open = new List<HourAction>.from(map['open'].map(HourAction.parse))
-        ..extraExtensions = new List<NamedExtension>.from(map['extraExtensions']
-            .map(
-                (Map<String, dynamic> map) => new NamedExtension.fromJson(map)))
+        ..open = new List<HourAction>.from(
+            List<Map<String, Object>>.from(map['open']).map(HourAction.parse))
+        ..extraExtensions =
+            List<Map<String,Object>>.from(map['extraExtensions']).map(
+                (Map<String, Object> map) => NamedExtension.fromJson(map)).toList()
         ..defaultActions =
             new List<Action>.from(map['closed'].map(Action.parse))
         ..note = map['note'];
@@ -55,12 +56,14 @@ class ReceptionDialplan {
   /// Collect an [Iterable] of all actions in this [ReceptionDialplan].
   Iterable<Action> get allActions => <Action>[]
     ..addAll(defaultActions)
-    ..addAll(open.fold(<Action>[],
-        (List<Action> list, HourAction hour) => list..addAll(hour.actions)))
+    ..addAll(open.fold(
+        <Action>[],
+        (List<Action> list, HourAction hour) =>
+            list..addAll(hour.actions)).toList())
     ..addAll(extraExtensions.fold(
         <Action>[],
         (List<Action> list, NamedExtension exten) =>
-            list..addAll(exten.actions)));
+            list..addAll(exten.actions)).toList());
 
   /// The [Action]s to execute if none of the [open] hours match.
   List<Action> defaultActions = <Action>[];

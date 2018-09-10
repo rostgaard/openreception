@@ -47,7 +47,7 @@ class NotificationService {
     Uri uri = resource.Notification.clientConnections(host);
     uri = _appendToken(uri, _clientToken);
 
-    return await _httpClient.get(uri).then(JSON.decode).then(
+    return await _httpClient.get(uri).then(_json.decode).then(
         (Iterable<Map<String, dynamic>> maps) => maps.map(
             (Map<String, dynamic> map) =>
                 new model.ClientConnection.fromJson(map)));
@@ -58,7 +58,7 @@ class NotificationService {
     Uri uri = resource.Notification.clientConnection(host, uid);
     uri = _appendToken(uri, _clientToken);
 
-    return _httpClient.get(uri).then(JSON.decode).then(
+    return _httpClient.get(uri).then(_json.decode).then(
         (Map<String, dynamic> map) => new model.ClientConnection.fromJson(map));
   }
 
@@ -72,7 +72,7 @@ class NotificationService {
       'message': event.toJson()
     };
 
-    await _httpClient.post(uri, JSON.encode(payload));
+    await _httpClient.post(uri, _json.encode(payload));
   }
 
   /// Every request sent to the phone is enqueued and executed in-order
@@ -105,7 +105,7 @@ class NotificationService {
     }
 
     return await _httpClient
-        .post(request.resource, JSON.encode(request.body))
+        .post(request.resource, _json.encode(request.body))
         .whenComplete(dispatchNext);
   }
 
@@ -288,7 +288,7 @@ class NotificationSocket {
   /// Parses, decodes and dispatches a received String buffer containg an
   /// encoded event object.
   void _parseAndDispatch(String buffer) {
-    Map<String, dynamic> map = JSON.decode(buffer) as Map<String, dynamic>;
+    Map<String, dynamic> map = _json.decode(buffer) as Map<String, dynamic>;
     event.Event newEvent = new event.Event.parse(map);
 
     if (newEvent != null) {

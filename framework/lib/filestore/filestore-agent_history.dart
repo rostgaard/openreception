@@ -182,7 +182,8 @@ class AgentHistory {
         List<String> lines = file.readAsLinesSync();
 
         for (String line in lines) {
-          Map<String, dynamic> json = JSON.decode(line) as Map<String, dynamic>;
+          Map<String, dynamic> json =
+              _json.decode(line) as Map<String, dynamic>;
           event.Event e = new event.Event.parse(json);
           try {
             if (e != null) _dispatchEvent(e, _dateLog);
@@ -212,7 +213,7 @@ class AgentHistory {
       _log.finest('Loading existing report for ${_dateKey(day)}');
       return new model.DailyReport.fromJson(
           unpackAndDeserializeObject(f.readAsBytesSync())
-          as Map<String, dynamic>);
+              as Map<String, dynamic>);
     } else {
       _log.finest('Creating new daily report for ${_dateKey(day)}');
       return new model.DailyReport.empty();
@@ -286,7 +287,7 @@ class AgentHistory {
     Map<String, String> deserialized;
     try {
       deserialized =
-          JSON.decode(await _uidMapFile.readAsString()) as Map<String, String>;
+          _json.decode(await _uidMapFile.readAsString()) as Map<String, String>;
     } on FormatException {
       _log.shout('Corrupt format for uid -> name mappings in '
           'file ${_uidMapFile.path}');
@@ -315,7 +316,7 @@ class AgentHistory {
       serializable[uid.toString()] = username;
     });
 
-    await _uidMapFile.writeAsString(JSON.encode(serializable));
+    await _uidMapFile.writeAsString(_json.encode(serializable));
     _log.finest('Saved ${_uidNameCache.length} uid -> name mappings to '
         'file ${_uidMapFile.path}');
   }

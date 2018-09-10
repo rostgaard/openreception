@@ -26,16 +26,16 @@ abstract class _ModelOrganization {
   static void serialization() {
     model.Organization builtObject = buildObject();
 
-    expect(() => JSON.encode(builtObject), returnsNormally);
+    expect(() => _json.encode(builtObject), returnsNormally);
   }
 
   /// Assert that no exceptions arise during deserialization.
   static void deserialization() {
     model.Organization builtObject = buildObject();
 
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
     model.Organization decodedObject = new model.Organization.fromJson(
-        JSON.decode(serializedObject) as Map<String, dynamic>);
+        _json.decode(serializedObject) as Map<String, dynamic>);
 
     expect(builtObject.notes, equals(decodedObject.notes));
     expect(builtObject.id, equals(decodedObject.id));

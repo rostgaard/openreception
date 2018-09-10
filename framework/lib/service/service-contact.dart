@@ -36,7 +36,7 @@ class RESTContactStore implements storage.Contact {
 
     final Iterable<Map<String, dynamic>> maps = await _backend.get(url).then(
         (String response) =>
-            JSON.decode(response) as Iterable<Map<String, dynamic>>);
+            _json.decode(response) as Iterable<Map<String, dynamic>>);
 
     return maps.map((Map<String, dynamic> map) =>
         new model.ReceptionReference.fromJson(map));
@@ -49,7 +49,7 @@ class RESTContactStore implements storage.Contact {
 
     final Iterable<Map<String, dynamic>> maps = await _backend.get(url).then(
         (String response) =>
-            JSON.decode(response) as Iterable<Map<String, dynamic>>);
+            _json.decode(response) as Iterable<Map<String, dynamic>>);
 
     return maps.map((Map<String, dynamic> map) =>
         new model.OrganizationReference.fromJson(map));
@@ -62,7 +62,7 @@ class RESTContactStore implements storage.Contact {
 
     return _backend.get(url).then((String response) =>
         new model.BaseContact.fromJson(
-            JSON.decode(response) as Map<String, dynamic>));
+            _json.decode(response) as Map<String, dynamic>));
   }
 
   @override
@@ -71,7 +71,7 @@ class RESTContactStore implements storage.Contact {
     Uri url = resource.Contact.root(host);
     url = _appendToken(url, token);
 
-    return _backend.post(url, JSON.encode(contact)).then(JSON.decode).then(
+    return _backend.post(url, _json.encode(contact)).then(_json.decode).then(
         (Map<String, dynamic> map) => new model.BaseContact.fromJson(map));
   }
 
@@ -80,7 +80,7 @@ class RESTContactStore implements storage.Contact {
     Uri url = resource.Contact.single(host, contact.id);
     url = _appendToken(url, token);
 
-    await _backend.put(url, JSON.encode(contact));
+    await _backend.put(url, _json.encode(contact));
   }
 
   @override
@@ -97,7 +97,7 @@ class RESTContactStore implements storage.Contact {
     url = _appendToken(url, token);
 
     return _backend.get(url).then((String response) =>
-        (JSON.decode(response) as Iterable<Map<String, dynamic>>).map(
+        (_json.decode(response) as Iterable<Map<String, dynamic>>).map(
             (Map<String, dynamic> map) => new model.BaseContact.fromJson(map)));
   }
 
@@ -108,7 +108,7 @@ class RESTContactStore implements storage.Contact {
 
     return _backend.get(url).then((String response) =>
         new model.ReceptionAttributes.fromJson(
-            JSON.decode(response) as Map<String, dynamic>));
+            _json.decode(response) as Map<String, dynamic>));
   }
 
   @override
@@ -117,7 +117,7 @@ class RESTContactStore implements storage.Contact {
     url = _appendToken(url, token);
 
     return _backend.get(url).then((String response) =>
-        (JSON.decode(response) as Iterable<Map<String, dynamic>>).map(
+        (_json.decode(response) as Iterable<Map<String, dynamic>>).map(
             (Map<String, dynamic> map) =>
                 new model.ReceptionContact.fromJson(map)));
   }
@@ -128,7 +128,7 @@ class RESTContactStore implements storage.Contact {
         resource.Contact.singleByReception(host, attr.cid, attr.receptionId);
     url = _appendToken(url, token);
 
-    await _backend.post(url, JSON.encode(attr));
+    await _backend.post(url, _json.encode(attr));
   }
 
   @override
@@ -137,7 +137,7 @@ class RESTContactStore implements storage.Contact {
     url = _appendToken(url, token);
 
     return _backend.get(url).then((String response) =>
-        (JSON.decode(response) as Iterable<Map<String, dynamic>>).map(
+        (_json.decode(response) as Iterable<Map<String, dynamic>>).map(
             (Map<String, dynamic> map) => new model.BaseContact.fromJson(map)));
   }
 
@@ -156,7 +156,7 @@ class RESTContactStore implements storage.Contact {
         resource.Contact.singleByReception(host, attr.cid, attr.receptionId);
     url = _appendToken(url, token);
 
-    await _backend.put(url, JSON.encode(attr));
+    await _backend.put(url, _json.encode(attr));
   }
 
   @override
@@ -167,7 +167,7 @@ class RESTContactStore implements storage.Contact {
     Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
         maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
 
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    return this._backend.get(url).then(_json.decode).then(convertMaps);
   }
 
   Future<String> changelog(int cid) {

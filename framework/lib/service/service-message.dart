@@ -34,7 +34,7 @@ class RESTMessageStore implements storage.Message {
       ._backend
       .get(_appendToken(resource.Message.single(this.host, mid), this.token))
       .then((String response) => new model.Message.fromJson(
-          JSON.decode(response) as Map<String, dynamic>));
+          _json.decode(response) as Map<String, dynamic>));
 
   @override
   Future<Iterable<model.Message>> getByIds(Iterable<int> ids) async {
@@ -42,8 +42,8 @@ class RESTMessageStore implements storage.Message {
     uri = _appendToken(uri, token);
 
     final Iterable<Map<String, dynamic>> maps = await _backend
-        .post(uri, JSON.encode(ids))
-        .then((String response) => JSON.decode(response));
+        .post(uri, _json.encode(ids))
+        .then((String response) => _json.decode(response));
 
     return maps
         .map((Map<String, dynamic> map) => new model.Message.fromJson(map));
@@ -53,8 +53,11 @@ class RESTMessageStore implements storage.Message {
     Uri uri = resource.Message.send(this.host, message.id);
     uri = _appendToken(uri, this.token);
 
-    return this._backend.post(uri, JSON.encode(message)).then(JSON.decode).then(
-        (Map<String, dynamic> queueItemMap) =>
+    return this
+        ._backend
+        .post(uri, _json.encode(message))
+        .then(_json.decode)
+        .then((Map<String, dynamic> queueItemMap) =>
             new model.MessageQueueEntry.fromJson(queueItemMap));
   }
 
@@ -65,8 +68,8 @@ class RESTMessageStore implements storage.Message {
     uri = _appendToken(uri, this.token);
 
     return _backend
-        .post(uri, JSON.encode(message))
-        .then(JSON.decode)
+        .post(uri, _json.encode(message))
+        .then(_json.decode)
         .then((Map<String, dynamic> map) => new model.Message.fromJson(map));
   }
 
@@ -84,15 +87,15 @@ class RESTMessageStore implements storage.Message {
           .put(
               _appendToken(
                   resource.Message.single(this.host, message.id), this.token),
-              JSON.encode(message))
+              _json.encode(message))
           .then((String response) => new model.Message.fromJson(
-              JSON.decode(response) as Map<String, dynamic>));
+              _json.decode(response) as Map<String, dynamic>));
 
   Future<Iterable<model.Message>> list({model.MessageFilter filter}) => this
       ._backend
       .get(_appendToken(
           resource.Message.list(this.host, filter: filter), this.token))
-      .then((String response) => (JSON.decode(response)
+      .then((String response) => (_json.decode(response)
               as Iterable<Map<String, dynamic>>)
           .map((Map<String, dynamic> map) => new model.Message.fromJson(map)));
 
@@ -102,7 +105,7 @@ class RESTMessageStore implements storage.Message {
     Uri uri = resource.Message.listDay(host, day, filter: filter);
     uri = _appendToken(uri, token);
 
-    return _backend.get(uri).then((String response) => (JSON.decode(response)
+    return _backend.get(uri).then((String response) => (_json.decode(response)
             as Iterable<Map<String, dynamic>>)
         .map((Map<String, dynamic> map) => new model.Message.fromJson(map)));
   }
@@ -112,7 +115,7 @@ class RESTMessageStore implements storage.Message {
     Uri uri = resource.Message.listDrafts(host, filter: filter);
     uri = _appendToken(uri, token);
 
-    return _backend.get(uri).then((String response) => (JSON.decode(response)
+    return _backend.get(uri).then((String response) => (_json.decode(response)
             as Iterable<Map<String, dynamic>>)
         .map((Map<String, dynamic> map) => new model.Message.fromJson(map)));
   }
@@ -125,6 +128,9 @@ class RESTMessageStore implements storage.Message {
     Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
         maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
 
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    return this._backend.get(url).then(_json.decode).then(convertMaps);
+  }
+}
+).then(convertMaps);
   }
 }

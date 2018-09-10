@@ -36,8 +36,8 @@ class RESTIvrStore implements storage.Ivr {
 
     return this
         ._backend
-        .post(url, JSON.encode(menu))
-        .then(JSON.decode)
+        .post(url, _json.encode(menu))
+        .then(_json.decode)
         .then((Map<String, dynamic> map) => new model.IvrMenu.fromJson(map));
   }
 
@@ -45,7 +45,7 @@ class RESTIvrStore implements storage.Ivr {
     Uri url = resource.Ivr.deploy(host, menuName);
     url = _appendToken(url, this.token);
 
-    return JSON.decode(await _backend.post(url, '')) as Iterable<String>;
+    return _json.decode(await _backend.post(url, '')) as Iterable<String>;
   }
 
   @override
@@ -64,7 +64,7 @@ class RESTIvrStore implements storage.Ivr {
     return this
         ._backend
         .get(url)
-        .then(JSON.decode)
+        .then(_json.decode)
         .then((Map<String, dynamic> map) => new model.IvrMenu.fromJson(map));
   }
 
@@ -76,7 +76,7 @@ class RESTIvrStore implements storage.Ivr {
     Iterable<model.IvrMenu> castMaps(Iterable<Map<String, dynamic>> maps) =>
         maps.map((Map<String, dynamic> map) => new model.IvrMenu.fromJson(map));
 
-    return this._backend.get(url).then(JSON.decode).then(castMaps);
+    return this._backend.get(url).then(_json.decode).then(castMaps);
   }
 
   @override
@@ -86,8 +86,8 @@ class RESTIvrStore implements storage.Ivr {
 
     return this
         ._backend
-        .put(url, JSON.encode(menu))
-        .then(JSON.decode)
+        .put(url, _json.encode(menu))
+        .then(_json.decode)
         .then((Map<String, dynamic> map) => new model.IvrMenu.fromJson(map));
   }
 
@@ -99,7 +99,7 @@ class RESTIvrStore implements storage.Ivr {
     Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
         maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
 
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    return this._backend.get(url).then(_json.decode).then(convertMaps);
   }
 
   Future<String> changelog(String menuName) {

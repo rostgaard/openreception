@@ -28,7 +28,7 @@ void _testModelNotify() {
 abstract class _ModelNotify {
   static void serialization() {
     model.Notify builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -38,7 +38,7 @@ abstract class _ModelNotify {
     model.Notify builtObject = buildObject();
 
     model.Notify deserializedObject =
-        model.Notify.parse(JSON.decode(JSON.encode(builtObject)));
+        model.Notify.parse(_json.decode(_json.encode(builtObject)));
 
     expect(builtObject.toJson(), equals(deserializedObject.toJson()));
 
@@ -68,6 +68,6 @@ abstract class _ModelNotify {
     expect(builtObject.eventName, equals(eventName));
 
     expect(() => model.Notify.parse('notif $eventName'),
-        throwsA(new isInstanceOf<FormatException>()));
+        throwsA(const TypeMatcher<FormatException>()));
   }
 }

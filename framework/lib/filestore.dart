@@ -46,7 +46,8 @@ part 'filestore/filestore-user.dart';
 
 const String _libraryName = 'openreception.filestore';
 
-final JsonEncoder _jsonpp = new JsonEncoder.withIndent('  ');
+const JsonEncoder _jsonpp = const JsonEncoder.withIndent('  ');
+const JsonCodec _json = const JsonCodec();
 
 final model.User _systemUser = new model.User.empty()
   ..name = 'System'
@@ -57,7 +58,7 @@ final model.User _systemUser = new model.User.empty()
 /// The generated author string will have the form `$name <$email>` and will
 /// be HTML-escaped.
 String _authorString(model.User user) =>
-    new HtmlEscape(HtmlEscapeMode.ATTRIBUTE).convert('${user.name}') +
+    new HtmlEscape(HtmlEscapeMode.attribute).convert('${user.name}') +
     ' <${user.address}>';
 
 /// Convenience function for checking that a [FileSystemEntity] is a
@@ -149,8 +150,7 @@ class ChangeLogger {
   final File logFile;
 
   /// Internal logger.
-  final Logger _log =
-      new Logger('orf.filestore.ChangeLogger');
+  final Logger _log = new Logger('orf.filestore.ChangeLogger');
 
   /// Create a new [ChangeLogger] in [filepath].
   ///
@@ -169,8 +169,8 @@ class ChangeLogger {
 
   /// Append a [model.ChangelogEntry] to the [logFile].
   void add(model.ChangelogEntry object) {
-    logFile.writeAsStringSync(JSON.encode(object) + '\n',
-        mode: FileMode.APPEND);
+    logFile.writeAsStringSync(_json.encode(object) + '\n',
+        mode: FileMode.append);
   }
 
   /// Read the entire content of [logFile] into a [String] buffer.

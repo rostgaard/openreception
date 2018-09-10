@@ -33,14 +33,17 @@ const String _libraryName = 'orf.gzip_cache';
 final GZipEncoder _gzipEnc = new GZipEncoder();
 final GZipDecoder _gzipDec = new GZipDecoder();
 
+const Utf8Codec _utf8 = const Utf8Codec();
+const JsonCodec _json = const JsonCodec();
+
 /// Convenience method that converts a previously gzip encoded object back into
 /// an object.
 dynamic unpackAndDeserializeObject(List<int> data) =>
-    JSON.decode(UTF8.decode(_gzipDec.decodeBytes(data)));
+    _json.decode(_utf8.decode(_gzipDec.decodeBytes(data)));
 
 /// Convenience method that converts an object into a  gzip encoded object.
 List<int> serializeAndCompressObject(Object obj) =>
-    _gzipEnc.encode(UTF8.encode(JSON.encode(obj)));
+    _gzipEnc.encode(_utf8.encode(_json.encode(obj)));
 
 /// Returns true if [list] is actually a empty (gzipped) list.
 bool isEmptyGzipList(List<int> list) {
@@ -335,8 +338,8 @@ class ContactCache {
     final String key = '$cid:$rid';
 
     if (!_receptionDataCache.containsKey(key)) {
-      _receptionDataCache[key] = new GZipEncoder()
-          .encode(UTF8.encode(JSON.encode(await _contactStore.data(cid, rid))));
+      _receptionDataCache[key] = new GZipEncoder().encode(
+          _utf8.encode(_json.encode(await _contactStore.data(cid, rid))));
     }
 
     return _receptionDataCache[key];
@@ -344,8 +347,8 @@ class ContactCache {
 
   Future<List<int>> allContacts() async {
     if (_contactListCache.isEmpty) {
-      _contactListCache = new GZipEncoder().encode(UTF8.encode(
-          JSON.encode((await _contactStore.list()).toList(growable: false))));
+      _contactListCache = new GZipEncoder().encode(_utf8.encode(
+          _json.encode((await _contactStore.list()).toList(growable: false))));
     }
 
     return _contactListCache;
@@ -368,7 +371,7 @@ class ContactCache {
       contacts = await _contactStore.receptionContacts(rid);
 
       _receptionContactCache[rid] = new GZipEncoder()
-          .encode(UTF8.encode(JSON.encode(contacts.toList(growable: false))));
+          .encode(_utf8.encode(_json.encode(contacts.toList(growable: false))));
     }
 
     return _receptionContactCache[rid];
@@ -384,7 +387,7 @@ class ContactCache {
   Future<List<int>> get(int cid) async {
     if (!_contactCache.containsKey(cid)) {
       _contactCache[cid] = new GZipEncoder()
-          .encode(UTF8.encode(JSON.encode(await _contactStore.get(cid))));
+          .encode(_utf8.encode(_json.encode(await _contactStore.get(cid))));
     }
     return _contactCache[cid];
   }
@@ -456,7 +459,7 @@ class MessageCache {
         _messageListCache[key] = emptyGzipList;
       } else {
         _messageListCache[key] =
-            new GZipEncoder().encode(UTF8.encode(JSON.encode(messages)));
+            new GZipEncoder().encode(_utf8.encode(_json.encode(messages)));
       }
     }
 
@@ -466,7 +469,7 @@ class MessageCache {
   Future<List<int>> listDrafts() async {
     if (_draftListCache.isEmpty) {
       _draftListCache = new GZipEncoder()
-          .encode(UTF8.encode(JSON.encode(await _messageStore.listDrafts())));
+          .encode(_utf8.encode(_json.encode(await _messageStore.listDrafts())));
     }
 
     return _draftListCache;
@@ -515,7 +518,7 @@ class IvrMenuCache {
       _ivrListCache = ivrs.isEmpty
           ? emptyGzipList
           : new GZipEncoder()
-              .encode(UTF8.encode(JSON.encode(ivrs.toList(growable: false))));
+              .encode(_utf8.encode(_json.encode(ivrs.toList(growable: false))));
     }
 
     return _ivrListCache;
@@ -533,7 +536,7 @@ class IvrMenuCache {
       final model.IvrMenu menu = await ivrStore.get(menuName);
 
       _ivrCache[menuName] =
-          new GZipEncoder().encode(UTF8.encode(JSON.encode(menu)));
+          new GZipEncoder().encode(_utf8.encode(_json.encode(menu)));
     }
 
     return _ivrCache[menuName];
@@ -551,7 +554,7 @@ class IvrMenuCache {
     _ivrListCache = ivrs.isEmpty
         ? emptyGzipList
         : new GZipEncoder()
-            .encode(UTF8.encode(JSON.encode(ivrs.toList(growable: false))));
+            .encode(_utf8.encode(_json.encode(ivrs.toList(growable: false))));
 
     await Future.forEach(ivrs, (model.IvrMenu menu) async {
       await get(menu.name);
@@ -599,7 +602,7 @@ class DialplanCache {
       _dialplanListCache = dialplans.isEmpty
           ? emptyGzipList
           : new GZipEncoder().encode(
-              UTF8.encode(JSON.encode(dialplans.toList(growable: false))));
+              _utf8.encode(_json.encode(dialplans.toList(growable: false))));
     }
 
     return _dialplanListCache;
@@ -617,7 +620,7 @@ class DialplanCache {
       final model.ReceptionDialplan rdp = await _rdpStore.get(extension);
 
       _dialplanCache[extension] =
-          new GZipEncoder().encode(UTF8.encode(JSON.encode(rdp)));
+          new GZipEncoder().encode(_utf8.encode(_json.encode(rdp)));
     }
 
     return _dialplanCache[extension];
@@ -635,7 +638,7 @@ class DialplanCache {
     _dialplanListCache = dialplans.isEmpty
         ? emptyGzipList
         : new GZipEncoder().encode(
-            UTF8.encode(JSON.encode(dialplans.toList(growable: false))));
+            _utf8.encode(_json.encode(dialplans.toList(growable: false))));
 
     await Future.forEach(dialplans, (model.ReceptionDialplan rdp) async {
       await get(rdp.extension);
@@ -681,8 +684,8 @@ class UserCache {
 
       _userListCache = users.isEmpty
           ? emptyGzipList
-          : new GZipEncoder()
-              .encode(UTF8.encode(JSON.encode(users.toList(growable: false))));
+          : new GZipEncoder().encode(
+              _utf8.encode(_json.encode(users.toList(growable: false))));
     }
 
     return _userListCache;
@@ -699,7 +702,7 @@ class UserCache {
       final model.User user = await _userStore.get(uid);
 
       _userCache[uid] =
-          new GZipEncoder().encode(UTF8.encode(JSON.encode(user)));
+          new GZipEncoder().encode(_utf8.encode(_json.encode(user)));
     }
 
     return _userCache[uid];
@@ -717,7 +720,7 @@ class UserCache {
     _userListCache = users.isEmpty
         ? emptyGzipList
         : new GZipEncoder()
-            .encode(UTF8.encode(JSON.encode(users.toList(growable: false))));
+            .encode(_utf8.encode(_json.encode(users.toList(growable: false))));
 
     await Future.forEach(users, (model.UserReference uRef) async {
       await get(uRef.id);

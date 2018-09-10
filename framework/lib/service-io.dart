@@ -30,19 +30,23 @@ Future<String> _handleResponse(
   return body;
 }
 
+const JsonCodec _json = const JsonCodec();
+const Utf8Codec _utf8 = const Utf8Codec();
 Future<String> extractContent(Stream<List<int>> request) {
   Completer<String> completer = new Completer<String>();
   List<int> completeRawContent = new List<int>();
 
   request.listen(completeRawContent.addAll,
-      onError: (dynamic error) => completer.completeError(error), onDone: () {
-    try {
-      String content = UTF8.decode(completeRawContent);
-      completer.complete(content);
-    } catch (error) {
-      completer.completeError(error);
-    }
-  }, cancelOnError: true);
+      onError: (dynamic error) => completer.completeError(error),
+      onDone: () {
+        try {
+          String content = _utf8.decode(completeRawContent);
+          completer.complete(content);
+        } catch (error) {
+          completer.completeError(error);
+        }
+      },
+      cancelOnError: true);
 
   return completer.future;
 }
