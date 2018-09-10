@@ -20,22 +20,24 @@ import 'package:logging/logging.dart';
 import 'package:ors/configuration.dart';
 import 'package:ors/controller/controller-config.dart' as controller;
 import 'package:ors/response_utils.dart';
-import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
+import 'package:shelf_router/shelf_router.dart' as shelf_route;
 
 /**
  *
  */
 class Config {
-  final Logger _log = new Logger('server.router.config');
-  final controller.Config _configController;
 
   /**
    *
    */
   Config(this._configController);
+
+  final Logger _log = Logger('server.router.config');
+  final controller.Config _configController;
+
 
   /**
    *
@@ -43,24 +45,26 @@ class Config {
   void bindRoutes(dynamic router) {
     router
       ..get('/configuration', _configController.get)
-      ..post('/configuration/register', _configController.register);
+      ..post('/configuration/register', _configController.register)
+      ..all('/<catch-all|.*>', (Request request) {
+        return Response.notFound('Page not found');
+      });
   }
 
   /**
    *
    */
   Future<HttpServer> listen({String hostname: '0.0.0.0', int port: 4080}) {
-    final router = shelf_route.router();
+    final router = shelf_route.Router();
     bindRoutes(router);
 
-    final handler = const shelf.Pipeline()
-        .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
+    final handler = const Pipeline()
+        .addMiddleware(logRequests(logger: config.accessLog.onAccess))
         .addMiddleware(
-            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addHandler(router.handler);
 
     _log.fine('Accepting incoming requests on $hostname:$port:');
-    shelf_route.printRoutes(router, printer: (String item) => _log.fine(item));
 
     return shelf_io.serve(handler, hostname, port);
   }

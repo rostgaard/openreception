@@ -13,26 +13,26 @@
 
 library ors.controller.peer_account;
 
-import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
-import 'package:xml/xml.dart' as xml;
+import 'dart:io';
 
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
 import 'package:logging/logging.dart';
-
+import 'package:orf/dialplan_tools.dart' as dialplanTools;
 import 'package:orf/model.dart' as model;
 import 'package:orf/storage.dart' as storage;
-import 'package:orf/dialplan_tools.dart' as dialplanTools;
-
 import 'package:ors/response_utils.dart';
+import 'package:shelf/shelf.dart';
+import 'package:xml/xml.dart' as xml;
 
-/**
- * PeerAccount controller class.
- */
+/// PeerAccount controller class.
 class PeerAccount {
-  final Logger _log = new Logger('server.controller.peer_account');
+  /**
+   *
+   */
+  PeerAccount(this._userStore, this._compiler, this.fsConfPath);
+
+  final Logger _log = Logger('server.controller.peer_account');
   final dialplanTools.DialplanCompiler _compiler;
   final storage.User _userStore;
   final String fsConfPath;
@@ -40,28 +40,21 @@ class PeerAccount {
   /**
    *
    */
-  PeerAccount(this._userStore, this._compiler, this.fsConfPath);
-
-  /**
-   *
-   */
-  Future<shelf.Response> deploy(shelf.Request request) async {
-    final int uid = int.parse(shelf_route.getPathParameter(request, 'uid'));
-    final model.PeerAccount account = await request
-        .readAsString()
-        .then(JSON.decode)
+  Future<Response> deploy(Request request, final String uid) async {
+    final model.PeerAccount account = await request.readAsString()
+        .then(json.decode)
         .then(
-            (Map<String, dynamic> map) => new model.PeerAccount.fromJson(map));
+            (map) => model.PeerAccount.fromJson(map));
 
-    final model.User user = await _userStore.get(uid);
+    final model.User user = await _userStore.get(int.parse(uid));
 
     final String xmlFilePath =
         fsConfPath + '/directory/receptionists/${account.username}.xml';
-    final List<String> generatedFiles = new List<String>.from([xmlFilePath]);
+    final List<String> generatedFiles = <String>[xmlFilePath];
 
     _log.fine(
-        'Deploying new peer account to file ${new File(xmlFilePath).absolute.path}');
-    new File(xmlFilePath).writeAsStringSync(_compiler.userToXml(user, account));
+        'Deploying peer account to file ${File(xmlFilePath).absolute.path}');
+    File(xmlFilePath).writeAsStringSync(_compiler.userToXml(user, account));
 
     return okJson(generatedFiles);
   }
@@ -69,11 +62,10 @@ class PeerAccount {
   /**
    *
    */
-  Future<shelf.Response> get(shelf.Request request) async {
-    final String accountName = shelf_route.getPathParameter(request, 'aid');
+  Future<Response> get(Request request, final String aid) async {
 
     final String xmlFilePath = fsConfPath + '/directory/receptionists';
-    final File xmlFile = new File(xmlFilePath + '/$accountName.xml');
+    final File xmlFile = File(xmlFilePath + '/$aid.xml');
 
     if (!(await xmlFile.exists())) {
       return notFound('No such file ${xmlFile.path}');
@@ -98,7 +90,7 @@ class PeerAccount {
         .first
         .value;
 
-    final callgroup = document
+    final callGroup = document
         .findAllElements('variable')
         .where((node) => node.getAttribute('name') == 'callgroup')
         .first
@@ -107,19 +99,19 @@ class PeerAccount {
         .first
         .value;
 
-    return okJson(new model.PeerAccount(user, password, callgroup));
+    return okJson(model.PeerAccount(user, password, callGroup));
   }
 
   /**
    *
    */
-  Future<shelf.Response> list(shelf.Request request) async {
+  Future<Response> list(Request request) async {
     final String xmlFilePath = fsConfPath + '/directory/receptionists';
 
     bool isXmlFile(FileSystemEntity fse) =>
         fse is File && fse.path.toLowerCase().endsWith('.xml');
 
-    final List<String> listing = new List.from(new Directory(xmlFilePath)
+    final List<String> listing = List.from(Directory(xmlFilePath)
         .listSync()
         .where(isXmlFile)
         .map((fse) => fse.uri.pathSegments.last.split('.xml').first));
@@ -130,18 +122,17 @@ class PeerAccount {
   /**
    *
    */
-  Future<shelf.Response> remove(shelf.Request request) async {
-    final String aid = shelf_route.getPathParameter(request, 'aid');
+  Future<Response> remove(Request request, final String aid ) async {
 
     final String xmlFilePath = fsConfPath + '/directory/receptionists/$aid.xml';
 
-    final File peerAccount = new File(xmlFilePath);
+    final File peerAccount = File(xmlFilePath);
 
     if (!await peerAccount.exists()) {
       return notFound('No peer account for $aid');
     }
 
-    await new File(xmlFilePath).delete();
+    await  File(xmlFilePath).delete();
     return okJson({});
   }
 }

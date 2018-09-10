@@ -16,19 +16,19 @@ part of orf.model.dialplan;
 ///'Tuple' class for returning an identifier consumed from a buffer and
 /// the remaining buffer.
 class _ConsumedIdenBuf {
+  const _ConsumedIdenBuf(this.iden, this.buffer);
+
   final String buffer;
   final String iden;
-
-  const _ConsumedIdenBuf(this.iden, this.buffer);
 }
 
 /// 'Tuple' class for returning a comment consumed from a buffer and the
 /// remaining buffer.
 class _ConsumedCommentBuf {
+  const _ConsumedCommentBuf(this.comment, this.buffer);
+
   final String buffer;
   final String comment;
-
-  const _ConsumedCommentBuf(this.comment, this.buffer);
 }
 
 /// Consume the next word up until next space from [buffer].
@@ -39,7 +39,7 @@ _ConsumedIdenBuf consumeWord(String buffer) {
   final int nextTerm =
       buffer.indexOf(' ') > 0 ? buffer.indexOf(' ') : buffer.length;
 
-  return new _ConsumedIdenBuf(
+  return _ConsumedIdenBuf(
       buffer.substring(0, nextTerm), buffer.substring(nextTerm, buffer.length));
 }
 
@@ -47,17 +47,17 @@ _ConsumedIdenBuf consumeWord(String buffer) {
 _ConsumedCommentBuf consumeComment(String buffer) {
   buffer = buffer.trimLeft();
 
-  if (buffer.isEmpty) return new _ConsumedCommentBuf('', '');
+  if (buffer.isEmpty) return _ConsumedCommentBuf('', '');
 
   if (!buffer.startsWith('(')) {
-    throw new FormatException('Buffer expected to start with a (', '"$buffer"');
+    throw FormatException('Buffer expected to start with a (', '"$buffer"');
   } else if (buffer.length < 2) {
-    return new _ConsumedCommentBuf('', '');
+    return _ConsumedCommentBuf('', '');
   }
   final int parRight =
       buffer.indexOf(')') > 0 ? buffer.indexOf(')') : buffer.length;
 
-  return new _ConsumedCommentBuf(
+  return _ConsumedCommentBuf(
       buffer.substring(1, parRight), buffer.substring(parRight, buffer.length));
 }
 
@@ -71,7 +71,7 @@ String _consumeKey(String buffer, String key) => (!buffer
         .substring(0, key.length)
         .toLowerCase()
         .startsWith(key.toLowerCase())
-    ? throw new FormatException(
+    ? throw FormatException(
         'Tried to parse a non-$key '
         'action as a $key',
         buffer)

@@ -80,31 +80,30 @@ String _encodeServerType(ServerType type) {
 /// A [RESTConfiguration] is similar to a broker registry, that maintains
 /// and stores location identifiers for other services.
 class RESTConfiguration {
+  /// Create a new [RESTConfiguration] client.
+  RESTConfiguration(Uri this.host, this._backend);
+
   final WebService _backend;
 
   /// The uri of the connected backend.
   final Uri host;
 
-  /// Create a new [RESTConfiguration] client.
-  RESTConfiguration(Uri this.host, this._backend);
-
-  /// Returns a [ClientConfiguration] object.
+  /// Returns a [model.ClientConfiguration] object.
   Future<model.ClientConfiguration> clientConfig() {
     final Uri uri = resource.Config.get(this.host);
 
     return _backend.get(uri).then((String response) =>
         new model.ClientConfiguration.fromJson(
-            JSON.decode(response) as Map<String, dynamic>));
+            _json.decode(response) as Map<String, dynamic>));
   }
 
   ///Registers a server in the config server registry.
   Future<Null> register(ServerType type, Uri registerUri) async {
-    final Uri uri = resource.Config.register(this.host);
+    final Uri uri = resource.Config.root(this.host);
     final Map<String, dynamic> body = <String, dynamic>{
-      'type': _encodeServerType(type),
-      'uri': registerUri.toString()
+      _encodeServerType(type): registerUri.toString()
     };
 
-    await _backend.post(uri, JSON.encode(body));
+    await _backend.put(uri, _json.encode(body));
   }
 }

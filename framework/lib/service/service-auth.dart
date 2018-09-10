@@ -19,6 +19,10 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class Authentication {
+  /// Default constructor. Needs a [host] for backend uri, a user [token]
+  /// and a [WebService] HTTP client for handling the transport.
+  Authentication(Uri this.host, String this.token, this._httpClient);
+
   final WebService _httpClient;
 
   /// The uri of the connected backend.
@@ -27,17 +31,13 @@ class Authentication {
   /// The token used for authenticating with the backed.
   final String token;
 
-  /// Default constructor. Needs a [host] for backend uri, a user [token]
-  /// and a [WebService] HTTP client for handling the transport.
-  Authentication(Uri this.host, String this.token, this._httpClient);
-
   /// Performs a lookup of the user on the notification server from the
   /// supplied [token].
-  Future<model.User> userOf(String token) {
-    Uri uri = resource.Authentication.tokenToUser(this.host, token);
+  Future<model.User> userOf(String token) async {
+    final Uri uri = resource.Authentication.tokenToUser(this.host, token);
+    final Map<String, dynamic> json = _json.decode(await _httpClient.get(uri)) as Map<String, dynamic>;
 
-    return this._httpClient.get(uri).then((String response) =>
-        new model.User.fromJson(JSON.decode(response) as Map<String, dynamic>));
+    return model.User.fromJson(json);
   }
 
   /// Validate [token]. Throws [NotFound] exception if the token is not

@@ -140,7 +140,7 @@ Future list(
 
   for (Directory dir in await dirs(config.cdrEntryStore, from, to, config)) {
     for (FileSystemEntity e in dir.listSync().where(relevantFile)) {
-      output['entries'].add(JSON.decode((e as File).readAsStringSync()));
+      output['entries'].add(json.decode((e as File).readAsStringSync()));
     }
   }
 
@@ -155,7 +155,7 @@ Future list(
     final JsonEncoder encoder = const JsonEncoder.withIndent('  ');
     stdout.write(encoder.convert(output));
   } else if (jsonOutput) {
-    stdout.write(JSON.encode(output));
+    stdout.write(json.encode(output));
   } else {
     stdout.writeln('From: ${output['from']}');
     stdout.writeln('To: ${output['to']}');
@@ -171,9 +171,7 @@ Future list(
   }
 }
 
-/**
- * Output a JSON reception summary report.
- */
+/// Output a JSON reception summary report.
 Future summary(
     DateTime from,
     DateTime to,
@@ -197,7 +195,7 @@ Future summary(
       in await dirs(config.cdrSummaryDirectory, from, to, config)) {
     for (FileSystemEntity e in dir.listSync().where(relevantFile)) {
       final CdrSummary s = new CdrSummary.fromJson(
-          JSON.decode((e as File).readAsStringSync()),
+          json.decode((e as File).readAsStringSync()),
           alsoCdrFiles: includeCdrFiles);
       if (summaries.containsKey(s.rid.toString())) {
         summaries[s.rid.toString()].add(s, alsoCdrFiles: includeCdrFiles);
@@ -221,7 +219,7 @@ Future summary(
     final JsonEncoder encoder = const JsonEncoder.withIndent('  ');
     stdout.write(encoder.convert(output));
   } else if (jsonOutput) {
-    stdout.write(JSON.encode(output));
+    stdout.write(json.encode(output));
   } else {
     stdout.writeln('From: ${output['from']}');
     stdout.writeln('To: ${output['to']}');

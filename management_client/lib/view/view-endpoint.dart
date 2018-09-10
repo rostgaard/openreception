@@ -83,7 +83,7 @@ class Endpoints {
       _foldJson.hidden = true;
       _unfoldJson.hidden = false;
       _endpointsInput.style.height = '';
-      _endpointsInput.value = JSON.encode(endpoints.toList());
+      _endpointsInput.value = json.encode(endpoints.toList());
     });
   }
 
@@ -95,7 +95,7 @@ class Endpoints {
     if (_unfoldJson.hidden) {
       _endpointsInput.value = _jsonpp.convert(_originalList);
     } else {
-      _endpointsInput.value = JSON.encode(_originalList);
+      _endpointsInput.value = json.encode(_originalList);
     }
   }
 
@@ -103,10 +103,10 @@ class Endpoints {
    *
    */
   Iterable<model.MessageEndpoint> get endpoints {
-    final List epMaps = JSON.decode(_endpointsInput.value);
+    final List epMaps = json.decode(_endpointsInput.value);
 
-    return epMaps.map((Map map) =>
-        new model.MessageEndpoint.fromJson(map as Map<String, dynamic>));
+    return epMaps.map((map) =>
+        new model.MessageEndpoint.fromJson(map));
   }
 
   void _resizeInput() {

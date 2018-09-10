@@ -1,15 +1,13 @@
 part of ort.storage;
 
 abstract class Message {
-  static final Logger log = new Logger('$_libraryName.MessageStore');
+  static final Logger log = Logger('$_libraryName.MessageStore');
 
-  /**
-   * Test server behaviour when trying to retrieve a daily list of
-   * message objects.
-   *
-   * The expected behaviour is that the server should return a list
-   * of message objects.
-   */
+  /// Test server behaviour when trying to retrieve a daily list of
+  /// message objects.
+  ///
+  /// The expected behaviour is that the server should return a list
+  /// of message objects.
   static Future listDay(ServiceAgent sa) async {
     log.info('Listing messages non-filtered.');
 
@@ -18,7 +16,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = new model.MessageContext.empty()
+    final context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -27,7 +25,7 @@ abstract class Message {
     final msg1 = await sa.createsMessage(context);
 
     {
-      final lst = await sa.messageStore.listDay(new DateTime.now());
+      final lst = await sa.messageStore.listDay(DateTime.now());
       expect(lst.length, equals(1));
 
       final fetchedMsg = lst.firstWhere((m) => m.id == msg1.id);
@@ -36,13 +34,11 @@ abstract class Message {
     }
   }
 
-  /**
-   * Test server behaviour when trying to retrieve a filtered list of
-   * message objects.
-   *
-   * The expected behaviour is that the server should return a list
-   * of message objects - excluding the ones that does not apply to filter.
-   */
+  /// Test server behaviour when trying to retrieve a filtered list of
+  /// message objects.
+  ///
+  /// The expected behaviour is that the server should return a list
+  /// of message objects - excluding the ones that does not apply to filter.
   static Future listFiltered(ServiceAgent sa) async {
     log.info('Listing messages filtered.');
 
@@ -54,13 +50,13 @@ abstract class Message {
     await sa.addsContactToReception(con1, rec1);
     await sa.addsContactToReception(con2, rec2);
 
-    final context1 = new model.MessageContext.empty()
+    final context1 = model.MessageContext.empty()
       ..cid = con1.id
       ..rid = rec1.id
       ..contactName = con1.name
       ..receptionName = rec1.name;
 
-    final context2 = new model.MessageContext.empty()
+    final context2 = model.MessageContext.empty()
       ..cid = con2.id
       ..rid = rec2.id
       ..contactName = con2.name
@@ -68,7 +64,7 @@ abstract class Message {
 
     final msg1 = await sa.createsMessage(context1);
     {
-      final lst = await sa.messageStore.listDay(new DateTime.now());
+      final lst = await sa.messageStore.listDay(DateTime.now());
       expect(lst.length, equals(1));
 
       final fetchedMsg = lst.firstWhere((m) => m.id == msg1.id);
@@ -77,9 +73,9 @@ abstract class Message {
     }
 
     {
-      final filter = new model.MessageFilter.empty()..contactId = con1.id;
+      final filter = model.MessageFilter.empty()..contactId = con1.id;
       log.info('Listing with contactFilter $filter');
-      final lst = (await sa.messageStore.listDay(new DateTime.now()))
+      final lst = (await sa.messageStore.listDay(DateTime.now()))
           .where(filter.appliesTo);
       expect(lst.length, equals(1));
 
@@ -91,9 +87,9 @@ abstract class Message {
     final msg2 = await sa.createsMessage(context2);
 
     {
-      final filter = new model.MessageFilter.empty()..contactId = con2.id;
+      final filter = model.MessageFilter.empty()..contactId = con2.id;
       log.info('Listing with contactFilter $filter');
-      final lst = (await sa.messageStore.listDay(new DateTime.now()))
+      final lst = (await sa.messageStore.listDay(DateTime.now()))
           .where(filter.appliesTo);
       expect(lst.length, equals(1));
       final fetchedMsg = lst.firstWhere((m) => m.id == msg2.id);
@@ -102,9 +98,9 @@ abstract class Message {
     }
 
     {
-      final filter = new model.MessageFilter.empty()..receptionId = rec1.id;
+      final filter = model.MessageFilter.empty()..receptionId = rec1.id;
       log.info('Listing with filter $filter');
-      final lst = (await sa.messageStore.listDay(new DateTime.now()))
+      final lst = (await sa.messageStore.listDay(DateTime.now()))
           .where(filter.appliesTo);
       expect(lst.length, equals(1));
       final fetchedMsg = lst.firstWhere((m) => m.id == msg1.id);
@@ -113,9 +109,9 @@ abstract class Message {
     }
 
     {
-      final filter = new model.MessageFilter.empty()..receptionId = rec2.id;
+      final filter = model.MessageFilter.empty()..receptionId = rec2.id;
       log.info('Listing with filter $filter');
-      final lst = (await sa.messageStore.listDay(new DateTime.now()))
+      final lst = (await sa.messageStore.listDay(DateTime.now()))
           .where(filter.appliesTo);
       expect(lst.length, equals(1));
       final fetchedMsg = lst.firstWhere((m) => m.id == msg2.id);
@@ -135,7 +131,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = new model.MessageContext.empty()
+    final context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -155,7 +151,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = new model.MessageContext.empty()
+    final context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -176,7 +172,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = new model.MessageContext.empty()
+    final context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -186,16 +182,14 @@ abstract class Message {
     await sa.messageStore.remove(msg.id, sa.user);
 
     await expect(
-        sa.messageStore.get(msg.id), throwsA(new isInstanceOf<NotFound>()));
+        sa.messageStore.get(msg.id), throwsA(const TypeMatcher<NotFound>()));
   }
 
-  /**
-   * Test server behaviour when trying to aquire a message object that
-   * exists.
-   *
-   * The expected behaviour is that the server should return the
-   * Reception object.
-   */
+  /// Test server behaviour when trying to aquire a message object that
+  /// exists.
+  ///
+  /// The expected behaviour is that the server should return the
+  /// Reception object.
   static Future get(ServiceAgent sa) async {
     log.info('Getting single message');
 
@@ -204,7 +198,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = new model.MessageContext.empty()
+    final context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -219,9 +213,9 @@ abstract class Message {
     expect(fetched.callerInfo.toJson(), equals(created.callerInfo.toJson()));
     expect(fetched.callId, equals(created.callId));
     expect(fetched.context.toJson(), equals(context.toJson()));
-    expect(fetched.createdAt.isBefore(new DateTime.now()), isTrue);
-    expect(fetched.createdAt.difference(new DateTime.now()),
-        greaterThan(new Duration(seconds: -1)));
+    expect(fetched.createdAt.isBefore(DateTime.now()), isTrue);
+    expect(fetched.createdAt.difference(DateTime.now()),
+        greaterThan(Duration(seconds: -1)));
     expect(fetched.flag.toJson(), equals(created.flag.toJson()));
 
     /// TODO: Elaborate this check.
@@ -229,17 +223,15 @@ abstract class Message {
     expect(fetched.sender.toJson(), equals(sa.user.toJson()));
   }
 
-  /**
-     * Test server behaviour when trying to aquire a message object that
-     * does not exist.
-     *
-     * The expected behaviour is that the server should return a Not Found error.
-     */
+  /// Test server behaviour when trying to aquire a message object that
+  /// does not exist.
+  ///
+  /// The expected behaviour is that the server should return a Not Found error.
   static Future getNotFound(ServiceAgent sa) async {
     log.info('Checking server behaviour on a non-existing message.');
 
     await expect(
-        sa.messageStore.get(-1), throwsA(new isInstanceOf<NotFound>()));
+        sa.messageStore.get(-1), throwsA(const TypeMatcher<NotFound>()));
   }
 
   /**
@@ -251,7 +243,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = new model.MessageContext.empty()
+    final context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -278,9 +270,9 @@ abstract class Message {
     expect(fetched.callerInfo.toJson(), equals(updated.callerInfo.toJson()));
     expect(fetched.callId, equals(updated.callId));
     expect(fetched.context.toJson(), equals(context.toJson()));
-    expect(fetched.createdAt.isBefore(new DateTime.now()), isTrue);
-    expect(fetched.createdAt.difference(new DateTime.now()),
-        greaterThan(new Duration(seconds: -1)));
+    expect(fetched.createdAt.isBefore(DateTime.now()), isTrue);
+    expect(fetched.createdAt.difference(DateTime.now()),
+        greaterThan(Duration(seconds: -1)));
     expect(fetched.flag.toJson(), equals(updated.flag.toJson()));
 
     /// TODO: Elaborate this check.
@@ -297,7 +289,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final model.MessageContext context = new model.MessageContext.empty()
+    final model.MessageContext context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -309,12 +301,12 @@ abstract class Message {
 
     expect(commits.length, equals(1));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
-    final change = commits.first.changes.first;
+    final model.MessageChange change = commits.first.changes.first;
 
     expect(change.changeType, model.ChangeType.add);
     expect(change.mid, created.id);
@@ -329,7 +321,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final model.MessageContext context = new model.MessageContext.empty()
+    final model.MessageContext context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -344,23 +336,23 @@ abstract class Message {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.MessageChange latestChange = commits.first.changes.first;
+    final model.MessageChange oldestChange = commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.modify);
     expect(latestChange.mid, created.id);
@@ -378,7 +370,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final model.MessageContext context = new model.MessageContext.empty()
+    final model.MessageContext context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -393,23 +385,23 @@ abstract class Message {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.MessageChange latestChange = commits.first.changes.first;
+    final model.MessageChange oldestChange = commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.delete);
     expect(latestChange.mid, created.id);

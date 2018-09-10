@@ -52,14 +52,13 @@ class Message {
   /// Deserializing constructor.
   Message.fromJson(Map<String, dynamic> map) {
     Iterable<MessageEndpoint> iterRcp = (map[key.recipients]
-            as Iterable<Map<String, dynamic>>)
-        .map((Map<String, dynamic> map) => new MessageEndpoint.fromJson(map));
+            as Iterable<dynamic>)
+        .map((map) => MessageEndpoint.fromJson(map));
 
     id = (map.containsKey(key.id) ? map[key.id] : noId);
     recipients.addAll(iterRcp);
-    context =
-        new MessageContext.fromJson(map[key.context] as Map<String, dynamic>);
-    flag = new MessageFlag(map['flags'] as List<String>);
+    context = MessageContext.fromJson(map[key.context] as Map<String, dynamic>);
+    flag = MessageFlag(new List.from(map['flags']));
     callerInfo =
         new CallerInfo.fromJson(map[key.caller] as Map<String, dynamic>);
     body = map[key.body];

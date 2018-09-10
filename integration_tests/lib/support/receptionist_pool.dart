@@ -5,6 +5,9 @@ class ReceptionistPool extends Pool<Receptionist> {
 
   ReceptionistPool(Iterable<Receptionist> elements) : super(elements);
 
-  Future initialized() =>
-      Future.forEach(this.elements, (Receptionist r) => r.ready());
+  Future initialized() async {
+    for (final Receptionist r in elements) {
+      await r.ready();
+    }
+  }
 }

@@ -17,7 +17,7 @@ import 'dart:async';
 import 'dart:html' as html;
 
 import 'package:logging/logging.dart';
-import 'package:okeyee/okeyee.dart';
+import 'package:okeyee2/okeyee.dart';
 import 'package:orf/bus.dart';
 import 'package:orf/event.dart' as or_event;
 import 'package:orf/exceptions.dart';

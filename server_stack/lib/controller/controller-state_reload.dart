@@ -18,20 +18,18 @@ import 'dart:async';
 import 'package:ors/controller/controller-pbx.dart' as controller;
 import 'package:ors/model.dart' as _model;
 import 'package:ors/response_utils.dart';
-import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf.dart';
 
 class PhoneState {
+  PhoneState(this._callList, this._peerlist, this._pbxController);
+
   final _model.CallList _callList;
 
   final _model.PeerList _peerlist;
   final controller.PBX _pbxController;
 
-  PhoneState(this._callList, this._peerlist, this._pbxController);
-
-  /**
-   * Performs a total reload of state.
-   */
-  Future<shelf.Response> reloadAll(shelf.Request request) async {
+  /// Performs a total reload of state.
+  Future<Response> reloadAll(Request request) async {
     _peerlist.clear();
 
     await Future.wait(

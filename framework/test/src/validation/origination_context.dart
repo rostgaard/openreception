@@ -40,7 +40,7 @@ void _originationContextTests() {
 
       expect(errors.length, equals(1));
 
-      expect(errors.first, new isInstanceOf<InvalidId>());
+      expect(errors.first, const TypeMatcher<InvalidId>());
     });
 
     test('rid is noId', () {
@@ -55,7 +55,7 @@ void _originationContextTests() {
 
       expect(errors.length, equals(1));
 
-      expect(errors.first, new isInstanceOf<InvalidId>());
+      expect(errors.first, const TypeMatcher<InvalidId>());
     });
 
     test('dialplan is empty', () {
@@ -70,7 +70,7 @@ void _originationContextTests() {
 
       expect(errors.length, equals(1));
 
-      expect(errors.first, new isInstanceOf<IsEmpty>());
+      expect(errors.first, const TypeMatcher<IsEmpty>());
     });
 
     test('combined errors', () {

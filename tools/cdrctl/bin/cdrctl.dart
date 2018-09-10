@@ -78,7 +78,7 @@ Future<Configuration> loadConfig(Logger log, Configuration config) async {
 
   if (configFile != null) {
     return new Configuration.fromJson(
-        JSON.decode(configFile.readAsStringSync()));
+        json.decode(configFile.readAsStringSync()));
   }
 
   return config;

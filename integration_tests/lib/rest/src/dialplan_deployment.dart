@@ -4,51 +4,53 @@ part of ort.service;
  * Converts a Dart DateTime WeekDay into a [model.Weekday].
  */
 model.WeekDay toWeekDay(int weekday) {
-  if (weekday == DateTime.MONDAY) {
+  if (weekday == DateTime.monday) {
     return model.WeekDay.mon;
-  } else if (weekday == DateTime.TUESDAY) {
+  } else if (weekday == DateTime.tuesday) {
     return model.WeekDay.tue;
-  } else if (weekday == DateTime.WEDNESDAY) {
+  } else if (weekday == DateTime.wednesday) {
     return model.WeekDay.wed;
-  } else if (weekday == DateTime.THURSDAY) {
+  } else if (weekday == DateTime.thursday) {
     return model.WeekDay.thur;
-  } else if (weekday == DateTime.FRIDAY) {
+  } else if (weekday == DateTime.friday) {
     return model.WeekDay.fri;
-  } else if (weekday == DateTime.SATURDAY) {
+  } else if (weekday == DateTime.saturday) {
     return model.WeekDay.sat;
-  } else if (weekday == DateTime.SUNDAY) {
+  } else if (weekday == DateTime.sunday) {
     return model.WeekDay.sun;
   }
 
-  throw new RangeError('$weekday not in range');
+  throw RangeError('$weekday not in range');
 }
 
-abstract class DialplanDeployment {
+abstract class DialplanDeploymentTest {
   /**
    * TODO: Verify reception-id.
    */
   static noHours(Customer customer, service.RESTDialplanStore rdpStore,
       storage.Reception rStore, esl.Connection eslClient) async {
-    final Logger _log = new Logger('$libraryName.DialplanDeployment.noHours');
+    final Logger _log = Logger('service.DialplanDeployment.noHours');
     List<esl.Event> events = [];
     eslClient.eventStream.listen(events.add);
 
     //TODO: event subscriptions.
-    Model.ReceptionDialplan rdp = new Model.ReceptionDialplan()
+    model.ReceptionDialplan rdp = model.ReceptionDialplan()
       ..open = []
       ..extension = 'test-${Randomizer.randomPhoneNumber()}'
-          '-${new DateTime.now().millisecondsSinceEpoch}'
+          '-${DateTime.now().millisecondsSinceEpoch}'
       ..defaultActions = [
-        new Model.Playback('sorry-dude-were-closed'),
-        new Model.Playback('sorry-dude-were-really-closed')
+        model.Playback('sorry-dude-were-closed'),
+        model.Playback('sorry-dude-were-really-closed')
       ]
       ..active = true;
 
-    Model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp);
+    model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp);
     _log.info('Created dialplan: ${createdDialplan.toJson()}');
-    model.Reception r = await rStore.create(Randomizer.randomReception()
-      ..enabled = true
-      ..dialplan = createdDialplan.extension);
+    final r = await rStore.create(
+        Randomizer.randomReception()
+          ..enabled = true
+          ..dialplan = createdDialplan.extension,
+        null);
     await rdpStore.deployDialplan(rdp.extension, r.id);
     await rdpStore.reloadConfig();
 
@@ -59,18 +61,17 @@ abstract class DialplanDeployment {
     await customer.dial(rdp.extension);
 
     _log.info('Awaiting $customer\'s phone to hang up');
-    await customer.waitForHangup().timeout(new Duration(seconds: 10));
-    await new Future.delayed(new Duration(milliseconds: 100));
+    await customer.waitForHangup().timeout(Duration(seconds: 10));
+    await Future.delayed(Duration(milliseconds: 100));
 
     /// Check event queue.
     final int playback1 = events.indexOf(events.firstWhere((event) =>
-        event.field('Application-Data') != null &&
-        event.field('Application-Data').contains('sorry-dude-were-closed')));
+        event.fields['Application-Data'] != null &&
+        event.fields['Application-Data'].contains('sorry-dude-were-closed')));
 
     final int playback2 = events.indexOf(events.firstWhere((event) =>
-        event.field('Application-Data') != null &&
-        event
-            .field('Application-Data')
+        event.fields['Application-Data'] != null &&
+        event.fields['Application-Data']
             .contains('sorry-dude-were-really-closed')));
 
     expect(playback1, lessThan(playback2));
@@ -78,8 +79,8 @@ abstract class DialplanDeployment {
     /// Cleanup.
     _log.info('Test successful. Cleaning up.');
 
-    await rStore.remove(r.id);
-    await rdpStore.remove(createdDialplan.extension);
+    await rStore.remove(r.id, null);
+    await rdpStore.remove(createdDialplan.extension, null);
   }
 
   /**
@@ -87,13 +88,12 @@ abstract class DialplanDeployment {
    */
   static openHoursOpen(Customer customer, service.RESTDialplanStore rdpStore,
       storage.Reception rStore, esl.Connection eslClient) async {
-    final Logger _log =
-        new Logger('$libraryName.DialplanDeployment.openHoursOpen');
+    final Logger _log = Logger('service.DialplanDeployment.openHoursOpen');
     List<esl.Event> events = [];
     eslClient.eventStream.listen(events.add);
 
-    final DateTime now = new DateTime.now();
-    Model.OpeningHour justNow = new Model.OpeningHour.empty()
+    final DateTime now = DateTime.now();
+    model.OpeningHour justNow = model.OpeningHour.empty()
       ..fromDay = toWeekDay(now.weekday)
       ..toDay = toWeekDay(now.weekday)
       ..fromHour = now.hour
@@ -102,24 +102,26 @@ abstract class DialplanDeployment {
       ..toMinute = now.minute;
 
     //TODO: event subscriptions.
-    Model.ReceptionDialplan rdp = new Model.ReceptionDialplan()
+    model.ReceptionDialplan rdp = model.ReceptionDialplan()
       ..open = [
-        new Model.HourAction()
+        model.HourAction()
           ..hours = [justNow]
           ..actions = [
-            new Model.Playback('sorry-dude-were-open'),
-            new Model.Playback('sorry-dude-were-really-open')
+            model.Playback('sorry-dude-were-open'),
+            model.Playback('sorry-dude-were-really-open')
           ]
       ]
       ..extension = 'test-${Randomizer.randomPhoneNumber()}'
-          '-${new DateTime.now().millisecondsSinceEpoch}'
-      ..defaultActions = [new Model.Playback('sorry-dude-were-closed')]
+          '-${DateTime.now().millisecondsSinceEpoch}'
+      ..defaultActions = [model.Playback('sorry-dude-were-closed')]
       ..active = true;
 
-    Model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp);
-    model.Reception r = await rStore.create(Randomizer.randomReception()
-      ..enabled = true
-      ..dialplan = createdDialplan.extension);
+    model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp);
+    final r = await rStore.create(
+        Randomizer.randomReception()
+          ..enabled = true
+          ..dialplan = createdDialplan.extension,
+        null);
     await rdpStore.deployDialplan(rdp.extension, r.id);
     await rdpStore.reloadConfig();
 
@@ -129,18 +131,17 @@ abstract class DialplanDeployment {
     await customer.dial(rdp.extension);
 
     _log.info('Awaiting $customer\'s phone to hang up');
-    await customer.waitForHangup().timeout(new Duration(seconds: 10));
-    await new Future.delayed(new Duration(milliseconds: 100));
+    await customer.waitForHangup().timeout(Duration(seconds: 10));
+    await Future.delayed(Duration(milliseconds: 100));
 
     /// Check event queue.
     final int playback1 = events.indexOf(events.firstWhere((event) =>
-        event.field('Application-Data') != null &&
-        event.field('Application-Data').contains('sorry-dude-were-open')));
+        event.fields['Application-Data'] != null &&
+        event.fields['Application-Data'].contains('sorry-dude-were-open')));
 
     final int playback2 = events.indexOf(events.firstWhere((event) =>
-        event.field('Application-Data') != null &&
-        event
-            .field('Application-Data')
+        event.fields['Application-Data'] != null &&
+        event.fields['Application-Data']
             .contains('sorry-dude-were-really-open')));
 
     expect(playback1, lessThan(playback2));
@@ -148,8 +149,8 @@ abstract class DialplanDeployment {
     /// Cleanup.
     _log.info('Test successful. Cleaning up.');
 
-    await rStore.remove(r.id);
-    await rdpStore.remove(createdDialplan.extension);
+    await rStore.remove(r.id, null);
+    await rdpStore.remove(createdDialplan.extension, null);
   }
 
   /**
@@ -160,12 +161,12 @@ abstract class DialplanDeployment {
       service.RESTDialplanStore rdpStore,
       storage.Reception rStore,
       esl.Connection eslClient) async {
-    final Logger _log = new Logger('$_namespace.DialplanDeployment.noHours');
+    final Logger _log = Logger('$_namespace.DialplanDeployment.noHours');
     List<esl.Event> events = [];
     eslClient.eventStream.listen(events.add);
 
-    final DateTime now = new DateTime.now();
-    Model.OpeningHour justNow = new Model.OpeningHour.empty()
+    final DateTime now = DateTime.now();
+    model.OpeningHour justNow = model.OpeningHour.empty()
       ..fromDay = toWeekDay(now.weekday)
       ..toDay = toWeekDay(now.weekday)
       ..fromHour = now.hour
@@ -176,40 +177,42 @@ abstract class DialplanDeployment {
     final String firstDialplanGreeting = 'I-am-the-first-greeting';
     final String firstDialplanExtension =
         'test-${Randomizer.randomPhoneNumber()}'
-        '-${new DateTime.now().millisecondsSinceEpoch}-1';
+        '-${DateTime.now().millisecondsSinceEpoch}-1';
 
     final String secondDialplanGreeting = 'I-am-the-second-greeting';
     final String secondDialplanExtension =
         'test-${Randomizer.randomPhoneNumber()}'
-        '-${new DateTime.now().millisecondsSinceEpoch}-2';
+        '-${DateTime.now().millisecondsSinceEpoch}-2';
 
-    final Model.ReceptionDialplan firstDialplan =
-        await rdpStore.create(new Model.ReceptionDialplan()
+    final model.ReceptionDialplan firstDialplan =
+        await rdpStore.create(model.ReceptionDialplan()
           ..extension = firstDialplanExtension
           ..open = [
-            new Model.HourAction()
+            model.HourAction()
               ..hours = [justNow]
               ..actions = [
-                new Model.Playback(firstDialplanGreeting),
-                new Model.ReceptionTransfer(secondDialplanExtension)
+                model.Playback(firstDialplanGreeting),
+                model.ReceptionTransfer(secondDialplanExtension)
               ],
           ]
           ..active = true);
     _log.info('Created dialplan: ${firstDialplan.toJson()}');
 
-    final Model.ReceptionDialplan secondDialplan =
-        await rdpStore.create(new Model.ReceptionDialplan()
+    final model.ReceptionDialplan secondDialplan =
+        await rdpStore.create(model.ReceptionDialplan()
           ..extension = secondDialplanExtension
           ..open = [
-            new Model.HourAction()
+            model.HourAction()
               ..hours = [justNow]
-              ..actions = [new Model.Playback(secondDialplanGreeting)],
+              ..actions = [model.Playback(secondDialplanGreeting)],
           ]
           ..active = true);
 
-    model.Reception r = await rStore.create(Randomizer.randomReception()
-      ..enabled = true
-      ..dialplan = firstDialplan.extension);
+    model.ReceptionReference r = await rStore.create(
+        Randomizer.randomReception()
+          ..enabled = true
+          ..dialplan = firstDialplan.extension,
+        null);
     await rdpStore.deployDialplan(firstDialplan.extension, r.id);
     await rdpStore.deployDialplan(secondDialplan.extension, r.id);
     await rdpStore.reloadConfig();
@@ -221,25 +224,25 @@ abstract class DialplanDeployment {
     await customer.dial(firstDialplan.extension);
 
     _log.info('Awaiting $customer\'s phone to hang up');
-    await customer.waitForHangup().timeout(new Duration(seconds: 10));
-    await new Future.delayed(new Duration(milliseconds: 100));
+    await customer.waitForHangup().timeout(Duration(seconds: 10));
+    await Future.delayed(Duration(milliseconds: 100));
 
     /// Check event queue.
     final int playback1 = events.indexOf(events.firstWhere((event) =>
-        event.field('Application-Data') != null &&
-        event.field('Application-Data').contains(firstDialplanGreeting)));
+        event.fields['Application-Data'] != null &&
+        event.fields['Application-Data'].contains(firstDialplanGreeting)));
 
     final int playback2 = events.indexOf(events.firstWhere((event) =>
-        event.field('Application-Data') != null &&
-        event.field('Application-Data').contains(secondDialplanGreeting)));
+        event.fields['Application-Data'] != null &&
+        event.fields['Application-Data'].contains(secondDialplanGreeting)));
 
     expect(playback1, lessThan(playback2));
 
     /// Cleanup.
     _log.info('Test successful. Cleaning up.');
 
-    await rStore.remove(r.id);
-    await rdpStore.remove(firstDialplan.extension);
-    await rdpStore.remove(secondDialplan.extension);
+    await rStore.remove(r.id, null);
+    await rdpStore.remove(firstDialplan.extension, null);
+    await rdpStore.remove(secondDialplan.extension, null);
   }
 }

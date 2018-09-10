@@ -14,6 +14,13 @@
 part of orf.model;
 
 class ReceptionAttributeChange implements ObjectChange {
+  ReceptionAttributeChange(this.changeType, this.cid, this.rid);
+
+  ReceptionAttributeChange.fromJson(Map<String, dynamic> map)
+      : changeType = changeTypeFromString(map[key.change]),
+        cid = map[key.cid],
+        rid = map[key.rid];
+
   @override
   final ChangeType changeType;
 
@@ -22,13 +29,6 @@ class ReceptionAttributeChange implements ObjectChange {
   final int cid;
   final int rid;
 
-  ReceptionAttributeChange(this.changeType, this.cid, this.rid);
-
-  ReceptionAttributeChange.fromJson(Map<String, dynamic> map)
-      : changeType = changeTypeFromString(map[key.change]),
-        cid = map[key.cid],
-        rid = map[key.rid];
-
   @deprecated
   static ReceptionAttributeChange decode(Map<String, dynamic> map) =>
       new ReceptionAttributeChange(
@@ -36,12 +36,13 @@ class ReceptionAttributeChange implements ObjectChange {
 
   /// Serialization function.
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{
+  Map<String, dynamic> toJson() =>
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         key.change: changeTypeToString(changeType),
         key.type: objectTypeToString(objectType),
         key.cid: cid,
         key.rid: rid
-      };
+      });
 }
 
 class ReceptionAttributes {
@@ -68,26 +69,26 @@ class ReceptionAttributes {
   List<WhenWhat> whenWhats = <WhenWhat>[];
 
   ReceptionAttributes.fromJson(Map<String, dynamic> map)
-      : phoneNumbers = new List<PhoneNumber>.from(map[key.phones]
-            .map((Map<String, dynamic> map) => new PhoneNumber.fromJson(map))),
-        endpoints = new List<MessageEndpoint>.from(map[key.endpoints].map(
-            (Map<String, dynamic> map) => new MessageEndpoint.fromJson(map))),
+      : phoneNumbers = new List<PhoneNumber>.from(
+            map[key.phones].map((map) => new PhoneNumber.fromJson(map))),
+        endpoints = new List<MessageEndpoint>.from(
+            map[key.endpoints].map((map) => new MessageEndpoint.fromJson(map))),
         whenWhats = new List<WhenWhat>.from(
             (map.containsKey(key.whenWhat) ? map[key.whenWhat] : <dynamic>[])
-                .map((Map<String, dynamic> map) => new WhenWhat.fromJson(map))),
+                .map((map) => new WhenWhat.fromJson(map))),
         receptionId = map[key.rid],
         cid = map[key.cid],
-        departments = map[key.departments] as List<String>,
-        messagePrerequisites = map[key.messagePrerequisites] as List<String>,
-        backupContacts = map[key.backup] as List<String>,
-        emailaddresses = map[key.emailaddresses] as List<String>,
-        handling = map[key.handling] as List<String>,
-        workhours = map[key.workhours] as List<String>,
-        tags = map[key.tags] as List<String>,
-        infos = map[key.infos] as List<String>,
-        titles = map[key.titles] as List<String>,
-        relations = map[key.relations] as List<String>,
-        responsibilities = map[key.responsibilities] as List<String>;
+        departments = stringList(map[key.departments]),
+        messagePrerequisites = stringList(map[key.messagePrerequisites]),
+        backupContacts = stringList(map[key.backup]),
+        emailaddresses = stringList(map[key.emailaddresses]),
+        handling = stringList(map[key.handling]),
+        workhours = stringList(map[key.workhours]),
+        tags = stringList(map[key.tags]),
+        infos = stringList(map[key.infos]),
+        titles = stringList(map[key.titles]),
+        relations = stringList(map[key.relations]),
+        responsibilities = stringList(map[key.responsibilities]);
 
   /// [ReceptionAttributes] empty constructor.
   ReceptionAttributes.empty();

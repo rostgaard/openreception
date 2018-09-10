@@ -19,6 +19,8 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building./
 class PeerAccount {
+  PeerAccount(Uri this.host, String this.token, this._backend);
+
   final WebService _backend;
 
   /// The uri of the connected backend.
@@ -27,35 +29,34 @@ class PeerAccount {
   /// The token used for authenticating with the backed.
   final String token;
 
-  PeerAccount(Uri this.host, String this.token, this._backend);
-
   Future<model.PeerAccount> get(String accountName) {
     Uri url = resource.PeerAccount.single(host, accountName);
     url = _appendToken(url, token);
 
-    return _backend.get(url).then(JSON.decode).then(
-        (Map<String, dynamic> map) => new model.PeerAccount.fromJson(map));
+    return _backend
+        .get(url)
+        .then(_json.decode)
+        .then((map) => new model.PeerAccount.fromJson(map));
   }
 
-  Future<Iterable<String>> list() {
+  Future<Iterable<dynamic>> list() async {
     Uri url = resource.PeerAccount.list(host);
     url = _appendToken(url, token);
 
-    return _backend
-        .get(url)
-        .then(JSON.decode)
-        .then((Iterable<String> value) => value);
+    final String response = await _backend.get(url);
+
+    return _json.decode(response);
   }
 
   /// (Re-)deploys a [model.PeerAccount] for user with [uid].
-  Future<Iterable<String>> deployAccount(model.PeerAccount account, int uid) {
+  Future<Iterable<dynamic>> deployAccount(
+      model.PeerAccount account, int uid) async {
     Uri url = resource.PeerAccount.deploy(host, uid);
     url = _appendToken(url, token);
 
-    return _backend
-        .post(url, JSON.encode(account))
-        .then(JSON.decode)
-        .then((Iterable<String> value) => value);
+    final String response = await _backend.post(url, _json.encode(account));
+
+    return _json.decode(response);
   }
 
   Future<Null> remove(String username) async {

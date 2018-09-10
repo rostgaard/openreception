@@ -131,7 +131,7 @@ class UICalendar extends UIModel {
       ..title = ce.calendarEntry.id == model.CalendarEntry.noId
           ? 'WhenWhat - ${_langMap[Key.lockedForEditing]}'
           : 'Id: ${ce.calendarEntry.id.toString()}'
-      ..dataset['object'] = JSON.encode(ce)
+      ..dataset['object'] = json.encode(ce)
       ..dataset['editable'] = ce.editable.toString()
       ..dataset['id'] = ce.calendarEntry.id.toString()
       ..classes.toggle('active', ce.calendarEntry.active);
@@ -163,7 +163,7 @@ class UICalendar extends UIModel {
 
     if (li != null) {
       return new CalendarEntry.fromJson(
-          JSON.decode(li.dataset['object']) as Map<String, dynamic>);
+          json.decode(li.dataset['object']) as Map<String, dynamic>);
     } else {
       return new CalendarEntry.empty();
     }
@@ -202,7 +202,7 @@ class UICalendar extends UIModel {
       return new CalendarEntry.empty();
     } else {
       return new CalendarEntry.fromJson(
-          JSON.decode(selected.dataset['object']) as Map<String, dynamic>);
+          json.decode(selected.dataset['object']) as Map<String, dynamic>);
     }
   }
 
@@ -239,7 +239,7 @@ class UICalendar extends UIModel {
         LIElement found;
         for (LIElement li in _list.children) {
           final CalendarEntry foundEntry = new CalendarEntry.fromJson(
-              JSON.decode(li.dataset['object']) as Map<String, dynamic>);
+              json.decode(li.dataset['object']) as Map<String, dynamic>);
           if (foundEntry.calendarEntry.start.isAfter(ce.calendarEntry.start) ||
               foundEntry.calendarEntry.start
                   .isAtSameMomentAs(ce.calendarEntry.start)) {

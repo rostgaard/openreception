@@ -16,7 +16,7 @@ part of orf.filestore;
 /// Filestore for persistent storage of [model.CalendarEntry] objects.
 class Calendar implements storage.Calendar {
   /// Internal logger
-  final Logger _log = new Logger('$_libraryName.Calendar');
+  final Logger _log = Logger('$_libraryName.Calendar');
 
   /// Root path to where the object files are stored
   final String path;
@@ -31,25 +31,25 @@ class Calendar implements storage.Calendar {
   GitEngine _git;
 
   /// Internal change bus. Exposed externally by [changeStream]
-  final Bus<event.CalendarChange> _changeBus = new Bus<event.CalendarChange>();
+  final Bus<event.CalendarChange> _changeBus = Bus<event.CalendarChange>();
 
-  /// Create a new [Calendar] filestore in [path].
+  /// Create a [Calendar] filestore in [path].
   Calendar(String this.path, [GitEngine this._git, bool enableChangelog])
       : this.logChanges = (enableChangelog != null) ? enableChangelog : true {
     final List<String> pathsToCreate = <String>[path];
 
     if (path.isEmpty) {
-      throw new ArgumentError.value('', 'path', 'Path must not be empty');
+      throw ArgumentError.value('', 'path', 'Path must not be empty');
     }
 
     pathsToCreate.forEach((String newPath) {
-      final Directory dir = new Directory(newPath);
+      final Directory dir = Directory(newPath);
       if (!dir.existsSync()) {
         dir.createSync();
       }
     });
 
-    _sequencer = new Sequencer(path);
+    _sequencer = Sequencer(path);
     if (this._git != null) {
       _git.init().catchError((dynamic error, StackTrace stackTrace) => Logger
           .root
@@ -89,7 +89,7 @@ class Calendar implements storage.Calendar {
   @override
   Future<Iterable<model.Commit>> changes(model.Owner owner, [int eid]) async {
     if (this._git == null) {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           'Filestore is instantiated without git support');
     }
 
@@ -98,9 +98,9 @@ class Calendar implements storage.Calendar {
     FileSystemEntity fse;
 
     if (eid == null) {
-      fse = new Directory(ownerPath);
+      fse = Directory(ownerPath);
     } else {
-      fse = new File(ownerPath + '/$eid.json');
+      fse = File(ownerPath + '/$eid.json');
     }
 
     Iterable<Change> gitChanges = await _git.changes(fse);
@@ -127,17 +127,17 @@ class Calendar implements storage.Calendar {
 
       final int eid = int.parse(parts[2].split('.').first);
 
-      return new model.CalendarChange(fc.changeType, eid);
+      return model.CalendarChange(fc.changeType, eid);
     }
 
     Iterable<model.Commit> changes = gitChanges.map((Change change) =>
-        new model.Commit()
+        model.Commit()
           ..uid = extractUid(change.message)
           ..changedAt = change.changeTime
           ..commitHash = change.commitHash
           ..authorIdentity = change.author
-          ..changes = new List<model.ObjectChange>.from(
-              change.fileChanges.map(convertFilechange)));
+          ..changes = List<model.ObjectChange>.from(
+              change.fileChanges.map<model.CalendarChange>(convertFilechange)));
 
     _log.info(changes.map((model.Commit c) => c.toJson()));
 
@@ -152,23 +152,23 @@ class Calendar implements storage.Calendar {
         entry.id != model.CalendarEntry.noId && enforceId ? entry.id : _nextId;
 
     entry.lastAuthorId = modifier.id;
-    entry.touched = new DateTime.now();
+    entry.touched = DateTime.now();
 
     final Directory ownerDir = _ownerDir(owner.id);
     try {
       ownerDir.createSync();
     } catch (e) {
-      _log.warning('Creating new directory ${ownerDir.path}');
-      throw new NotFound('Owner not found: ${owner.id}');
+      _log.warning('Creating directory ${ownerDir.path}');
+      throw NotFound('Owner not found: ${owner.id}');
     }
 
-    final File file = new File('${ownerDir.path}/${entry.id}.json');
+    final File file = File('${ownerDir.path}/${entry.id}.json');
 
     if (file.existsSync()) {
-      throw new ClientError('File already exists, please update instead');
+      throw ClientError('File already exists, please update instead');
     }
 
-    _log.finest('Creating new file ${file.path}');
+    _log.finest('Creating file ${file.path}');
     file.writeAsStringSync(_jsonpp.convert(entry));
 
     if (this._git != null) {
@@ -180,12 +180,12 @@ class Calendar implements storage.Calendar {
     }
 
     if (logChanges) {
-      new ChangeLogger(ownerDir.path).add(
-          new model.CalendarChangelogEntry.create(modifier.reference, entry));
+      ChangeLogger(ownerDir.path).add(
+          model.CalendarChangelogEntry.create(modifier.reference, entry));
     }
 
     _changeBus
-        .fire(new event.CalendarChange.create(entry.id, owner, modifier.id));
+        .fire(event.CalendarChange.create(entry.id, owner, modifier.id));
 
     return entry;
   }
@@ -193,7 +193,7 @@ class Calendar implements storage.Calendar {
   @override
   Future<model.CalendarEntry> get(int eid, model.Owner owner) async {
     final Iterable<FileSystemEntity> subdirs =
-        new Directory(path).listSync().where(_isDirectory);
+        Directory(path).listSync().where(_isDirectory);
 
     for (FileSystemEntity subdir in subdirs) {
       if (subdir is Directory) {
@@ -201,24 +201,24 @@ class Calendar implements storage.Calendar {
             subdir.listSync().where(_isDirectory);
 
         for (FileSystemEntity dir in ownerDirs) {
-          File file = new File('${dir.path}/$eid.json');
+          File file = File('${dir.path}/$eid.json');
 
           if (file.existsSync()) {
-            return new model.CalendarEntry.fromJson(
-                JSON.decode(file.readAsStringSync()) as Map<String, dynamic>);
+            return model.CalendarEntry.fromJson(
+                _json.decode(file.readAsStringSync()) as Map<String, dynamic>);
           }
         }
       }
     }
 
-    throw new NotFound('No file with eid $eid');
+    throw NotFound('No file with eid $eid');
   }
 
   @override
   Future<Iterable<model.CalendarEntry>> list(model.Owner owner) async {
     String ownerPath = '$path/${owner.id}/calendar';
 
-    if (!new Directory(ownerPath).existsSync()) {
+    if (!Directory(ownerPath).existsSync()) {
       return const <model.CalendarEntry>[];
     }
 
@@ -226,13 +226,13 @@ class Calendar implements storage.Calendar {
   }
 
   Future<Iterable<model.CalendarEntry>> _list(String basePath) async =>
-      new Directory(basePath)
+      Directory(basePath)
           .listSync()
           .where((FileSystemEntity fse) =>
               _isFile(fse) && fse.path.endsWith('.json'))
-          .map((FileSystemEntity fse) => new model.CalendarEntry.fromJson(
-              JSON.decode((fse as File).readAsStringSync())
-              as Map<String, dynamic>));
+          .map((FileSystemEntity fse) => model.CalendarEntry.fromJson(
+              _json.decode((fse as File).readAsStringSync())
+                  as Map<String, dynamic>));
 
   /// Deletes the [model.CalendarEntry] associated with [eid] in the
   /// filestore.
@@ -240,11 +240,11 @@ class Calendar implements storage.Calendar {
   /// The action is logged as being performed by user [modifier].
   @override
   Future<Null> remove(int eid, model.Owner owner, model.User modifier) async {
-    final Directory ownerDir = new Directory('$path/${owner.id}/calendar');
-    final File file = new File('${ownerDir.path}/$eid.json');
+    final Directory ownerDir = Directory('$path/${owner.id}/calendar');
+    final File file = File('${ownerDir.path}/$eid.json');
 
     if (!file.existsSync()) {
-      throw new NotFound();
+      throw NotFound();
     }
 
     _log.finest('Deleting file ${file.path}');
@@ -259,8 +259,8 @@ class Calendar implements storage.Calendar {
       file.deleteSync();
     }
     if (logChanges) {
-      new ChangeLogger(ownerDir.path).add(
-          new model.CalendarChangelogEntry.delete(modifier.reference, eid));
+      ChangeLogger(ownerDir.path).add(
+          model.CalendarChangelogEntry.delete(modifier.reference, eid));
     }
 
     _deleteNotify(eid, owner, modifier);
@@ -268,19 +268,19 @@ class Calendar implements storage.Calendar {
 
   /// Notifies listeners of the [changeStream] that an item has been deleted.
   void _deleteNotify(int eid, model.Owner owner, model.User modifier) =>
-      _changeBus.fire(new event.CalendarChange.delete(eid, owner, modifier.id));
+      _changeBus.fire(event.CalendarChange.delete(eid, owner, modifier.id));
 
   @override
   Future<model.CalendarEntry> update(
       model.CalendarEntry entry, model.Owner owner, model.User modifier) async {
-    final Directory ownerDir = new Directory('$path/${owner.id}/calendar');
-    final File file = new File('${ownerDir.path}/${entry.id}.json');
+    final Directory ownerDir = Directory('$path/${owner.id}/calendar');
+    final File file = File('${ownerDir.path}/${entry.id}.json');
 
     entry.lastAuthorId = modifier.id;
-    entry.touched = new DateTime.now();
+    entry.touched = DateTime.now();
 
     if (!file.existsSync()) {
-      throw new NotFound();
+      throw NotFound();
     }
 
     _log.finest('Updating file ${file.path}');
@@ -295,12 +295,12 @@ class Calendar implements storage.Calendar {
     }
 
     if (logChanges) {
-      new ChangeLogger(ownerDir.path).add(
-          new model.CalendarChangelogEntry.update(modifier.reference, entry));
+      ChangeLogger(ownerDir.path).add(
+          model.CalendarChangelogEntry.update(modifier.reference, entry));
     }
 
     _changeBus
-        .fire(new event.CalendarChange.update(entry.id, owner, modifier.id));
+        .fire(event.CalendarChange.update(entry.id, owner, modifier.id));
 
     return entry;
   }
@@ -308,7 +308,7 @@ class Calendar implements storage.Calendar {
   /// Returns the changeLog of calender entry changes for owner with
   /// id [ownerId].
   Future<String> changeLog(int ownerId) async =>
-      logChanges ? new ChangeLogger(_ownerDir(ownerId).path).contents() : '';
+      logChanges ? await ChangeLogger(_ownerDir(ownerId).path).contents() : '';
 
-  Directory _ownerDir(int ownerId) => new Directory('$path/$ownerId/calendar');
+  Directory _ownerDir(int ownerId) => Directory('$path/$ownerId/calendar');
 }

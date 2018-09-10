@@ -39,24 +39,24 @@ abstract class Extension {
 /// dialplan by simply transferring a channel to the [name] of the
 /// [NamedExtension].
 class NamedExtension implements Extension {
-  @override
-  final String name;
-
-  @override
-  final List<Action> actions;
-
   /// Create a new [NamedExtension] with [name] that performs [actions] on a
   /// channel, once reached.
   NamedExtension(this.name, this.actions);
 
   /// Decode a [Map] into a new [NamedExtension] object.
-  factory NamedExtension.fromJson(Map<String, dynamic> map) {
+  factory NamedExtension.fromJson(Map<String, Object> map) {
     final Iterable<Action> actionIter =
-        (map[key.actions] as Iterable<dynamic>).map(Action.parse);
+        (map[key.actions] as Iterable<dynamic>).cast<String>().map<Action>(Action.parse);
 
     return new NamedExtension(
-        map[key.name], actionIter.toList(growable: false));
+        map[key.name] as String, actionIter.toList(growable: false));
   }
+
+  @override
+  final String name;
+
+  @override
+  final List<Action> actions;
 
   /// Decode a [Map] into a new [NamedExtension] object.
   @deprecated

@@ -94,7 +94,7 @@ class Phonenumbers {
       _foldJson.hidden = true;
       _unfoldJson.hidden = false;
       _phonenumberInput.style.height = '';
-      _phonenumberInput.value = JSON.encode(phoneNumbers.toList());
+      _phonenumberInput.value = json.encode(phoneNumbers.toList());
     });
   }
 
@@ -102,7 +102,7 @@ class Phonenumbers {
     if (_unfoldJson.hidden) {
       _phonenumberInput.value = _jsonpp.convert(pns.toList());
     } else {
-      _phonenumberInput.value = JSON.encode(pns.toList());
+      _phonenumberInput.value = json.encode(pns.toList());
     }
   }
 
@@ -110,7 +110,7 @@ class Phonenumbers {
    *
    */
   Iterable<model.PhoneNumber> get phoneNumbers {
-    final List pnMaps = JSON.decode(_phonenumberInput.value);
+    final List pnMaps = json.decode(_phonenumberInput.value);
 
     return pnMaps
         .map((m) => new model.PhoneNumber.fromJson(m as Map<String, dynamic>));

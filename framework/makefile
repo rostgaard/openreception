@@ -13,7 +13,7 @@ tests-to-json-file:
 	-pub run test test/*.dart --reporter json > test-report.json
 
 tests-text-output:
-	@dart test/tests.dart text-output
+	@dart test/tests.dart -r expanded
 
 analyze: pubspec.lock
 	@dartanalyzer --no-hints --fatal-warnings lib/*.dart

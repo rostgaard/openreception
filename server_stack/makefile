@@ -40,7 +40,7 @@ snapshots-no-rev: $(BUILD_DIR) \
 	   $(BUILD_DIR)/notificationserver.dart \
 	   $(BUILD_DIR)/receptionserver.dart \
 	   $(BUILD_DIR)/userserver.dart
-	
+
 
 snapshots: $(BUILD_DIR) \
 	   $(BUILD_DIR)/authserver-$(GIT_REV).dart \
@@ -56,12 +56,33 @@ snapshots: $(BUILD_DIR) \
 	   $(BUILD_DIR)/receptionserver-$(GIT_REV).dart \
 	   $(BUILD_DIR)/userserver-$(GIT_REV).dart
 
+.PHONY: binaries
+binaries: $(BUILD_DIR) \
+	   $(BUILD_DIR)/authserver \
+	   $(BUILD_DIR)/calendarserver \
+	   $(BUILD_DIR)/callflowcontrol \
+	   $(BUILD_DIR)/configserver \
+	   $(BUILD_DIR)/contactserver \
+	   $(BUILD_DIR)/dialplanserver \
+	   $(BUILD_DIR)/messagedispatcher \
+	   $(BUILD_DIR)/messageserver \
+	   $(BUILD_DIR)/notificationserver \
+	   $(BUILD_DIR)/receptionserver \
+	   $(BUILD_DIR)/userserver
+
+
 
 $(BUILD_DIR)/%-$(GIT_REV).dart: bin/%.dart
 	dart --snapshot=$@ $<
 
 $(BUILD_DIR)/%.dart: bin/%.dart
 	dart --snapshot=$@ $<
+
+$(BUILD_DIR)/%-$(GIT_REV): bin/%.dart
+	dart2native $@.dart -o $<
+
+$(BUILD_DIR)/%: bin/%.dart
+	dart2native $< -o $@
 
 analyze-all: analyze analyze-hints
 

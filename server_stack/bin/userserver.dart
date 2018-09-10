@@ -20,7 +20,6 @@ import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 import 'package:orf/event.dart' as event;
 import 'package:orf/filestore.dart' as filestore;
-import 'package:orf/gzip_cache.dart' as gzip_cache;
 import 'package:orf/model.dart' as model;
 import 'package:orf/service-io.dart' as service;
 import 'package:orf/service.dart' as service;
@@ -33,16 +32,19 @@ import 'package:ors/controller/controller-user_state.dart' as controller;
 import 'package:ors/model.dart' as model;
 import 'package:ors/router/router-user.dart' as router;
 
+
 Future main(List<String> args) async {
   ///Init logging. Inherit standard values.
   Logger.root.level = config.userServer.log.level;
   Logger.root.onRecord.listen(config.userServer.log.onRecord);
 
-  Logger log = new Logger('UserServer');
+  Logger log = Logger('UserServer');
 
   final ArgParser parser = new ArgParser()
     ..addFlag('help', help: 'Output this help', negatable: false)
-    ..addOption('filestore', abbr: 'f', help: 'Path to the filestore backend')
+    ..addOption('filestore', abbr: 'f',
+      defaultsTo: '/Users/krs/projects/openreception-filestore',
+      help: 'Path to the filestore backend',)
     ..addOption('httpport',
         abbr: 'p',
         defaultsTo: config.userServer.httpPort.toString(),
@@ -60,6 +62,7 @@ Future main(List<String> args) async {
     ..addFlag('experimental-revisioning',
         defaultsTo: false,
         help: 'Enable or disable experimental Git revisioning on this server');
+
 
   final ArgResults parsedArgs = parser.parse(args);
 
@@ -80,18 +83,18 @@ Future main(List<String> args) async {
       new service.Client());
 
   final service.NotificationService _notification =
-      new service.NotificationService(Uri.parse(parsedArgs['notification-uri']),
-          config.userServer.serverToken, new service.Client());
+  new service.NotificationService(Uri.parse(parsedArgs['notification-uri']),
+      config.userServer.serverToken, new service.Client());
 
   final Uri notificationUri =
-      Uri.parse('ws://${_notification.host.host}:${_notification.host.port}'
-          '/notifications?token=${config.contactServer.serverToken}');
+  Uri.parse('ws://${_notification.host.host}:${_notification.host.port}'
+      '/notifications?token=${config.contactServer.serverToken}');
 
   final service.WebSocket wsClient =
-      await (new service.WebSocketClient()).connect(notificationUri);
+  await (new service.WebSocketClient()).connect(notificationUri);
 
   final service.NotificationSocket _notificationSocket =
-      new service.NotificationSocket(wsClient);
+  new service.NotificationSocket(wsClient);
 
   final bool revisioning = parsedArgs['experimental-revisioning'];
 
@@ -100,10 +103,7 @@ Future main(List<String> args) async {
       : null;
 
   final filestore.User _userStore =
-      new filestore.User(parsedArgs['filestore'] + '/user', gitEngine);
-
-  final gzip_cache.UserCache _cache =
-      new gzip_cache.UserCache(_userStore, _userStore.onUserChange);
+  new filestore.User(parsedArgs['filestore'] + '/user', gitEngine);
 
   final filestore.AgentHistory _agentHistory = new filestore.AgentHistory(
       parsedArgs['filestore'] + '/agent_history',
@@ -118,7 +118,7 @@ Future main(List<String> args) async {
   final List<int> _serviceAgentCache = await _loadServiceAgents(_userStore);
 
   final controller.GroupNotifier groupNotifier =
-      new controller.GroupNotifier(_notification, _serviceAgentCache);
+  new controller.GroupNotifier(_notification, _serviceAgentCache);
 
   _notificationSocket.onWidgetSelect.listen((event.WidgetSelect widgetSelect) {
     _userUIState[widgetSelect.uid] = widgetSelect;
@@ -129,11 +129,11 @@ Future main(List<String> args) async {
   });
 
   final _userController =
-      new controller.User(_userStore, _notification, _authService, _cache);
+  new controller.User(_userStore, _notification, _authService);
   final _statsController = new controller.AgentStatistics(_agentHistory);
 
   final _userStateController =
-      new controller.UserState(userStatus, _userUIState, _userFocusState);
+  new controller.UserState(userStatus, _userUIState, _userFocusState);
 
   /// Client notification controller.
   new controller.ClientNotifier(_notification, userStatus.onChange);
@@ -151,10 +151,10 @@ Future main(List<String> args) async {
   await _agentHistory.initialized;
 
   await (new router.User(_notification, _userController, _statsController,
-          _userStateController))
+      _userStateController))
       .listen(
-          hostname: parsedArgs['host'],
-          port: int.parse(parsedArgs['httpport']));
+      hostname: parsedArgs['host'],
+      port: int.parse(parsedArgs['httpport']));
   log.info('Ready to handle requests');
 }
 

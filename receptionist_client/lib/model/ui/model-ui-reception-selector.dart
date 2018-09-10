@@ -64,7 +64,7 @@ class UIReceptionSelector extends UIModel {
       new LIElement()
         ..dataset['id'] = reception.id.toString()
         ..dataset['name'] = reception.name.toLowerCase()
-        ..dataset['object'] = JSON.encode(reception)
+        ..dataset['object'] = json.encode(reception)
         ..text = reception.name;
 
   /**
@@ -214,12 +214,10 @@ class UIReceptionSelector extends UIModel {
     _bus.fire(new model.Reception.empty());
   }
 
-  /**
-   * Mark a [LIElement] in the reception list selected, if one such is the
-   * target of the [event].
-   *
-   * Only allow one click per 100 milliseconds.
-   */
+  /// Mark a [LIElement] in the reception list selected, if one such is the
+  /// target of the [event].
+  ///
+  /// Only allow one click per 100 milliseconds.
   void _selectFromClick(MouseEvent event) {
     final DateTime now = new DateTime.now();
 
@@ -237,9 +235,7 @@ class UIReceptionSelector extends UIModel {
     }
   }
 
-  /**
-   * Setup keys and bindings to methods specific for this widget.
-   */
+  /// Setup keys and bindings to methods specific for this widget.
   void _setupLocalKeys() {
     final Map<String, EventListener> bindings = {
       'Enter': _handleEnter,
@@ -250,17 +246,15 @@ class UIReceptionSelector extends UIModel {
         _keyboard, _defaultKeyMap(myKeys: bindings));
   }
 
-  /**
-   * Returns the currently selected [model.Reception].
-   *
-   * Return [model.Reception.empty] if no [model.Reception] is selected.
-   */
+  /// Returns the currently selected [model.Reception].
+  ///
+  /// Return [model.Reception.empty] if no [model.Reception] is selected.
   model.ReceptionReference get selectedReception {
     LIElement li = _list.querySelector('.selected');
 
     if (li != null) {
       return new model.ReceptionReference.fromJson(
-          JSON.decode(li.dataset['object']) as Map<String, dynamic>);
+          json.decode(li.dataset['object']) as Map<String, dynamic>);
     } else {
       return const model.ReceptionReference.none();
     }

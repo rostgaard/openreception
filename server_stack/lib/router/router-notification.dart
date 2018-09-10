@@ -23,21 +23,23 @@ import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
 import 'package:ors/controller/controller-notification.dart' as controller;
 import 'package:ors/response_utils.dart';
-import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
+import 'package:shelf_router/shelf_router.dart';
 
 const String libraryName = "notificationserver.router";
-final Logger _log = new Logger(libraryName);
+final Logger _log = Logger(libraryName);
 
 class Notification {
+
+  Notification(this._authService) {
+    _notificationController = controller.Notification(_authService);
+  }
+
   final service.Authentication _authService;
   controller.Notification _notificationController;
 
-  Notification(service.Authentication this._authService) {
-    _notificationController = new controller.Notification(_authService);
-  }
 
   /**
    *
@@ -49,7 +51,10 @@ class Notification {
       ..post('/send', _notificationController.send)
       ..get('/connection', _notificationController.connectionList)
       ..get('/stats', _notificationController.statistics)
-      ..get('/connection/{uid}', _notificationController.connection);
+      ..get('/connection/<uid>', _notificationController.connection)
+      ..all('/<catch-all|.*>', (Request request) {
+        return Response.notFound('Page not found');
+      });
   }
 
   /**
@@ -59,44 +64,41 @@ class Notification {
     /**
      * Validate a token by looking it up on the authentication server.
      */
-    Future<shelf.Response> _lookupToken(shelf.Request request) async {
+    Future<Response> _lookupToken(Request request) async {
       var token = request.requestedUri.queryParameters['token'];
 
       try {
         await _authService.validate(token);
       } on NotFound {
-        return new shelf.Response.forbidden('Invalid token');
+        return Response.forbidden('Invalid token');
       } on io.SocketException {
-        return new shelf.Response.internalServerError(
-            body: 'Cannot reach authserver');
+        return authServerDown();
       } catch (error, stackTrace) {
         _log.severe(
             'Authentication validation lookup failed: $error:$stackTrace');
 
-        return new shelf.Response.internalServerError(body: error.toString());
+        return authServerDown();
       }
 
       /// Do not intercept the request, but let the next handler take care of it.
       return null;
     }
 
-    final shelf.Middleware checkAuthentication = shelf.createMiddleware(
+    final Middleware checkAuthentication = createMiddleware(
         requestHandler: _lookupToken, responseHandler: null);
 
-    var router = shelf_route.router();
+    var router = Router();
     bindRoutes(router);
 
-    var handler = const shelf.Pipeline()
+    var handler = const Pipeline()
         .addMiddleware(
-            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(checkAuthentication)
-        .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
+        .addMiddleware(logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);
 
     _log.fine('Using server on ${_authService.host} as authentication backend');
     _log.fine('Accepting incoming REST requests on http://$hostname:$port');
-    _log.fine('Serving routes:');
-    shelf_route.printRoutes(router, printer: (String item) => _log.fine(item));
 
     return shelf_io.serve(handler, hostname, port);
   }

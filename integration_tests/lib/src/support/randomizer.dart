@@ -5,8 +5,8 @@ import 'dart:math' show Random;
 import 'package:orf/model.dart' as model;
 
 abstract class Randomizer {
-  static int seed = new DateTime.now().millisecondsSinceEpoch;
-  static Random rand = new Random(seed);
+  static int seed = DateTime.now().millisecondsSinceEpoch;
+  static Random rand = Random(seed);
 
   static final List<String> events = [
     'Milk purchase',
@@ -216,7 +216,7 @@ abstract class Randomizer {
     'Are you paying for that?',
     'Imagination land called',
     'Roller coasters purchase',
-    'These are not the droids you are looking for. Come to me for new ones!',
+    'These are not the droids you are looking for. Come to me for ones!',
     'All your base are belong',
     'I would love to change the world, but they won\'t give me the source code'
   ];
@@ -313,23 +313,19 @@ abstract class Randomizer {
       randomChoice(model.MessageEndpointType.types);
   static String randomRecipientType() =>
       randomChoice(model.MessageEndpointType.types);
-  static String randomContactType() => randomChoice(model.ContactType.types);
+  static String randomContactType() => randomChoice(model.ContactType.types.toList(growable: false));
   static String randomDialplanNote() => randomChoice(dialplanNote);
 
-  /**
-   * returns a model.CalendarEntry with no owner.
-   */
+  /// returns a model.CalendarEntry with no owner.
   static model.CalendarEntry randomCalendarEntry() =>
-      new model.CalendarEntry.empty()
+      model.CalendarEntry.empty()
         ..content = randomChoice(events)
-        ..start = new DateTime.now()
-        ..stop = (new DateTime.now()..add(new Duration(hours: 1)));
+        ..start = DateTime.now()
+        ..stop = (DateTime.now()..add(Duration(hours: 1)));
 
-  /**
-   * Generates a random [model.IvrMenu].
-   */
+  /// Generates a random [model.IvrMenu].
   static model.IvrMenu randomIvrMenu() =>
-      new model.IvrMenu('menu-${randomPhoneNumber()}', randomPlayback())
+      model.IvrMenu('menu-${randomPhoneNumber()}', randomPlayback())
         ..entries = randomIvrEntries();
 
   /**
@@ -363,34 +359,32 @@ abstract class Randomizer {
    *
    */
   static model.IvrTopmenu randomIvrTopmenu(String digit) =>
-      new model.IvrTopmenu(digit);
+      model.IvrTopmenu(digit);
 
   /**
    *
    */
   static model.IvrSubmenu randomIvrSubmenu(String digit) =>
-      new model.IvrSubmenu(digit, 'submenu_${rand.nextInt(100)}');
+      model.IvrSubmenu(digit, 'submenu_${rand.nextInt(100)}');
 
   /**
    *
    */
   static model.IvrTransfer randomIvrTransfer(String digit) =>
-      new model.IvrTransfer(digit, randomTransfer());
+      model.IvrTransfer(digit, randomTransfer());
 
   /**
    *
    */
   static model.IvrVoicemail randomIvrVoicemail(String digit) =>
-      new model.IvrVoicemail(digit, randomVoicemail());
+      model.IvrVoicemail(digit, randomVoicemail());
 
-  /**
-   * Generates a random [model.ReceptionDialplan].
-   */
+  /// Generates a random [model.ReceptionDialplan].
   static model.ReceptionDialplan randomDialplan({bool excludeMenus: false}) =>
-      new model.ReceptionDialplan()
+      model.ReceptionDialplan()
         ..open = randomDialplanHourActions(excludeMenus: excludeMenus)
         ..extension =
-            '${randomPhoneNumber()}-${new DateTime.now().millisecondsSinceEpoch}'
+            '${randomPhoneNumber()}-${DateTime.now().millisecondsSinceEpoch}'
         ..defaultActions = randomDialplanActions(excludeMenus: excludeMenus)
         ..note = randomDialplanNote();
 
@@ -399,14 +393,14 @@ abstract class Randomizer {
    */
   static List<model.HourAction> randomDialplanHourActions(
           {bool excludeMenus: false}) =>
-      new List.generate(rand.nextInt(4) + 1,
+      List.generate(rand.nextInt(4) + 1,
           (_) => randomHourAction(excludeMenus: excludeMenus));
 
   /**
    *
    */
   static model.HourAction randomHourAction({bool excludeMenus: false}) =>
-      new model.HourAction()
+      model.HourAction()
         ..actions = randomDialplanActions(excludeMenus: excludeMenus)
         ..hours = randomOpeningHours();
 
@@ -414,12 +408,12 @@ abstract class Randomizer {
    *
    */
   static List<model.OpeningHour> randomOpeningHours() =>
-      new List.generate(rand.nextInt(4) + 1, (_) => randomOpeningHour());
+      List.generate(rand.nextInt(4) + 1, (_) => randomOpeningHour());
 
   /**
    *
    */
-  static model.OpeningHour randomOpeningHour() => new model.OpeningHour.empty()
+  static model.OpeningHour randomOpeningHour() => model.OpeningHour.empty()
     ..fromDay = randomWeekDay()
     ..toDay = randomWeekDay()
     ..fromHour = rand.nextInt(24)
@@ -432,64 +426,46 @@ abstract class Randomizer {
    */
   static randomWeekDay() => randomChoice(model.WeekDay.values);
 
-  /**
-   * Generates a random-sized list of random [model.Action] objects.
-   */
+  /// Generates a random-sized list of random [model.Action] objects.
   static List<model.Action> randomDialplanActions({bool excludeMenus: false}) {
     //Number of actions to generate.
     final int numActions = rand.nextInt(5) + 2;
 
-    return new List.generate(
+    return List.generate(
         numActions, (_) => randomAction(excludeMenus: excludeMenus));
   }
 
-  /**
-   * Generates a random [model.Playback] action.
-   */
+  /// Generates a random [model.Playback] action.
   static model.Playback randomPlayback() =>
-      new model.Playback('somefile', note: randomDialplanNote());
+      model.Playback('somefile', note: randomDialplanNote());
 
-  /**
-   * Generates a random [model.Transfer] action.
-   */
+  /// Generates a random [model.Transfer] action.
   static model.Transfer randomTransfer() =>
-      new model.Transfer(randomPhoneNumber(), note: randomCallerName());
+      model.Transfer(randomPhoneNumber(), note: randomCallerName());
 
-  /**
-   * Generates a random [model.Voicemail] action.
-   */
+  /// Generates a random [model.Voicemail] action.
   static model.Voicemail randomVoicemail() =>
-      new model.Voicemail('vm-${randomPhoneNumber()}',
+      model.Voicemail('vm-${randomPhoneNumber()}',
           recipient: randomGmail(), note: randomDialplanNote());
 
-  /**
-   * Generates a random [model.Enqueue] action.
-   */
+  /// Generates a random [model.Enqueue] action.
   static model.Enqueue randomEnqueue() =>
-      new model.Enqueue('queue-${rand.nextInt(100)}',
+      model.Enqueue('queue-${rand.nextInt(100)}',
           holdMusic: 'playlist-${rand.nextInt(100)}',
           note: randomDialplanNote());
 
-  /**
-   * Generates a random [model.Notify] action.
-   */
+  /// Generates a random [model.Notify] action.
   static model.Notify randomNotify() =>
-      new model.Notify('event-${rand.nextInt(100)}');
+      model.Notify('event-${rand.nextInt(100)}');
 
-  /**
-   * Generates a random [model.Ringtone] action.
-   */
+  /// Generates a random [model.Ringtone] action.
   static model.Ringtone randomRingtone() =>
-      new model.Ringtone(rand.nextInt(4) + 1);
+      model.Ringtone(rand.nextInt(4) + 1);
 
-  /**
-   * Generates a random [model.Ivr] action.
-   */
+  /// Generates a random [model.Ivr] action.
   static model.Ivr randomIvr() =>
-      new model.Ivr('menu-${rand.nextInt(100)}', note: randomDialplanNote());
-  /**
-   * Generates a random [model.Action] action.
-   */
+      model.Ivr('menu-${rand.nextInt(100)}', note: randomDialplanNote());
+  /// Generates a random [model.Action] action.
   static model.Action randomAction({bool excludeMenus: false}) => randomChoice([
         randomVoicemail,
         randomEnqueue,
@@ -499,12 +475,10 @@ abstract class Randomizer {
         randomPlayback
       ]..addAll(excludeMenus ? [] : [randomIvr]))();
 
-  /**
-   * Generates a random 8-digit phone number.
-   */
+  /// Generates a random 8-digit phone number.
   static String randomPhoneNumber() {
     int firstDigit = rand.nextInt(8) + 2;
-    List<int> lastDigits = new List<int>.generate(8, (_) => rand.nextInt(10));
+    List<int> lastDigits = List<int>.generate(8, (_) => rand.nextInt(10));
     List<int> digits = [firstDigit]..addAll(lastDigits);
 
     return digits.join('');
@@ -529,8 +503,8 @@ abstract class Randomizer {
   /**
    *
    */
-  static String randomString(int length) => new String.fromCharCodes(
-      new List.generate(length, (index) => rand.nextInt(33) + 89));
+  static String randomString(int length) => String.fromCharCodes(
+      List.generate(length, (index) => rand.nextInt(33) + 89));
 
   /**
    *
@@ -544,7 +518,7 @@ abstract class Randomizer {
   static String randomPortait() =>
       'employee${rand.nextInt(10)}${rand.nextInt(10)}.png';
 
-  static model.PhoneNumber randomPhone() => new model.PhoneNumber.empty()
+  static model.PhoneNumber randomPhone() => model.PhoneNumber.empty()
     ..confidential = rand.nextBool()
     ..note = randomDialplanNote()
     ..destination = randomPhoneNumber();
@@ -555,7 +529,7 @@ static String randomProduct() => randomChoice(const
   /**
    *
    */
-  static model.User randomUser() => new model.User.empty()
+  static model.User randomUser() => model.User.empty()
     ..address = randomUserEmail()
     ..name = randomUsername()
     ..extension = randomPeer();
@@ -567,127 +541,117 @@ static String randomProduct() => randomChoice(const
    */
   static String randomOrganizationFlag() => randomChoice(organizationFlags);
 
-  /**
-   * Constructs and returns a [Organization] object with random content.
-   *
-   * The returned object is does not have a valid ID.
-   */
+  /// Constructs and returns a [Organization] object with random content.
+  ///
+  /// The returned object is does not have a valid ID.
   static model.Organization randomOrganization() =>
-      new model.Organization.empty()
+      model.Organization.empty()
         ..notes =
-            new List.generate(rand.nextInt(3), (_) => randomOrganizationFlag())
+            List.generate(rand.nextInt(3), (_) => randomOrganizationFlag())
         ..name = randomCompany();
 
-  static model.BaseContact randomBaseContact() => new model.BaseContact.empty()
+  static model.BaseContact randomBaseContact() => model.BaseContact.empty()
     ..type = randomContactType()
     ..name = randomContactName()
     ..enabled = rand.nextBool();
 
   static model.ReceptionAttributes randomAttributes() =>
-      new model.ReceptionAttributes.empty()
+      model.ReceptionAttributes.empty()
         ..backupContacts =
-            new List.generate(rand.nextInt(3) + 1, (_) => randomContactName())
+            List.generate(rand.nextInt(3) + 1, (_) => randomContactName())
         ..departments =
-            new List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
+            List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
         ..emailaddresses =
-            new List.generate(rand.nextInt(3) + 1, (_) => randomEmail())
-        ..endpoints = new List.generate(
+            List.generate(rand.nextInt(3) + 1, (_) => randomEmail())
+        ..endpoints = List.generate(
             rand.nextInt(3) + 1, (_) => randomMessageEndpoint())
         ..handling =
-            new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
+            List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
         ..infos =
-            new List.generate(rand.nextInt(3) + 1, (_) => randomDialplanNote())
+            List.generate(rand.nextInt(3) + 1, (_) => randomDialplanNote())
         ..messagePrerequisites =
-            new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
+            List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
         ..phoneNumbers =
-            new List.generate(rand.nextInt(3) + 1, (_) => randomPhone())
+            List.generate(rand.nextInt(3) + 1, (_) => randomPhone())
         ..relations =
-            new List.generate(rand.nextInt(3) + 1, (_) => randomCallerName())
+            List.generate(rand.nextInt(3) + 1, (_) => randomCallerName())
         ..responsibilities =
-            new List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
-        ..tags = new List.generate(rand.nextInt(3), (_) => randomDepartment())
-        ..titles = new List.generate(rand.nextInt(3), (_) => randomDepartment())
-        ..workhours = new List.generate(
+            List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
+        ..tags = List.generate(rand.nextInt(3), (_) => randomDepartment())
+        ..titles = List.generate(rand.nextInt(3), (_) => randomDepartment())
+        ..workhours = List.generate(
             rand.nextInt(3), (_) => randomOpeningHour().toString());
 
-  /**
-   * Constructs and returns a [Reception] object with random content.
-   *
-   * The returned object is does not have a valid ID, nor organizationID.
-   */
+  /// Constructs and returns a [Reception] object with random content.
+  ///
+  /// The returned object is does not have a valid ID, nor organizationID.
   static model.Reception randomReception() {
     final String name = randomCompany();
     final String greeting = 'Welcome to $name, how may I help you?';
 
-    return new model.Reception.empty()
+    return model.Reception.empty()
       ..dialplan = randomPhoneNumber()
       ..addresses =
-          new List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
+          List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
       ..alternateNames =
-          new List.generate(rand.nextInt(3) + 1, (_) => randomCompany())
+          List.generate(rand.nextInt(3) + 1, (_) => randomCompany())
       ..bankingInformation =
-          new List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
+          List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
       ..customerTypes =
-          new List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
+          List.generate(rand.nextInt(3) + 1, (_) => randomDepartment())
       ..emailAddresses =
-          new List.generate(rand.nextInt(3) + 1, (_) => randomEmail())
+          List.generate(rand.nextInt(3) + 1, (_) => randomEmail())
       ..enabled = rand.nextBool()
       ..name = name
       ..greeting = greeting
       ..handlingInstructions =
-          new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
+          List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
               .toSet()
               .toList()
-      ..openingHours = new List.generate(
+      ..openingHours = List.generate(
           rand.nextInt(3), (_) => randomOpeningHour().toString())
       ..otherData = randomProduct()
       ..product = randomProduct()
       ..salesMarketingHandling =
-          new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
+          List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
               .toSet()
               .toList()
       ..shortGreeting = greeting
       ..phoneNumbers =
-          new List.generate(rand.nextInt(3) + 1, (_) => randomPhone())
+          List.generate(rand.nextInt(3) + 1, (_) => randomPhone())
       ..vatNumbers =
-          new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
+          List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
       ..websites =
-          new List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
+          List.generate(rand.nextInt(3) + 1, (_) => randomHandling())
       ..oid = model.Organization.noId;
   }
 
-  /**
-   * Constructs and returns a [Message] object with random content.
-   *
-   * The returned object still needs to have its context, user and
-   * recipients set before it is a valid parameter to a messageStore.
-   */
+  /// Constructs and returns a [Message] object with random content.
+  ///
+  /// The returned object still needs to have its context, user and
+  /// recipients set before it is a valid parameter to a messageStore.
   static model.Message randomMessage() {
-    model.Message message = new model.Message.empty();
+    model.Message message = model.Message.empty();
     message
       ..body = randomMessageBody()
-      ..callId = 'call-id-${new DateTime.now().millisecondsSinceEpoch}'
+      ..callId = 'call-id-${DateTime.now().millisecondsSinceEpoch}'
       ..callerInfo = randomCaller()
-      ..createdAt = new DateTime.now()
-      ..flag = new model.MessageFlag(randomMessageFlags());
+      ..createdAt = DateTime.now()
+      ..flag = model.MessageFlag(randomMessageFlags());
 
     return message;
   }
 
-  /**
-   * Creates a random MessageEndpoint.
-   */
+  /// Creates a random MessageEndpoint.
   static model.MessageEndpoint randomMessageEndpoint() =>
-      new model.MessageEndpoint.empty()
+      model.MessageEndpoint.empty()
         ..address = randomGmail()
         ..name = randomContactName()
         ..note = randomDialplanNote()
         ..type = randomEndpointType();
 
-  /**
-   * Construct a random MessageCaller object.
-   */
-  static model.CallerInfo randomCaller() => new model.CallerInfo.empty()
+  /// Construct a random MessageCaller object.
+  static model.CallerInfo randomCaller() => model.CallerInfo.empty()
     ..cellPhone = randomPhoneNumber()
     ..company = randomCompany()
     ..localExtension = randomLocalExtension()
@@ -698,19 +662,17 @@ static String randomProduct() => randomChoice(const
    *
    */
   static String randomReceptionistNumber() =>
-      '11${new List<int>.generate(2, (_) => rand.nextInt(5)+5).join('')}';
+      '11${List<int>.generate(2, (_) => rand.nextInt(5)+5).join('')}';
   /**
    *
    */
-  static model.PeerAccount randomPeerAccount() => new model.PeerAccount(
+  static model.PeerAccount randomPeerAccount() => model.PeerAccount(
       randomReceptionistNumber(), randomString(16), 'receptions');
 
-  /**
-   * Returns a random element from [pool].
-   */
+  /// Returns a random element from [pool].
   static dynamic randomChoice(List pool) {
     if (pool.isEmpty) {
-      throw new ArgumentError('Cannot find a random value in an empty list');
+      throw ArgumentError('Cannot find a random value in an empty list');
     }
 
     int index = rand.nextInt(pool.length);

@@ -2,7 +2,7 @@ part of ort.rest;
 
 _runIvrTests() {
   group('rest.Ivr', () {
-    Logger log = new Logger('$_namespace.ivr');
+    Logger log = Logger('$_namespace.ivr');
 
     service.RESTIvrStore ivrStore;
     process.DialplanServer ivrServer;
@@ -10,7 +10,7 @@ _runIvrTests() {
     TestEnvironment env;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
       ivrServer = await env.requestDialplanProcess();
       ivrStore = ivrServer.bindIvrClient(env.httpClient, sa.authToken);
@@ -24,8 +24,8 @@ _runIvrTests() {
     test(
         'CORS headers present (existingUri)',
         () async => isCORSHeadersPresent(
-            resource.ReceptionDialplan
-                .list((await env.requestDialplanProcess()).uri),
+            resource.ReceptionDialplan.list(
+                (await env.requestDialplanProcess()).uri),
             log));
 
     test(
@@ -61,7 +61,7 @@ _runIvrTests() {
     TestEnvironment env;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
       ivrServer = await env.requestDialplanProcess(withRevisioning: true);
       ivrStore = ivrServer.bindIvrClient(env.httpClient, sa.authToken);

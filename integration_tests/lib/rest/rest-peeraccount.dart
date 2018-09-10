@@ -2,14 +2,14 @@ part of ort.rest;
 
 _runPeerAccountTests() {
   group('$_namespace.PeerAccount', () {
-    Logger log = new Logger('$_namespace.PeerAccount');
+    Logger log = Logger('$_namespace.PeerAccount');
     TestEnvironment env;
     ServiceAgent sa;
     service.PeerAccount paService;
     process.DialplanServer dpServer;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       dpServer = await env.requestDialplanProcess();
@@ -57,7 +57,7 @@ _runPeerAccountTests() {
     service.RESTDialplanStore dpStore;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       dpServer = await env.requestDialplanProcess();

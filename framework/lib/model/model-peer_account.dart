@@ -15,22 +15,24 @@ part of orf.model;
 
 /// Model class representing a peer account.
 ///
-/// Used for generating new xml peer accounts in the FreeSWITCH config.
+/// Used for generating an xml peer accounts in the FreeSWITCH config.
 class PeerAccount {
+  /// Default constructor.
+  const PeerAccount(this.username, this.password, this.context);
+
+  factory PeerAccount.fromJson(Map<String, dynamic> map) => PeerAccount(
+      map[key.username] as String,
+      map[key.password] as String,
+      map[key.context] as String);
+
   final String username;
   final String password;
   final String context;
 
-  /// Default constructor.
-  const PeerAccount(this.username, this.password, this.context);
-
-  factory PeerAccount.fromJson(Map<String, dynamic> map) =>
-      new PeerAccount(map[key.username], map[key.password], map[key.context]);
-
   /// Deserializing factory.
   @deprecated
   static PeerAccount decode(Map<String, dynamic> map) =>
-      new PeerAccount.fromJson(map);
+      PeerAccount.fromJson(map);
 
   /// Serialization function.
   Map<String, dynamic> toJson() => <String, dynamic>{

@@ -21,7 +21,7 @@ class FileChange {
   /// The path of the file
   final String filename;
 
-  /// Create new [FileChange] object with [changeType] and [filename].
+  /// Create [FileChange] object with [changeType] and [filename].
   const FileChange(this.changeType, this.filename);
 
   /// Serialization function.
@@ -53,14 +53,14 @@ class Change {
         'changed': changeTime.millisecondsSinceEpoch,
         'author': author,
         'message': message,
-        'changes': new List<String>.from(
+        'changes': List<String>.from(
             fileChanges.map((FileChange fc) => fc.toJson()))
       };
 }
 
 /// Job holder-class for enabling enqueing of commands in the git engine.
 class _Job {
-  final Completer<Null> completionTicket = new Completer<Null>();
+  final Completer<Null> completionTicket = Completer<Null>();
   final Function work;
 
   _Job(this.work);
@@ -69,7 +69,7 @@ class _Job {
 /// Git engine revisioning class.
 class GitEngine {
   /// Internal logger
-  final Logger _log = new Logger('$_libraryName.GitEngine');
+  final Logger _log = Logger('$_libraryName.GitEngine');
 
   /// Root path to keep under revisioning.
   final String path;
@@ -80,18 +80,18 @@ class GitEngine {
 
   /// Work queue of [_Job]s that are enqueued because the git process is
   /// not currently [ready].
-  final Queue<_Job> _workQueue = new Queue<_Job>();
+  final Queue<_Job> _workQueue = Queue<_Job>();
 
   /// Determines if the [GitEngine] is initialized.
   Completer<Null> _initialized;
 
   /// Determines if the [GitEngine] is currently busy.
-  Completer<Null> _busy = new Completer<Null>();
+  Completer<Null> _busy = Completer<Null>();
 
   /// Place [path] under git revisioning.
   GitEngine(String this.path, {bool this.logStdout: false}) {
     if (path.isEmpty) {
-      throw new ArgumentError.value('', 'path', 'Path must not be empty');
+      throw ArgumentError.value('', 'path', 'Path must not be empty');
     }
   }
 
@@ -108,15 +108,15 @@ class GitEngine {
 
   /// Read contents from .gitignore file in [path].
   List<String> ignoredPaths(String path) =>
-      new File('$path/.gitignore').readAsStringSync().split('\n');
+      File('$path/.gitignore').readAsStringSync().split('\n');
 
   /// Add [ignorePath] contents to .gitignore file in [path] or [ignPath].
   void addIgnoredPath(String ignorePath, [String ignPath]) {
     final File ignoreFile =
-        new File('${ignPath == null ? path: ignPath}/.gitignore');
+        File('${ignPath == null ? path: ignPath}/.gitignore');
     Set<String> paths = ignoreFile.existsSync()
         ? ignoreFile.readAsStringSync().split('\n').toSet()
-        : new Set<String>();
+        : Set<String>();
 
     paths.add(path);
 
@@ -125,12 +125,12 @@ class GitEngine {
 
   /// Initialize the [GitEngine].
   Future<Null> init() async {
-    final Directory _storeDir = new Directory(path);
+    final Directory _storeDir = Directory(path);
 
     if (_initialized != null) {
       return whenReady;
     }
-    _initialized = new Completer<Null>();
+    _initialized = Completer<Null>();
 
     if (!_storeDir.existsSync()) {
       final List<String> args = <String>['init', path];
@@ -167,7 +167,7 @@ class GitEngine {
           .run('/usr/bin/git', <String>['status'], workingDirectory: path);
 
       if (!(_containsDotGit(path)) && status.exitCode == 0) {
-        throw new StateError(
+        throw StateError(
             'Path ${_storeDir.absolute} is already under Git revisioning. Consider relocating store');
       }
 
@@ -210,7 +210,7 @@ class GitEngine {
   }
 
   _Job _enqueue(Function f) {
-    _Job job = new _Job(f);
+    _Job job = _Job(f);
     _workQueue.add(job);
     return job;
   }
@@ -237,7 +237,7 @@ class GitEngine {
   Future<Null> commit(File file, String commitMsg, String author) async {
     await init();
     if (!await _hasChanges(file)) {
-      throw new Unchanged('No new content');
+      throw Unchanged('No content');
     }
 
     final bool locked = _lock();
@@ -271,7 +271,7 @@ class GitEngine {
 
     if (result.exitCode != 0) {
       _log.shout('Failed to get status of $filePath');
-      throw new ServerError();
+      throw ServerError();
     }
 
     final List<String> lines = (result.stdout as String).split('\n');
@@ -320,7 +320,7 @@ class GitEngine {
     final List<Change> changeList = <Change>[];
 
     void processBuffer(List<String> bufferLines) {
-      List<String> parts = bufferLines.first.split(new String.fromCharCode(9));
+      List<String> parts = bufferLines.first.split(String.fromCharCode(9));
       final int milliseconds = int.parse(parts[0]) * 1000;
       final String authorIdentity = parts[1].trim();
       final String commitHash = parts[2].trim();
@@ -331,11 +331,11 @@ class GitEngine {
         model.ChangeType changeType =
             model.changeTypeFromString(line.substring(0, 1));
         String filename = line.substring(1).trim();
-        fileChanges.add(new FileChange(changeType, filename));
+        fileChanges.add(FileChange(changeType, filename));
       });
 
-      final Change change = new Change(
-          new DateTime.fromMillisecondsSinceEpoch(milliseconds),
+      final Change change = Change(
+          DateTime.fromMillisecondsSinceEpoch(milliseconds),
           authorIdentity,
           commitHash,
           message: message)..fileChanges = fileChanges;
@@ -362,14 +362,14 @@ class GitEngine {
 
     if (result.exitCode != 0) {
       _log.shout('Failed to run $gitBin ${arguments.join(' ')}');
-      throw new ServerError();
+      throw ServerError();
     }
 
     return changeList;
   }
 
   /// Determine if a path contains a .git folder
-  bool _containsDotGit(String path) => new Directory('$path/.git').existsSync();
+  bool _containsDotGit(String path) => Directory('$path/.git').existsSync();
 
   /// Add [File] path to staging area.
   Future<Null> _add(File file) async {
@@ -389,7 +389,7 @@ class GitEngine {
 
     if (result.exitCode != 0) {
       _log.shout('Failed to add $path');
-      throw new ServerError();
+      throw ServerError();
     }
   }
 
@@ -419,7 +419,7 @@ class GitEngine {
 
     if (result.exitCode != 0) {
       _log.shout('Failed to run $gitBin ${arguments.join(' ')}');
-      throw new ServerError();
+      throw ServerError();
     }
   }
 
@@ -440,7 +440,7 @@ class GitEngine {
 
     if (result.exitCode != 0) {
       _log.shout('Failed to remove ${fse.path}');
-      throw new ServerError();
+      throw ServerError();
     }
   }
 
@@ -450,7 +450,7 @@ class GitEngine {
       return false;
     }
 
-    _busy = new Completer<Null>();
+    _busy = Completer<Null>();
     return true;
   }
 

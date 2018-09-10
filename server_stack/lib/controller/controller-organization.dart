@@ -16,85 +16,66 @@ library ors.controller.organization;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:shelf/shelf.dart';
+import 'package:logging/logging.dart';
 import 'package:orf/event.dart' as event;
 import 'package:orf/exceptions.dart';
 import 'package:orf/filestore.dart' as filestore;
-import 'package:orf/gzip_cache.dart' as gzip_cache;
 import 'package:orf/model.dart' as model;
 import 'package:orf/service.dart' as service;
 import 'package:orf/validation.dart';
 import 'package:ors/response_utils.dart';
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
-import 'package:logging/logging.dart';
 
 class Organization {
+  /// Default constructor.
+  Organization(this._orgStore, this._notification, this._authService);
+
   final filestore.Organization _orgStore;
-  final service.Authentication _authservice;
+  final service.Authentication _authService;
   final service.NotificationService _notification;
-  final gzip_cache.OrganizationCache _cache;
-  final Logger _log = new Logger('ors.controller.organization');
+  final Logger _log = Logger('ors.controller.organization');
 
-  /**
-   * Default constructor.
-   */
-  Organization(
-      this._orgStore, this._notification, this._authservice, this._cache);
+  Future<Response> list(Request request) async =>
+      okJson(List.from(await _orgStore.list()));
 
-  /**
-   *
-   */
-  Future<shelf.Response> list(shelf.Request request) async =>
-      okGzip(new Stream.fromIterable([await _cache.list()]));
-  /**
-   *
-   */
-  Future<shelf.Response> receptionMap(shelf.Request request) async =>
+  Future<Response> receptionMap(Request request) async =>
       okJson(await _orgStore.receptionMap());
 
-  /**
-   *
-   */
-  Future<shelf.Response> get(shelf.Request request) async {
-    final int oid = int.parse(shelf_route.getPathParameter(request, 'oid'));
-
+  Future<Response> get(Request request, String oidParam) async {
+    final int oid = int.parse(oidParam);
     try {
-      return okGzip(new Stream.fromIterable([await _cache.get(oid)]));
+      return okJson(await _orgStore.get(oid));
     } on NotFound catch (error) {
       return notFound(error.toString());
     }
   }
 
-  /**
-   * shelf request handler for listing every contact associated with the
-   * organization.
-   */
-  Future contacts(shelf.Request request) async {
-    final int oid = int.parse(shelf_route.getPathParameter(request, 'oid'));
+  /// Request handler for listing every contact associated with the
+  /// organization.
+  Future<Response> contacts(Request request, String oidParam) async {
+    final int oid = int.parse(oidParam);
 
-    return okJson((await _orgStore.contacts(oid)).toList(growable: false));
+    return okJson(
+        (await _orgStore.contacts(oid)).toList(growable: false));
   }
 
-  /**
-   * shelf request handler for listing every reception associated with the
-   * organization.
-   */
-  Future receptions(shelf.Request request) async {
-    final int orgid = int.parse(shelf_route.getPathParameter(request, 'oid'));
+  /// Request handler for listing every reception associated with the
+  /// organization.
+  Future<Response> receptions(Request request, String oidParam) async {
+    final int orgid = int.parse(oidParam);
 
-    return okJson((await _orgStore.receptions(orgid)).toList(growable: false));
+    return okJson(
+        (await _orgStore.receptions(orgid)).toList(growable: false));
   }
 
-  /**
-   * shelf request handler for creating a new organization.
-   */
-  Future create(shelf.Request request) async {
+  /// Request handler for creating a organization.
+  Future<Response> create(Request request) async {
     model.Organization organization;
     model.User creator;
 
     try {
-      organization = await request.readAsString().then(JSON.decode).then(
-          (Map<String, dynamic> map) => new model.Organization.fromJson(map));
+      organization = model.Organization.fromJson(
+          json.decode(await request.readAsString()));
 
       final List<ValidationException> errors =
           validateOrganization(organization);
@@ -113,13 +94,13 @@ class Organization {
     }
 
     try {
-      creator = await _authservice.userOf(tokenFrom(request));
+      creator = await _authService.userOf(tokenFrom(request));
     } catch (e) {
       return authServerDown();
     }
 
     final oRef = await _orgStore.create(organization, creator);
-    final evt = new event.OrganizationChange.create(oRef.id, creator.id);
+    final evt = event.OrganizationChange.create(oRef.id, creator.id);
 
     try {
       await _notification.broadcastEvent(evt);
@@ -130,15 +111,14 @@ class Organization {
     return okJson(oRef);
   }
 
-  /**
-   * Update an organization.
-   */
-  Future update(shelf.Request request) async {
+  /// Update an organization.
+  Future<Response> update(Request request, String oidParam) async {
     model.Organization org;
     model.User modifier;
     try {
-      org = await request.readAsString().then(JSON.decode).then(
-          (Map<String, dynamic> map) => new model.Organization.fromJson(map));
+      org = model.Organization.fromJson(
+          json.decode(await request.readAsString()));
+
       final List<ValidationException> errors = validateOrganization(org);
 
       if (errors.isNotEmpty) {
@@ -155,14 +135,14 @@ class Organization {
     }
 
     try {
-      modifier = await _authservice.userOf(tokenFrom(request));
+      modifier = await _authService.userOf(tokenFrom(request));
     } catch (e) {
       return authServerDown();
     }
 
     try {
       final rRef = await _orgStore.update(org, modifier);
-      final evt = new event.OrganizationChange.update(rRef.id, modifier.id);
+      final evt = event.OrganizationChange.update(rRef.id, modifier.id);
 
       try {
         await _notification.broadcastEvent(evt);
@@ -178,22 +158,20 @@ class Organization {
     }
   }
 
-  /**
-   * Removes a single organization from the data store.
-   */
-  Future remove(shelf.Request request) async {
-    final int oid = int.parse(shelf_route.getPathParameter(request, 'oid'));
+  /// Removes a single organization from the data store.
+  Future<Response> remove(Request request, final String oidParam) async {
+    final int oid = int.parse(oidParam);
     model.User modifier;
 
     try {
-      modifier = await _authservice.userOf(tokenFrom(request));
+      modifier = await _authService.userOf(tokenFrom(request));
     } catch (e) {
       return authServerDown();
     }
 
     try {
       await _orgStore.remove(oid, modifier);
-      final evt = new event.OrganizationChange.delete(oid, modifier.id);
+      final evt = event.OrganizationChange.delete(oid, modifier.id);
 
       try {
         await _notification.broadcastEvent(evt);
@@ -201,24 +179,17 @@ class Organization {
         _log.warning('$e: Failed to send $evt');
       }
 
-      return okJson({'status': 'ok', 'description': 'Organization deleted'});
+      return okJson(
+          {'status': 'ok', 'description': 'Organization deleted'});
     } on NotFound {
-      return notFoundJson(
-          {'description': 'No Organization found with ID $oid'});
+      return notFoundJson({'description': 'No Organization found with ID $oid'});
     }
   }
 
-  /**
-   *
-   */
-  Future<shelf.Response> history(shelf.Request request) async =>
+  Future<Response> history(Request request) async =>
       okJson((await _orgStore.changes()).toList(growable: false));
 
-  /**
-   *
-   */
-  Future<shelf.Response> objectHistory(shelf.Request request) async {
-    final String oidParam = shelf_route.getPathParameter(request, 'oid');
+  Future<Response> objectHistory(Request request, final String oidParam) async {
     int oid;
     try {
       oid = int.parse(oidParam);
@@ -226,14 +197,11 @@ class Organization {
       return clientError('Bad oid: $oidParam');
     }
 
-    return okJson((await _orgStore.changes(oid)).toList(growable: false));
+    return okJson(
+        (await _orgStore.changes(oid)).toList(growable: false));
   }
 
-  /**
-   *
-   */
-  Future<shelf.Response> changelog(shelf.Request request) async {
-    final String oidParam = shelf_route.getPathParameter(request, 'oid');
+  Future<Response> changelog(Request request, String oidParam) async {
     int oid;
     try {
       oid = int.parse(oidParam);
@@ -241,6 +209,6 @@ class Organization {
       return clientError('Bad oid: $oidParam');
     }
 
-    return ok((await _orgStore.changeLog(oid)));
+    return okJson((await _orgStore.changeLog(oid)));
   }
 }

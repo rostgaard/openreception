@@ -1,7 +1,7 @@
 part of ort.process;
 
 class CallFlowControl implements ServiceProcess {
-  final Logger _log = new Logger('$_namespace.CallFlowControl');
+  final Logger _log = Logger('$_namespace.CallFlowControl');
   Process _process;
 
   final String path;
@@ -14,7 +14,7 @@ class CallFlowControl implements ServiceProcess {
   final String eslPassword;
   final int eslPort;
 
-  final Completer _ready = new Completer();
+  final Completer _ready = Completer();
   bool get ready => _ready.isCompleted;
   Future get whenReady => _ready.future;
 
@@ -36,20 +36,27 @@ class CallFlowControl implements ServiceProcess {
    *
    */
   Future _init() async {
-    final Stopwatch initTimer = new Stopwatch()..start();
+    final Stopwatch initTimer = Stopwatch()..start();
     whenReady.whenComplete(() {
       initTimer.stop();
       _log.info('Process initialization time was: '
           '${initTimer.elapsedMilliseconds}ms');
     });
 
-    final arguments = [
-      '$path/bin/callflowcontrol.dart',
-      '--httpport',
+    String processName;
+    final arguments = <String>[];
+    if (config.runNative) {
+      processName = '${config.buildPath}/callflowcontrol';
+    } else {
+      processName = config.dartPath;
+      arguments.add('${config.serverStackPath}/bin/callflowcontrol.dart');
+    }
+
+    arguments.addAll([      '--httpport',
       servicePort.toString(),
       '--host',
       bindAddress
-    ];
+    ]);
 
     if (authUri != null) {
       arguments.addAll(['--auth-uri', authUri.toString()]);
@@ -71,12 +78,12 @@ class CallFlowControl implements ServiceProcess {
       arguments.addAll(['--esl-port', eslPort.toString()]);
     }
 
-    _log.fine('Starting process /usr/bin/dart ${arguments.join(' ')}');
-    _process = await Process.start('/usr/bin/dart', arguments,
+    _log.fine('Starting process $processName ${arguments.join(' ')}');
+    _process = await Process.start(processName, arguments,
         workingDirectory: path)
       ..stdout
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
           .listen((String line) {
         _log.finest(line);
         if (!ready && line.contains('Ready to handle requests')) {
@@ -85,8 +92,8 @@ class CallFlowControl implements ServiceProcess {
         }
       })
       ..stderr
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
           .listen(_log.warning);
 
     _log.finest('Started callflowcontrol process (pid: ${_process.pid})');
@@ -95,23 +102,21 @@ class CallFlowControl implements ServiceProcess {
     /// Protect from hangs caused by process crashes.
     _process.exitCode.then((int exitCode) {
       if (exitCode != 0 && !ready) {
-        _ready.completeError(new StateError('Failed to launch process. '
+        _ready.completeError(StateError('Failed to launch process. '
             'Exit code: $exitCode'));
       }
     });
   }
 
-  /**
-   * Constructs a new [service.CallFlowControl] based on the launch
-   * parametersof the process.
-   */
+  /// Constructs a [service.CallFlowControl] based on the launch
+  /// parameters of the process.
   service.CallFlowControl bindClient(service.Client client, AuthToken token,
       {Uri connectUri: null}) {
     if (connectUri == null) {
       connectUri = this.uri;
     }
 
-    return new service.CallFlowControl(connectUri, token.tokenName, client);
+    return service.CallFlowControl(connectUri, token.tokenName, client);
   }
 
   /**

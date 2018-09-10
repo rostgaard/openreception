@@ -22,17 +22,17 @@ class CallStateReload implements Event {
 
   /// Default constructor. Subtypes the general [CallEvent] class and should
   /// be used to notify clients about a full call-state reload.
-  CallStateReload() : this.timestamp = new DateTime.now();
+  CallStateReload() : this.timestamp = DateTime.now();
 
-  /// Create a new [CallStateReload] object from serialized data stored in [map].
+  /// Create a [CallStateReload] object from serialized data stored in [map].
   CallStateReload.fromJson(Map<String, dynamic> map)
-      : this.timestamp = util.unixTimestampToDateTime(map[_Key._timestamp]);
+      : this.timestamp = util.unixTimestampToDateTime(map[_Key._timestamp] as int);
 
   /// Returns an umodifiable map representation of the object, suitable for
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp)
       });

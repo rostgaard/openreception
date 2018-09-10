@@ -14,44 +14,29 @@
 part of orc.controller;
 
 class Message {
+  /// Constructor.
+  Message(this._store, this._user);
   final service.RESTMessageStore _store;
   final model.User _user;
 
-  /**
-   * Constructor.
-   */
-  Message(this._store, this._user);
-
-  /**
-   * Enqueues a [model.Message] object.
-   */
+  /// Enqueues a [model.Message] object.
   Future<model.MessageQueueEntry> enqueue(model.Message message) =>
       _store.enqueue(message);
 
-  /**
-   * Fetch the [messageID] [model.Message].
-   */
+  /// Fetch the [messageID] [model.Message].
   Future<model.Message> get(int messageID) => _store.get(messageID);
 
-  /**
-   * Return an iterable containing [model.Message] taken on the supplied [day].
-   */
+  /// Return an iterable containing [model.Message] taken on the supplied [day].
   Future<Iterable<model.Message>> list(DateTime day) => _store.listDay(day);
 
-  /**
-   * Return an iterable containing [model.Message] drafts.
-   */
+  /// Return an iterable containing [model.Message] drafts.
   Future<Iterable<model.Message>> listDrafts() => _store.listDrafts();
 
-  /**
-   * Delete [messageId] from the database. Throws Storage.NotFound if the
-   * message does not exist or if the action did not succeed.
-   */
+  /// Delete [messageId] from the database. Throws Storage.NotFound if the
+  /// message does not exist or if the action did not succeed.
   Future remove(int messageId) => _store.remove(messageId, _user);
 
-  /**
-   * Saves a [model.Message] object.
-   */
+  /// Saves a [model.Message] object.
   Future<model.Message> save(model.Message message) =>
       message.id == model.Message.noId
           ? _store.create(message, _user)

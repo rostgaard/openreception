@@ -22,14 +22,14 @@ class CallUnpark extends CallEvent {
   /// be used to notify clients about a call leaving a parked state.
   CallUnpark(model.Call call) : super(call);
 
-  /// Create a new [CallUnpark] object from serialized data stored in [map].
+  /// Create a [CallUnpark] object from serialized data stored in [map].
   CallUnpark.fromJson(Map<String, dynamic> map) : super.fromJson(map);
 
   /// Returns an umodifiable map representation of the object, suitable for
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._call: call.toJson()

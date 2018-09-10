@@ -2,14 +2,14 @@ part of ort.rest;
 
 void _runReceptionTests() {
   group('$_namespace.Reception', () {
-    Logger log = new Logger('$_namespace.Reception');
+    Logger log = Logger('$_namespace.Reception');
 
     ServiceAgent sa;
     TestEnvironment env;
     process.ReceptionServer rProcess;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       rProcess = await env.requestReceptionserverProcess();
@@ -63,7 +63,7 @@ void _runReceptionTests() {
     process.ReceptionServer rProcess;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       rProcess = await env.requestReceptionserverProcess(withRevisioning: true);

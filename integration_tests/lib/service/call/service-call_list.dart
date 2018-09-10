@@ -1,14 +1,10 @@
 part of ort.service.call;
 
-/**
- * Tests for the call listing interface.
- */
+/// Tests for the call listing interface.
 abstract class CallList {
-  static Logger log = new Logger('$_namespace.CallFlowControl.CallList');
+  static Logger log = Logger('$_namespace.CallFlowControl.CallList');
 
-  /**
-   * Validates the current call list from [callFlow] is empty.
-   */
+  /// Validates the current call list from [callFlow] is empty.
   static Future _validateListEmpty(service.CallFlowControl callFlow) async {
     log.info('Checking if the call queue is empty');
 
@@ -75,7 +71,7 @@ abstract class CallList {
     expect(call.id, isNotEmpty);
     expect(call.inbound, equals(true));
     expect(call.locked, equals(false));
-    expect(call.arrived.difference(new DateTime.now()).inMilliseconds.abs(),
+    expect(call.arrived.difference(DateTime.now()).inMilliseconds.abs(),
         lessThan(1000));
 
     log.info('Call is present in call list, asserting call list.');
@@ -137,10 +133,8 @@ abstract class CallList {
     log.info('Test success.');
   }
 
-  /**
-   * Tests if call an unpark event occur when a call is being hung
-   * up while in a queue.
-   */
+  /// Tests if call an unpark event occur when a call is being hung
+  /// up while in a queue.
   static Future queueLeaveEventFromHangup(model.ReceptionDialplan rdp,
       Receptionist receptionist, Customer caller) async {
     await _validateListEmpty(receptionist.callFlowControl);

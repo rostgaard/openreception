@@ -14,9 +14,9 @@
 part of ors.model;
 
 class Peer extends esl.Peer {
-  final ChannelList _channelList;
-
   Peer(this._channelList);
+
+  final ChannelList _channelList;
 
   @override
   UnmodifiableMapView<String, dynamic> toJson() => new UnmodifiableMapView({

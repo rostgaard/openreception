@@ -46,7 +46,7 @@ abstract class ReceptionDialplan {
    */
   static Future list(storage.ReceptionDialplan rdpStore,
       [model.User user]) async {
-    expect((await rdpStore.list()), new isInstanceOf<Iterable>());
+    expect((await rdpStore.list()), const TypeMatcher<Iterable>());
   }
 
   /**
@@ -60,7 +60,7 @@ abstract class ReceptionDialplan {
 
     await rdpStore.remove(createdDialplan.extension, user);
     await expect(rdpStore.get(createdDialplan.extension),
-        throwsA(new isInstanceOf<NotFound>()));
+        throwsA(const TypeMatcher<NotFound>()));
   }
 
   /**
@@ -98,12 +98,12 @@ abstract class ReceptionDialplan {
 
     expect(commits.length, equals(1));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
-    final change = commits.first.changes.first;
+    final model.ReceptionDialplanChange change = commits.first.changes.first;
 
     expect(change.changeType, model.ChangeType.add);
     expect(change.extension, created.extension);
@@ -124,23 +124,25 @@ abstract class ReceptionDialplan {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.ReceptionDialplanChange latestChange =
+        commits.first.changes.first;
+    final model.ReceptionDialplanChange oldestChange =
+        commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.modify);
     expect(latestChange.extension, created.extension);
@@ -164,23 +166,25 @@ abstract class ReceptionDialplan {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.ReceptionDialplanChange latestChange =
+        commits.first.changes.first;
+    final model.ReceptionDialplanChange oldestChange =
+        commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.delete);
     expect(latestChange.extension, created.extension);

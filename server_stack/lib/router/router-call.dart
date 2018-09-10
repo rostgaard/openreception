@@ -22,10 +22,10 @@ import 'package:ors/controller/controller-call.dart' as controller;
 import 'package:ors/controller/controller-channel.dart' as controller;
 import 'package:ors/controller/controller-peer.dart' as controller;
 import 'package:ors/controller/controller-state_reload.dart' as controller;
-import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
+import 'package:shelf_router/shelf_router.dart' as shelf_route;
 
 import 'package:ors/configuration.dart';
 
@@ -38,13 +38,6 @@ const Map<String, String> corsHeaders = const {
  *
  */
 class Call {
-  final Logger _log = new Logger('server.router.call');
-  final controller.PhoneState _phoneStateController;
-  final controller.Peer _peerController;
-  final controller.Call _callController;
-  final controller.Channel _channelController;
-  final controller.ActiveRecording _activeRecordingController;
-
   Call(
       this._callController,
       this._channelController,
@@ -52,60 +45,60 @@ class Call {
       this._phoneStateController,
       this._peerController);
 
+  final Logger _log = new Logger('server.router.call');
+  final controller.PhoneState _phoneStateController;
+  final controller.Peer _peerController;
+  final controller.Call _callController;
+  final controller.Channel _channelController;
+  final controller.ActiveRecording _activeRecordingController;
+
   /**
    *
    */
   void bindRoutes(dynamic router) {
     router
       ..get('/peer', _peerController.list)
-      ..get('/peer/{peerid}', _peerController.get)
-      ..get('/call/{callid}', _callController.get)
-      ..post('/call/{callid}', _callController.update)
-      ..delete('/call/{callid}', _callController.remove)
+      ..get('/peer/<peerid>', _peerController.get)
+      ..get('/call/<callid>', _callController.get)
+      ..post('/call/<callid>', _callController.update)
+      ..delete('/call/<callid>', _callController.remove)
       ..get('/call', _callController.list)
       ..post('/state/reload', _phoneStateController.reloadAll)
       ..get('/channel', _channelController.list)
-      ..get('/channel/{chanid}', _channelController.get)
+      ..get('/channel/<chanid>', _channelController.get)
       ..get('/activerecording', _activeRecordingController.list)
-      ..get('/activerecording/{cid}', _activeRecordingController.get)
-      ..post('/call/{callid}/hangup', _callController.hangupSpecific)
-      ..post('/call/{callid}/pickup', _callController.pickup)
-      ..post('/call/{callid}/park', _callController.park)
+      ..get('/activerecording/<cid>', _activeRecordingController.get)
+      ..post('/call/<callid>/hangup', _callController.hangupSpecific)
+      ..post('/call/<callid>/pickup', _callController.pickup)
+      ..post('/call/<callid>/park', _callController.park)
       ..post(
-          '/call/originate/{extension}/dialplan/{dialplan}'
-          '/reception/{rid}/contact/{cid}',
+          '/call/originate/<extension>/dialplan/<dialplan>'
+              '/reception/<rid>/contact/<cid>',
           _callController.originate)
       ..post(
-          '/call/originate/{extension}/dialplan/{dialplan}'
-          '/reception/{rid}/contact/{cid}/call/{callId}',
+          '/call/originate/<extension>/dialplan/<dialplan>'
+              '/reception/<rid>/contact/<cid>/call/<callId>',
           _callController.originate)
-      ..post(
-          '/call/originate/{extension}@{host}:{port}/dialplan/{dialplan}'
-          '/reception/{rid}/contact/{cid}',
-          _callController.originate)
-      ..post(
-          '/call/originate/{extension}@{host}:{port}/dialplan/{dialplan}'
-          '/reception/{rid}/contact/{cid}/call/{callId}',
-          _callController.originate)
-      ..post('/call/{aleg}/transfer/{bleg}', _callController.transfer);
+      ..post('/call/<aleg>/transfer/<bleg>', _callController.transfer)
+      ..all('/<catch-all|.*>', (Request request) {
+        return Response.notFound('Page not found');
+      });
   }
 
   Future<io.HttpServer> start(
       {String hostname: '0.0.0.0', int port: 4242}) async {
     _log.info('Starting client notifier');
 
-    final router = shelf_route.router();
+    final router = shelf_route.Router();
     bindRoutes(router);
 
-    var handler = const shelf.Pipeline()
+    var handler = const Pipeline()
         .addMiddleware(
-            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
-        .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
+        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+        .addMiddleware(logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);
 
     _log.fine('Accepting incoming REST requests on http://$hostname:$port');
-    _log.fine('Serving routes:');
-    shelf_route.printRoutes(router, printer: (String item) => _log.fine(item));
 
     final server = await io.HttpServer.bind(hostname, port, shared: true);
 

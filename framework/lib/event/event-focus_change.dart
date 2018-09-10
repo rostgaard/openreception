@@ -29,22 +29,22 @@ class FocusChange implements Event {
   final bool inFocus;
 
   /// Default constructor. Takes [uid] of the user changing the widget and
-  ///  the new focus state ([inFocus]) as mandatory arguments.
-  FocusChange(this.uid, this.inFocus) : timestamp = new DateTime.now();
+  ///  the focus state ([inFocus]) as mandatory arguments.
+  FocusChange(this.uid, this.inFocus) : timestamp = DateTime.now();
 
   /// Bluring constructor. Takes [uid] of the user changing the widget and
-  /// returns an event with [inFocus] set to [false].
+  /// returns an event with [inFocus] set to `false`.
   FocusChange.blur(this.uid)
       : inFocus = false,
-        timestamp = new DateTime.now();
+        timestamp = DateTime.now();
 
   /// Focusing constructor. Takes [uid] of the user changing the widget and
-  /// returns an event with [inFocus] set to [true].
+  /// returns an event with [inFocus] set to `true`.
   FocusChange.focus(this.uid)
       : inFocus = true,
-        timestamp = new DateTime.now();
+        timestamp = DateTime.now();
 
-  /// Create a new [FocusChange] object from serialized data stored in [map].
+  /// Create a [FocusChange] object from serialized data stored in [map].
   FocusChange.fromJson(Map<String, dynamic> map)
       : uid = map[_Key._changedBy],
         inFocus = map[_Key._inFocus],
@@ -54,7 +54,7 @@ class FocusChange implements Event {
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._changedBy: uid,

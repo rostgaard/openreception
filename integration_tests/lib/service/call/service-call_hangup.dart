@@ -1,14 +1,10 @@
 part of ort.service.call;
 
-/**
- * Tests for the hangup interface on CallFlowControl server.
- */
+/// Tests for the hangup interface on CallFlowControl server.
 abstract class Hangup {
-  static Logger log = new Logger('$_namespace.call.hangup');
+  static Logger log = Logger('$_namespace.call.hangup');
 
-  /**
-   * Test for the presence of hangup events when a call is hung up.
-   */
+  /// Test for the presence of hangup events when a call is hung up.
   static Future eventPresence(model.ReceptionDialplan rdp,
       Receptionist receptionist, Customer caller) async {
     log.info('Customer ${caller.name} dials ${rdp.extension}');
@@ -16,7 +12,7 @@ abstract class Hangup {
 
     log.info('Receptionist ${receptionist.user.name} waits for call');
     final call = await receptionist.nextOfferedCall();
-    await new Future.delayed(new Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 1));
 
     log.info('Customer ${caller.name} hangs up all current calls');
     await caller.hangupAll();
@@ -26,9 +22,7 @@ abstract class Hangup {
     await caller.waitForHangup();
   }
 
-  /**
-   * Test for the presence of a hangup cause.
-   */
+  /// Test for the presence of a hangup cause.
   static Future hangupCause(model.ReceptionDialplan rdp,
       Receptionist receptionist, Customer caller) async {
     log.info('Customer ${caller.name} dials ${rdp.extension}');
@@ -36,7 +30,7 @@ abstract class Hangup {
 
     log.info('Receptionist ${receptionist.user.name} waits for call.');
     final call = await receptionist.nextOfferedCall();
-    await new Future.delayed(new Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 1));
     log.info('Customer ${caller.name} hangs up all current calls.');
     await caller.hangupAll();
     log.info('Receptionist ${receptionist.user.name} awaits call hangup.');
@@ -49,9 +43,7 @@ abstract class Hangup {
     await caller.waitForHangup();
   }
 
-  /**
-   * Tests the hangup interface using a valid call id.
-   */
+  /// Tests the hangup interface using a valid call id.
   static Future interfaceCallFound(model.ReceptionDialplan rdp,
       Receptionist receptionist, Customer customer) async {
     log.info('Customer ${customer.name} dials ${rdp.extension}');
@@ -66,11 +58,9 @@ abstract class Hangup {
     await receptionist.waitForHangup(call.id);
   }
 
-  /**
-   * Tests the hangup interface using an invalid call id.
-   */
+  /// Tests the hangup interface using an invalid call id.
   static Future interfaceCallNotFound(ServiceAgent sa) async {
     await expect(sa.callflow.hangup(model.Call.noId),
-        throwsA(new isInstanceOf<NotFound>()));
+        throwsA(const TypeMatcher<NotFound>()));
   }
 }

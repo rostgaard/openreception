@@ -26,7 +26,7 @@ abstract class _ModelReceptionDialplan {
     model.ReceptionDialplan builtObject = buildObject();
     model.ReceptionDialplan deserializedObject =
         new model.ReceptionDialplan.fromJson(
-            JSON.decode(JSON.encode(builtObject)) as Map<String, dynamic>);
+            _json.decode(_json.encode(builtObject)) as Map<String, dynamic>);
 
     expect(builtObject.extension, equals(deserializedObject.extension));
     expect(builtObject.note, equals(deserializedObject.note));
@@ -38,7 +38,7 @@ abstract class _ModelReceptionDialplan {
 
   static void serialization() {
     model.ReceptionDialplan builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);

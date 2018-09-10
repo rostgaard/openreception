@@ -246,7 +246,7 @@ class Organization {
       int compareTo(model.BaseContact c1, model.BaseContact c2) =>
           c1.name.toLowerCase().compareTo(c2.name.toLowerCase());
 
-      List sorted = contacts.toList()..sort(compareTo);
+      List<model.BaseContact> sorted = contacts.toList()..sort(compareTo);
 
       _ulContactList.children
         ..clear()

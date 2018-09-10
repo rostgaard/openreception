@@ -19,6 +19,8 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class RESTDialplanStore implements storage.ReceptionDialplan {
+  RESTDialplanStore(Uri this.host, String this.token, this._backend);
+
   final WebService _backend;
 
   /// The uri of the connected backend.
@@ -27,17 +29,14 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
   /// The token used for authenticating with the backed.
   final String token;
 
-  RESTDialplanStore(Uri this.host, String this.token, this._backend);
-
   @override
   Future<model.ReceptionDialplan> create(model.ReceptionDialplan rdp,
-      [model.User user]) {
+      [model.User user]) async {
     Uri url = resource.ReceptionDialplan.list(host);
     url = _appendToken(url, token);
 
-    return _backend.post(url, JSON.encode(rdp)).then(JSON.decode).then(
-        (Map<String, dynamic> map) =>
-            new model.ReceptionDialplan.fromJson(map));
+    return model.ReceptionDialplan.fromJson(_json.decode(await _backend
+        .post(url, _json.encode(rdp))) as Map<String,dynamic>);
   }
 
   @override
@@ -45,22 +44,21 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
     Uri url = resource.ReceptionDialplan.single(host, extension);
     url = _appendToken(url, token);
 
-    return _backend.get(url).then(JSON.decode).then(
-        (Map<String, dynamic> map) =>
-            new model.ReceptionDialplan.fromJson(map));
+    return _backend
+        .get(url)
+        .then(_json.decode)
+        .then((map) => model.ReceptionDialplan.fromJson(map));
   }
 
   @override
-  Future<Iterable<model.ReceptionDialplan>> list() {
+  Future<Iterable<model.ReceptionDialplan>> list() async {
     Uri url = resource.ReceptionDialplan.list(host);
     url = _appendToken(url, token);
 
-    Iterable<model.ReceptionDialplan> castMaps(
-            Iterable<Map<String, dynamic>> maps) =>
-        maps.map((Map<String, dynamic> map) =>
-            new model.ReceptionDialplan.fromJson(map));
+    final String response = await _backend.get(url);
+    final Iterable<Map> maps = _json.decode(response);
 
-    return _backend.get(url).then(JSON.decode).then(castMaps);
+    return maps.map((map) => model.ReceptionDialplan.fromJson(map));
   }
 
   @override
@@ -69,9 +67,10 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
     Uri url = resource.ReceptionDialplan.single(host, rdp.extension);
     url = _appendToken(url, token);
 
-    return _backend.put(url, JSON.encode(rdp)).then(JSON.decode).then(
-        (Map<String, dynamic> map) =>
-            new model.ReceptionDialplan.fromJson(map));
+    return _backend
+        .put(url, _json.encode(rdp))
+        .then(_json.decode)
+        .then((map) => model.ReceptionDialplan.fromJson(map));
   }
 
   @override
@@ -86,7 +85,7 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
     Uri url = resource.ReceptionDialplan.analyze(host, extension);
     url = _appendToken(url, token);
 
-    return await _backend.post(url, '').then(JSON.decode) as Iterable<String>;
+    return await _backend.post(url, '').then(_json.decode) as Iterable<String>;
   }
 
   /// (Re-)deploys a dialplan for a the reception identified by [rid]
@@ -94,7 +93,7 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
     Uri url = resource.ReceptionDialplan.deploy(host, extension, rid);
     url = _appendToken(url, token);
 
-    return JSON.decode(await _backend.post(url, '')) as Iterable<String>;
+    return (_json.decode(await _backend.post(url, '')) as List<dynamic>).cast<String>();
   }
 
   /// Performs a PBX-reload of the deployed dialplan configuration.
@@ -102,18 +101,18 @@ class RESTDialplanStore implements storage.ReceptionDialplan {
     Uri url = resource.ReceptionDialplan.reloadConfig(host);
     url = _appendToken(url, token);
 
-    await _backend.post(url, '').then(JSON.decode);
+    await _backend.post(url, '').then(_json.decode);
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([String extension]) {
+  Future<Iterable<model.Commit>> changes([String extension]) async {
     Uri url = resource.ReceptionDialplan.changeList(host, extension);
     url = _appendToken(url, this.token);
 
-    Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
-        maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
+    final String response = await _backend.get(url);
+    final Iterable<Map> maps = _json.decode(response);
 
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    return maps.map((map) => model.Commit.fromJson(map));
   }
 
   Future<String> changelog(String extension) {

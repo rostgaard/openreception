@@ -28,16 +28,16 @@ class CallUnassign extends CallEvent {
   /// be used to notify clients about a call being unassigned.
   CallUnassign(model.Call call, this.uid) : super(call);
 
-  /// Create a new [CallUnassign] object from serialized data stored in [map].
+  /// Create a [CallUnassign] object from serialized data stored in [map].
   CallUnassign.fromJson(Map<String, dynamic> map)
-      : uid = map[_Key._modifierUid],
+      : uid = map[_Key._modifierUid] as int,
         super.fromJson(map);
 
   /// Returns an umodifiable map representation of the object, suitable for
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._modifierUid: uid,

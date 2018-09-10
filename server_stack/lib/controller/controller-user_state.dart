@@ -13,67 +13,55 @@
 
 library ors.controller.user_state;
 
+import 'dart:async';
 import 'dart:convert';
 
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
-
-import 'package:ors/response_utils.dart';
-
+import 'package:orf/event.dart' as event;
 import 'package:orf/model.dart' as model;
 import 'package:ors/model.dart' as model;
-import 'package:orf/event.dart' as event;
+import 'package:ors/response_utils.dart';
+import 'package:shelf/shelf.dart';
 
 class UserState {
+  UserState(this._userStateList, this._userUIState, this._userFocusState);
+
   final model.UserStatusList _userStateList;
   final Map<int, event.WidgetSelect> _userUIState;
   final Map<int, event.FocusChange> _userFocusState;
 
-  UserState(this._userStateList, this._userUIState, this._userFocusState);
+  /// Response handler for UI states of all users.
+  Future<Response> uiStates(Request request) async =>
+      okJson(_userUIState.values.toList(growable: false));
 
-  /**
-   *
-   */
-  shelf.Response uiStates(shelf.Request request) {
-    return new shelf.Response.ok(
-        JSON.encode(_userUIState.values.toList(growable: false)));
-  }
-
-  /**
-   *
-   */
-  shelf.Response uiState(shelf.Request request) {
-    final int uid = int.parse(shelf_route.getPathParameter(request, 'uid'));
+  Future<Response> uiState(Request request, String uidParam) async {
+    final int uid = int.parse(uidParam);
 
     if (!_userUIState.containsKey(uid)) {
       return notFound('No UIState for uid:$uid');
     }
 
-    return new shelf.Response.ok(JSON.encode(_userUIState[uid]));
+    return okJson(_userUIState[uid]);
   }
 
-  shelf.Response list(shelf.Request request) {
-    return new shelf.Response.ok(JSON.encode(_userStateList));
-  }
+  Future<Response> list(Request request) async => okJson(json.encode(_userStateList));
 
-  shelf.Response get(shelf.Request request) {
-    final int userID = int.parse(shelf_route.getPathParameter(request, 'uid'));
+  Future<Response> get(Request request, String uidParam) async {
+    final int uid = int.parse(uidParam);
 
-    if (!_userStateList.has(userID)) {
-      return new shelf.Response.notFound('{}');
+    if (!_userStateList.has(uid)) {
+      return notFoundJson( const {});
     }
 
-    return new shelf.Response.ok(JSON.encode(_userStateList.get(userID)));
+    return Response.ok(json.encode(_userStateList.get(uid)));
   }
 
-  shelf.Response set(shelf.Request request) {
-    final int userID = int.parse(shelf_route.getPathParameter(request, 'uid'));
-    final String newState = shelf_route.getPathParameter(request, 'state');
+  Response set(Request request, String uidParam, String newState) {
+    final int uid = int.parse(uidParam);
 
     if (newState == model.UserState.paused) {
-      return new shelf.Response.ok(JSON.encode(_userStateList.pause(userID)));
+      return Response.ok(json.encode(_userStateList.pause(uid)));
     } else if (newState == model.UserState.ready) {
-      return new shelf.Response.ok(JSON.encode(_userStateList.ready(userID)));
+      return Response.ok(json.encode(_userStateList.ready(uid)));
     } else {
       return serverError('Unknown state $newState');
     }

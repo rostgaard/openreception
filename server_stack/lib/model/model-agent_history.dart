@@ -13,27 +13,29 @@
 
 part of ors.model;
 
-/**
- * The [AgentHistory] model maintains [AgentStatistics] associated with the
- * agents currently signed in to the system.
- * The class logs recent activities, which represent handled calls. Whenever an
- * inbound call is hung up -- while assigned to an agent -- this agent will get
- * a call (represented by a timestamp) added to its uid in the map internally.
- *
- * This class maintains an internal housekeeping task to clear out old
- * statistics from the day before and bump activities that are no longer
- * considered recent to a total.
- */
+/// The [AgentHistory] model maintains [model.AgentStatistics] associated with
+/// the agents currently signed in to the system.
+/// The class logs recent activities, which represent handled calls. Whenever an
+/// inbound call is hung up -- while assigned to an agent -- this agent will get
+/// a call (represented by a timestamp) added to its uid in the map internally.
+///
+/// This class maintains an internal housekeeping task to clear out old
+/// statistics from the day before and bump activities that are no longer
+/// considered recent to a total.
 class AgentHistory {
+  /// Default constructor. Sets up the internal maps and starts the housekeeping
+  /// task internally.
+  AgentHistory() {
+    new Timer.periodic(_period, _housekeeping);
+  }
+
   /// Internal logger.
   Logger _log = new Logger('$_libraryName.AgentHistory');
 
-  /**
-   * Recent activity for agents. Stores timestamps of when the call activity
-   * occured so it is possible later on to move it to the total counter for
-   * that user.
-   * The total counters for each user is stored in [_callsHandledToday].
-   */
+  /// Recent activity for agents. Stores timestamps of when the call activity
+  /// occured so it is possible later on to move it to the total counter for
+  /// that user.
+  /// The total counters for each user is stored in [_callsHandledToday].
   Map<int, List<DateTime>> _recentCalls = {};
 
   /// The number of calls
@@ -48,17 +50,7 @@ class AgentHistory {
   /// Stores the absolute time of when the housekeeping was last run.
   DateTime _lastRun = new DateTime.now();
 
-  /**
-   * Default constructor. Sets up the internal maps and starts the housekeeping
-   * task internally.
-   */
-  AgentHistory() {
-    new Timer.periodic(_period, _housekeeping);
-  }
-
-  /**
-   * Housekeeping task. Runs every [_period].
-   */
+  /// Housekeeping task. Runs every [_period].
   void _housekeeping(Timer timer) {
     // Snapshot the time, as we need it multiple times later on.
     final DateTime now = new DateTime.now();
@@ -85,15 +77,11 @@ class AgentHistory {
     _lastRun = now;
   }
 
-  /**
-   * Sums up agent statistics and returns an iterable of [AgentStatistics].
-   */
+  /// Sums up agent statistics and returns an iterable of [model.AgentStatistics].
   Iterable<model.AgentStatistics> sumUpAll() => _recentCalls.keys.map(sumUp);
 
-  /**
-   * Sum up the statistics of a single user and return an [AgentStatistics]
-   * object. Throws [NotFound] if the agent has no statistics associated.
-   */
+  /// Sum up the statistics of a single user and return an [model.AgentStatistics]
+  /// object. Throws [NotFound] if the agent has no statistics associated.
   model.AgentStatistics sumUp(int uid) => !_recentCalls.containsKey(uid)
       ? throw new NotFound()
       : new model.AgentStatistics(
@@ -104,15 +92,11 @@ class AgentHistory {
                   ? _callsHandledToday[uid]
                   : 0));
 
-  /**
-   * Signal that a call has been handled by an agent.
-   */
+  /// Signal that a call has been handled by an agent.
   void callHandledByAgent(int userId) => _recentCalls.containsKey(userId)
       ? _recentCalls[userId].add(new DateTime.now())
-      : _recentCalls[userId] = new List<DateTime>.from([new DateTime.now()]);
+      : _recentCalls[userId] = <DateTime>[new DateTime.now()];
 
-  /**
-   * JSON serialization function.
-   */
+  /// JSON serialization function.
   List toJson() => sumUpAll().toList(growable: false);
 }

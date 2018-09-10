@@ -16,73 +16,37 @@ library ors.controller.calendar;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:shelf/shelf.dart';
 import 'package:logging/logging.dart';
 import 'package:orf/event.dart' as event;
 import 'package:orf/exceptions.dart';
 import 'package:orf/filestore.dart' as filestore;
-import 'package:orf/gzip_cache.dart' as gzip_cache;
 import 'package:orf/model.dart' as model;
 import 'package:orf/service.dart' as service;
-import 'package:ors/response_utils.dart';
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
-/**
- * Ivr menu controller class.
- */
+import '../response_utils.dart';
+
+/// Ivr menu controller class.
 class Calendar {
+  Calendar(this._contactStore, this._receptionStore, this._authService,
+      this._notification);
+
   final service.Authentication _authService;
-  final gzip_cache.CalendarCache _cache;
   final filestore.Contact _contactStore;
-  final Logger _log = new Logger('ors.controller.calendar');
+  final Logger _log = Logger('ors.controller.calendar');
   final service.NotificationService _notification;
   final filestore.Reception _receptionStore;
 
   /**
    *
    */
-  Calendar(this._contactStore, this._receptionStore, this._authService,
-      this._notification, this._cache);
+  Future<Response> changes(Request request, String type, String oid,
+      [String eventId]) async {
+    final int eid = eventId != null ? int.parse(eventId) : null;
 
-  /**
-   * Rebuilds the entire cache.
-   */
-  Future<shelf.Response> cachePrefill(shelf.Request request) async {
-    List<model.Owner> owners = [];
-
-    (await _contactStore.list()).forEach((model.BaseContact bc) {
-      owners.add(new model.OwningContact(bc.id));
-    });
-
-    (await _receptionStore.list()).forEach((model.ReceptionReference rRef) {
-      owners.add(new model.OwningReception(rRef.id));
-    });
-
-    await _cache.prefill(owners);
-
-    return cacheStats(request);
-  }
-
-  /**
-   *
-   */
-  Future<shelf.Response> cacheStats(shelf.Request request) async {
-    return okJson(_cache.stats);
-  }
-
-  /**
-   *
-   */
-  Future<shelf.Response> changes(shelf.Request request) async {
-    final int eid = shelf_route.getPathParameter(request, 'eid') != null
-        ? int.parse(shelf_route.getPathParameter(request, 'eid'))
-        : null;
-
-    final String type = shelf_route.getPathParameter(request, 'type');
-    final String oid = shelf_route.getPathParameter(request, 'oid');
     model.Owner owner;
     try {
-      owner = new model.Owner.parse('$type:$oid');
+      owner = model.Owner.parse('$type:$oid');
     } catch (e) {
       final String msg = 'Could parse owner: $type:$oid';
       _log.warning(msg, e);
@@ -108,7 +72,7 @@ class Calendar {
   /**
    *
    */
-  Future<shelf.Response> create(shelf.Request request) async {
+  Future<Response> create(Request request, String type, String oid) async {
     model.User modifier;
     try {
       modifier = await _authService.userOf(tokenFrom(request));
@@ -118,18 +82,16 @@ class Calendar {
     }
 
     model.Owner owner;
-    final String type = shelf_route.getPathParameter(request, 'type');
-    final String oid = shelf_route.getPathParameter(request, 'oid');
     try {
-      owner = new model.Owner.parse('$type:$oid');
+      owner = model.Owner.parse('$type:$oid');
     } catch (e) {
       final String msg = 'Could parse owner: $type:$oid';
       _log.warning(msg, e);
       return clientError(e.toString(msg));
     }
 
-    final model.CalendarEntry entry = new model.CalendarEntry.fromJson(
-        JSON.decode(await request.readAsString()) as Map<String, dynamic>);
+    final model.CalendarEntry entry =
+        model.CalendarEntry.fromJson(json.decode(await request.readAsString()));
 
     model.CalendarEntry created;
 
@@ -145,11 +107,11 @@ class Calendar {
             'for owner type: ${owner.runtimeType}');
       }
     } on ClientError {
-      return clientError('Could not create new object.');
+      return clientError('Could not create object.');
     }
 
     event.CalendarChange changeEvent =
-        new event.CalendarChange.create(created.id, owner, modifier.id);
+        event.CalendarChange.create(created.id, owner, modifier.id);
     _log.finest('User id:${modifier.id} created entry for $owner');
 
     try {
@@ -164,23 +126,13 @@ class Calendar {
   /**
    *
    */
-  Future<shelf.Response> emptyCache(shelf.Request request) async {
-    _cache.emptyAll();
-
-    return cacheStats(request);
-  }
-
-  /**
-   *
-   */
-  Future<shelf.Response> get(shelf.Request request) async {
-    final int eid = int.parse(shelf_route.getPathParameter(request, 'eid'));
+  Future<Response> get(
+      Request request, String type, String oid, String eventId) async {
+    final int eid = int.parse(eventId);
 
     model.Owner owner;
-    final String type = shelf_route.getPathParameter(request, 'type');
-    final String oid = shelf_route.getPathParameter(request, 'oid');
     try {
-      owner = new model.Owner.parse('$type:$oid');
+      owner = model.Owner.parse('$type:$oid');
     } catch (e) {
       final String msg = 'Could parse owner: $type:$oid';
       _log.warning(msg, e);
@@ -188,7 +140,15 @@ class Calendar {
     }
 
     try {
-      return okGzip(new Stream.fromIterable([await _cache.get(eid, owner)]));
+      if (owner is model.OwningContact) {
+        return okJson(await _contactStore.calendarStore.get(eid, owner));
+        ;
+      } else if (owner is model.OwningReception) {
+        return okJson(await _receptionStore.calendarStore.get(eid, owner));
+      } else {
+        throw new ClientError('Could not find suitable for store '
+            'for owner type: ${owner.runtimeType}');
+      }
     } on ClientError catch (e) {
       return clientError(e.toString());
     } on NotFound {
@@ -199,8 +159,9 @@ class Calendar {
   /**
    *
    */
-  Future<shelf.Response> getDeleted(shelf.Request request) async {
-    final int eid = int.parse(shelf_route.getPathParameter(request, 'eid'));
+  Future<Response> getDeleted(
+      Request request, String type, String oid, String eventId) async {
+    final int eid = int.parse(eventId);
 
     try {
       //return okJson(await _calendarStore.get(eid));
@@ -213,12 +174,11 @@ class Calendar {
   /**
    *
    */
-  Future<shelf.Response> list(shelf.Request request) async {
+  Future<Response> list(Request request, String type, String oid) async {
     model.Owner owner;
-    final String type = shelf_route.getPathParameter(request, 'type');
-    final String oid = shelf_route.getPathParameter(request, 'oid');
+
     try {
-      owner = new model.Owner.parse('$type:$oid');
+      owner = model.Owner.parse('$type:$oid');
     } catch (e) {
       final String msg = 'Could parse owner: $type:$oid';
       _log.warning(msg, e);
@@ -226,7 +186,15 @@ class Calendar {
     }
 
     try {
-      return okGzip(new Stream.fromIterable([await _cache.list(owner)]));
+      if (owner is model.OwningContact) {
+        return okJson(await _contactStore.calendarStore.list(owner));
+        ;
+      } else if (owner is model.OwningReception) {
+        return okJson(await _receptionStore.calendarStore.list(owner));
+      } else {
+        throw new ClientError('Could not find suitable for store '
+            'for owner type: ${owner.runtimeType}');
+      }
     } on ClientError catch (e) {
       return clientError(e.toString());
     } on NotFound {
@@ -237,7 +205,8 @@ class Calendar {
   /**
    *
    */
-  Future<shelf.Response> remove(shelf.Request request) async {
+  Future<Response> remove(
+      Request request, String type, String oid, String eventId) async {
     model.User modifier;
     try {
       modifier = await _authService.userOf(tokenFrom(request));
@@ -246,12 +215,11 @@ class Calendar {
       return authServerDown();
     }
 
-    final int eid = int.parse(shelf_route.getPathParameter(request, 'eid'));
-    final String type = shelf_route.getPathParameter(request, 'type');
-    final String oid = shelf_route.getPathParameter(request, 'oid');
+    final int eid = int.parse(eventId);
+
     model.Owner owner;
     try {
-      owner = new model.Owner.parse('$type:$oid');
+      owner = model.Owner.parse('$type:$oid');
     } catch (e) {
       final String msg = 'Could parse owner: $type:$oid';
       _log.warning(msg, e);
@@ -272,7 +240,7 @@ class Calendar {
     }
 
     final event.CalendarChange changeEvent =
-        new event.CalendarChange.delete(eid, owner, modifier.id);
+        event.CalendarChange.delete(eid, owner, modifier.id);
 
     _log.finest('User id:${modifier.id} removed entry for $owner');
 
@@ -288,7 +256,8 @@ class Calendar {
   /**
    *
    */
-  Future<shelf.Response> update(shelf.Request request) async {
+  Future<Response> update(
+      Request request, String type, String oid, String eventId) async {
     model.User modifier;
 
     try {
@@ -298,19 +267,17 @@ class Calendar {
       return authServerDown();
     }
 
-    final String type = shelf_route.getPathParameter(request, 'type');
-    final String oid = shelf_route.getPathParameter(request, 'oid');
     model.Owner owner;
     try {
-      owner = new model.Owner.parse('$type:$oid');
+      owner = model.Owner.parse('$type:$oid');
     } catch (e) {
       final String msg = 'Could parse owner: $type:$oid';
       _log.warning(msg, e);
       return clientError(e.toString(msg));
     }
 
-    final model.CalendarEntry entry = new model.CalendarEntry.fromJson(
-        JSON.decode(await request.readAsString()) as Map<String, dynamic>);
+    final model.CalendarEntry entry =
+        model.CalendarEntry.fromJson(json.decode(await request.readAsString()));
 
     model.CalendarEntry updated;
 
@@ -330,7 +297,7 @@ class Calendar {
     }
 
     final event.CalendarChange changeEvent =
-        new event.CalendarChange.update(updated.id, owner, modifier.id);
+        event.CalendarChange.update(updated.id, owner, modifier.id);
 
     _log.finest('User id:${modifier.id} updated entry for $owner');
 
@@ -346,12 +313,10 @@ class Calendar {
   /**
    *
    */
-  Future<shelf.Response> changelog(shelf.Request request) async {
-    final String type = shelf_route.getPathParameter(request, 'type');
-    final String oid = shelf_route.getPathParameter(request, 'oid');
+  Future<Response> changelog(Request request, String type, String oid) async {
     model.Owner owner;
     try {
-      owner = new model.Owner.parse('$type:$oid');
+      owner = model.Owner.parse('$type:$oid');
     } catch (e) {
       final String msg = 'Could parse owner: $type:$oid';
       _log.warning(msg, e);

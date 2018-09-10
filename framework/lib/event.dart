@@ -135,106 +135,106 @@ abstract class _Key {
 /// Superclass for events. It's only real purpose is to provide a common interface
 /// for [Event] objects, and a parsing factory constructor.
 abstract class Event {
-  static final Logger _log = new Logger('orf.event.Event');
-
   /// Parse an an event that has already been deserialized from JSON string.
   ///
   /// Throws a [FormatException] if the map is not a valid event.
   factory Event.parse(Map<String, dynamic> map) {
-    final String eventName = map[_Key._event];
+    final String eventName = map[_Key._event] as String;
     try {
       switch (eventName) {
         case _Key._widgetSelect:
-          return new WidgetSelect.fromJson(map);
+          return WidgetSelect.fromJson(map);
 
         case _Key._focusChange:
-          return new FocusChange.fromJson(map);
+          return FocusChange.fromJson(map);
 
         case _Key._peerState:
-          return new PeerState.fromJson(map);
+          return PeerState.fromJson(map);
 
         case _Key._queueJoin:
-          return new QueueJoin.fromJson(map);
+          return QueueJoin.fromJson(map);
 
         case _Key._queueLeave:
-          return new QueueLeave.fromJson(map);
+          return QueueLeave.fromJson(map);
 
         case _Key._callLock:
-          return new CallLock.fromJson(map);
+          return CallLock.fromJson(map);
 
         case _Key._callUnlock:
-          return new CallUnlock.fromJson(map);
+          return CallUnlock.fromJson(map);
 
         case _Key._callOffer:
-          return new CallOffer.fromJson(map);
+          return CallOffer.fromJson(map);
 
         case _Key._callTransfer:
-          return new CallTransfer.fromJson(map);
+          return CallTransfer.fromJson(map);
 
         case _Key._callUnpark:
-          return new CallUnpark.fromJson(map);
+          return CallUnpark.fromJson(map);
 
         case _Key._callPark:
-          return new CallPark.fromJson(map);
+          return CallPark.fromJson(map);
 
         case _Key._callHangup:
-          return new CallHangup.fromJson(map);
+          return CallHangup.fromJson(map);
 
         case _Key._callState:
-          return new CallStateChanged.fromJson(map);
+          return CallStateChanged.fromJson(map);
 
         case _Key._callPickup:
-          return new CallPickup.fromJson(map);
+          return CallPickup.fromJson(map);
 
         case _Key._channelState:
-          return new ChannelState.fromJson(map);
+          return ChannelState.fromJson(map);
 
         case _Key._userState:
-          return new UserState.fromJson(map);
+          return UserState.fromJson(map);
 
         case _Key._calendarChange:
-          return new CalendarChange.fromJson(map);
+          return CalendarChange.fromJson(map);
 
         case _Key._contactChange:
-          return new ContactChange.fromJson(map);
+          return ContactChange.fromJson(map);
 
         case _Key._organizationChange:
-          return new OrganizationChange.fromJson(map);
+          return OrganizationChange.fromJson(map);
 
         case _Key._receptionChange:
-          return new ReceptionChange.fromJson(map);
+          return ReceptionChange.fromJson(map);
 
         case _Key._receptionData:
-          return new ReceptionData.fromJson(map);
+          return ReceptionData.fromJson(map);
 
         case _Key._connectionState:
-          return new ClientConnectionState.fromJson(map);
+          return ClientConnectionState.fromJson(map);
 
         case _Key._messageChange:
-          return new MessageChange.fromJson(map);
+          return MessageChange.fromJson(map);
 
         case _Key._userChange:
-          return new UserChange.fromJson(map);
+          return UserChange.fromJson(map);
 
         case _Key._callStateReload:
-          return new CallStateReload.fromJson(map);
+          return CallStateReload.fromJson(map);
 
         case _Key._dialplanChange:
-          return new DialplanChange.fromJson(map);
+          return DialplanChange.fromJson(map);
 
         case _Key._ivrMenuChange:
-          return new IvrMenuChange.fromJson(map);
+          return IvrMenuChange.fromJson(map);
 
         default:
-          throw new FormatException('Unsupported event type: $eventName');
+          throw FormatException('Unsupported event type: $eventName');
       }
     } catch (error, stackTrace) {
       _log.severe('Failed to parse map as event. Map: $map');
       _log.severe(error, stackTrace);
 
-      throw new FormatException('Failed to cast map as event.');
+      throw FormatException('Failed to cast map as event.');
     }
   }
+
+  static final Logger _log = Logger('orf.event.Event');
 
   /// The creation time of the event.
   DateTime get timestamp;

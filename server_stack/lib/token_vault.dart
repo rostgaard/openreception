@@ -13,32 +13,38 @@
 
 library ors.authentication.token_vault;
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:orf/exceptions.dart';
 import 'package:orf/model.dart' as model;
+import 'package:ors/configuration.dart';
 import 'package:path/path.dart' as path;
 
-TokenVault vault = new TokenVault();
-
 const String libraryName = 'AuthServer.TokenVault';
+String _dateTimeToJson(DateTime time) => time.toString();
 
 class TokenVault {
-  static final Logger log = new Logger('$libraryName.TokenVault');
+  static final Logger _log = Logger('$libraryName.TokenVault');
 
-  Map<String, Map> _tokens = new Map<String, Map>();
-  Map<String, Map> _serverTokens = new Map<String, Map>();
+  Map<String, Map> _tokens = <String, Map>{};
+  final Map<String, Map> _serverTokens = <String, Map>{};
+
+  void seen(String token) {
+    Map data = getToken(token);
+    data['expiresAt'] =
+        _dateTimeToJson(DateTime.now().add(config.authServer.tokenLifetime));
+    updateToken(token, data);
+  }
 
   Map<int, model.User> get usermap {
-    Map<int, model.User> users = new Map<int, model.User>();
+    Map<int, model.User> users = Map<int, model.User>();
 
     _tokens.values.forEach((Map map) {
       if (map.containsKey('identity')) {
         model.User user =
-            new model.User.fromJson(map['identity'] as Map<String, dynamic>);
+            model.User.fromJson(map['identity'] as Map<String, dynamic>);
         users[user.id] = user;
       }
     });
@@ -47,20 +53,21 @@ class TokenVault {
   }
 
   Map getToken(String token) {
+    print(_tokens);
     if (_tokens.containsKey(token)) {
       return _tokens[token];
     } else if (_serverTokens.containsKey(token)) {
       return _serverTokens[token];
     } else {
-      throw new NotFound('getToken. Unknown token: $token');
+      throw NotFound('getToken. Unknown token: $token');
     }
   }
 
   void insertToken(String token, Map data) {
-    log.finest('Inserting new token: $data');
+    _log.finest('Inserting  token: $data');
     if (_tokens.containsKey(token)) {
-      log.severe('Duplicate token: $token');
-      throw new Exception('insertToken. Token allready exists: $token');
+      _log.severe('Duplicate token: $token');
+      throw Exception('insertToken. Token allready exists: $token');
     } else {
       _tokens[token] = data;
     }
@@ -72,7 +79,7 @@ class TokenVault {
     } else if (_serverTokens.containsKey(token)) {
       return;
     } else {
-      throw new Exception('updateToken. Unknown token: $token');
+      throw Exception('updateToken. Unknown token: $token');
     }
   }
 
@@ -83,7 +90,7 @@ class TokenVault {
     if (_tokens.containsKey(token)) {
       _tokens.remove(token);
     } else {
-      throw new Exception('containsToken. Unknown token: $token');
+      throw Exception('containsToken. Unknown token: $token');
     }
   }
 
@@ -91,24 +98,28 @@ class TokenVault {
     return _tokens.keys;
   }
 
-  Future loadFromDirectory(String dirPath) async {
-    final Directory dir = new Directory(dirPath);
+  Iterable<String> listServerTokens() {
+    return _serverTokens.keys;
+  }
+
+  void loadFromDirectory(String dirPath) {
+    final dir = Directory(dirPath);
     if (dir.existsSync()) {
       List<FileSystemEntity> files =
           dir.listSync().where((fse) => fse is File).toList(growable: false);
-      files.forEach((FileSystemEntity item) {
+      for (FileSystemEntity item in files) {
         try {
           String text = load(item.path);
           String token = path.basenameWithoutExtension(item.path);
-          Map data = JSON.decode(text);
+          Map data = json.decode(text);
           _serverTokens[token] = data;
-          log.finest('Loaded ${_serverTokens[token]}');
+          _log.finest('Loaded ${_serverTokens[token]}');
         } catch (e, s) {
-          log.warning('Failed to load token $item', e, s);
+          _log.warning('Failed to load token $item', e, s);
         }
-      });
+      }
     }
   }
 
-  String load(String path) => new File(path).readAsStringSync();
+  String load(String path) => File(path).readAsStringSync();
 }

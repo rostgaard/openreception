@@ -18,18 +18,18 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
-import 'package:orf/service-io.dart' as service;
-import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
 import 'package:ors/router/router-notification.dart' as router;
+import 'package:orf/service-io.dart' as service;
+import 'package:orf/service.dart' as service;
 
 Future main(List<String> args) async {
   ///Init logging. Inherit standard values.
   Logger.root.level = config.notificationServer.log.level;
   Logger.root.onRecord.listen(config.notificationServer.log.onRecord);
 
-  Logger log = new Logger('NotificationServer');
-  ArgParser parser = new ArgParser()
+  Logger log = Logger('NotificationServer');
+  ArgParser parser = ArgParser()
     ..addFlag('help', help: 'Output this help')
     ..addOption('filestore', abbr: 'f', help: 'Path to the filestore backend')
     ..addOption('httpport',
@@ -57,12 +57,14 @@ Future main(List<String> args) async {
     exit(1);
   }
 
-  final service.Authentication _authServer = new service.Authentication(
+
+
+  final service.Authentication _authServer = service.Authentication(
       Uri.parse(parsedArgs['auth-uri']),
       config.notificationServer.serverToken,
-      new service.Client());
+      service.Client());
 
-  await new router.Notification(_authServer).start(
+  await router.Notification(_authServer).start(
       hostname: parsedArgs['host'], port: int.parse(parsedArgs['httpport']));
   log.info('Ready to handle requests');
 }

@@ -1,7 +1,7 @@
 part of ort.process;
 
 class DialplanServer implements ServiceProcess {
-  final Logger _log = new Logger('$_namespace.DialplanServer');
+  final Logger _log = Logger('$_namespace.DialplanServer');
   Process _process;
 
   final String path;
@@ -16,7 +16,7 @@ class DialplanServer implements ServiceProcess {
   final int eslPort;
   final bool enableRevisioning;
 
-  final Completer _ready = new Completer();
+  final Completer _ready = Completer();
   bool get ready => _ready.isCompleted;
   Future get whenReady => _ready.future;
 
@@ -36,15 +36,23 @@ class DialplanServer implements ServiceProcess {
    *
    */
   Future _init() async {
-    final Stopwatch initTimer = new Stopwatch()..start();
+    final Stopwatch initTimer = Stopwatch()..start();
     whenReady.whenComplete(() {
       initTimer.stop();
       _log.info('Process initialization time was: '
           '${initTimer.elapsedMilliseconds}ms');
     });
 
-    final arguments = [
-      '$path/bin/dialplanserver.dart',
+    String processName;
+    final arguments = <String>[];
+    if (config.runNative) {
+      processName = '${config.buildPath}/dialplanserver';
+    } else {
+      processName = config.dartPath;
+      arguments.add('${config.serverStackPath}/bin/dialplanserver.dart');
+    }
+
+    arguments.addAll([
       '--filestore',
       storePath,
       '--httpport',
@@ -55,7 +63,7 @@ class DialplanServer implements ServiceProcess {
       fsConfPath,
       '--playback-prefix',
       playbackPrefix
-    ];
+    ]);
 
     if (authUri != null) {
       arguments.addAll(['--auth-uri', authUri.toString()]);
@@ -79,12 +87,12 @@ class DialplanServer implements ServiceProcess {
       arguments.add('--no-experimental-revisioning');
     }
 
-    _log.fine('Starting process /usr/bin/dart ${arguments.join(' ')}');
-    _process = await Process.start('/usr/bin/dart', arguments,
+    _log.fine('Starting process $processName ${arguments.join(' ')}');
+    _process = await Process.start(processName, arguments,
         workingDirectory: path)
       ..stdout
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
           .listen((String line) {
         _log.finest(line);
         if (!ready && line.contains('Ready to handle requests')) {
@@ -93,8 +101,8 @@ class DialplanServer implements ServiceProcess {
         }
       })
       ..stderr
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
           .listen(_log.warning);
 
     _log.finest('Started dialplanserver process (pid: ${_process.pid})');
@@ -103,14 +111,14 @@ class DialplanServer implements ServiceProcess {
     /// Protect from hangs caused by process crashes.
     _process.exitCode.then((int exitCode) {
       if (exitCode != 0 && !ready) {
-        _ready.completeError(new StateError('Failed to launch process. '
+        _ready.completeError(StateError('Failed to launch process. '
             'Exit code: $exitCode'));
       }
     });
   }
 
   /**
-   * Constructs a new [service.PeerAccount] based on the launch
+   * Constructs a [service.PeerAccount] based on the launch
    * parametersof the process.
    */
   service.PeerAccount bindPeerAccountClient(
@@ -120,11 +128,11 @@ class DialplanServer implements ServiceProcess {
       connectUri = this.uri;
     }
 
-    return new service.PeerAccount(connectUri, token.tokenName, client);
+    return service.PeerAccount(connectUri, token.tokenName, client);
   }
 
   /**
-   * Constructs a new [service.RESTDialplanStore] based on the launch
+   * Constructs a [service.RESTDialplanStore] based on the launch
    * parametersof the process.
    */
   service.RESTDialplanStore bindDialplanClient(
@@ -134,11 +142,11 @@ class DialplanServer implements ServiceProcess {
       connectUri = this.uri;
     }
 
-    return new service.RESTDialplanStore(connectUri, token.tokenName, client);
+    return service.RESTDialplanStore(connectUri, token.tokenName, client);
   }
 
   /**
-   * Constructs a new [service.RESTIvrStore] based on the launch
+   * Constructs a [service.RESTIvrStore] based on the launch
    * parametersof the process.
    */
   service.RESTIvrStore bindIvrClient(service.Client client, AuthToken token,
@@ -147,7 +155,7 @@ class DialplanServer implements ServiceProcess {
       connectUri = this.uri;
     }
 
-    return new service.RESTIvrStore(connectUri, token.tokenName, client);
+    return service.RESTIvrStore(connectUri, token.tokenName, client);
   }
 
   /**

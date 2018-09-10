@@ -6,8 +6,8 @@ void _runOrganizationTests() {
     TestEnvironment env;
     process.ReceptionServer rProcess;
 
-    setUp(() async {
-      env = new TestEnvironment();
+    setUpAll(() async {
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       rProcess = await env.requestReceptionserverProcess();
@@ -16,7 +16,7 @@ void _runOrganizationTests() {
           rProcess.bindOrgClient(env.httpClient, sa.authToken);
     });
 
-    tearDown(() async {
+    tearDownAll(() async {
       await env.clear();
     });
 
@@ -66,8 +66,8 @@ void _runOrganizationTests() {
     TestEnvironment env;
     process.ReceptionServer rProcess;
 
-    setUp(() async {
-      env = new TestEnvironment();
+    setUpAll(() async {
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       rProcess = await env.requestReceptionserverProcess(withRevisioning: true);
@@ -76,7 +76,7 @@ void _runOrganizationTests() {
           rProcess.bindOrgClient(env.httpClient, sa.authToken);
     });
 
-    tearDown(() async {
+    tearDownAll(() async {
       await env.clear();
     });
 

@@ -22,14 +22,14 @@ class CallUnlock extends CallEvent {
   /// be used to notify clients about a call being unlocked.
   CallUnlock(model.Call call) : super(call);
 
-  /// Create a new [CallUnlock] object from serialized data stored in [map].
+  /// Create a [CallUnlock] object from serialized data stored in [map].
   CallUnlock.fromJson(Map<String, dynamic> map) : super.fromJson(map);
 
   /// Returns an umodifiable map representation of the object, suitable for
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._call: call.toJson()

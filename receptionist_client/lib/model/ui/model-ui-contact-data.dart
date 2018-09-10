@@ -240,7 +240,7 @@ class UIContactData extends UIModel {
       if (li != null) {
         li.classes.toggle('ringing');
         _busRinging.fire(new model.PhoneNumber.fromJson(
-            JSON.decode(li.dataset['object']) as Map<String, dynamic>));
+            json.decode(li.dataset['object']) as Map<String, dynamic>));
       }
     }
   }
@@ -316,7 +316,7 @@ class UIContactData extends UIModel {
 
       list.add(new LIElement()
         ..children.addAll([spanNumber, spanLabel])
-        ..dataset['object'] = JSON.encode(item));
+        ..dataset['object'] = json.encode(item));
     });
 
     _phoneNumberList.children = list;

@@ -1,7 +1,7 @@
 part of ort.storage;
 
 abstract class MessageQueue {
-  static final Logger log = new Logger('$_libraryName.MessageQueue');
+  static final Logger log = Logger('$_libraryName.MessageQueue');
 
   /**
    *
@@ -14,7 +14,7 @@ abstract class MessageQueue {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = new model.MessageContext.empty()
+    final context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -49,7 +49,7 @@ abstract class MessageQueue {
     final con = await sa.createsContact();
     final attr = await sa.addsContactToReception(con, rec);
 
-    final context = new model.MessageContext.empty()
+    final context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -67,9 +67,9 @@ abstract class MessageQueue {
       expect(queueEntry.handledRecipients, isEmpty);
       expect(queueEntry.unhandledRecipients, equals(attr.endpoints));
       expect(queueEntry.tries, equals(0));
-      expect(queueEntry.createdAt.isBefore(new DateTime.now()), isTrue);
-      expect(queueEntry.createdAt.difference(new DateTime.now()),
-          greaterThan(new Duration(seconds: -1)));
+      expect(queueEntry.createdAt.isBefore(DateTime.now()), isTrue);
+      expect(queueEntry.createdAt.difference(DateTime.now()),
+          greaterThan(Duration(seconds: -1)));
     }
   }
 
@@ -82,7 +82,7 @@ abstract class MessageQueue {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = new model.MessageContext.empty()
+    final context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -113,7 +113,7 @@ abstract class MessageQueue {
     final con = await sa.createsContact();
     final attr = await sa.addsContactToReception(con, rec);
 
-    final context = new model.MessageContext.empty()
+    final context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -145,9 +145,9 @@ abstract class MessageQueue {
       expect(queueEntry.unhandledRecipients, isEmpty);
       expect(queueEntry.handledRecipients, equals(attr.endpoints.toSet()));
       expect(queueEntry.tries, equals(1));
-      expect(queueEntry.createdAt.isBefore(new DateTime.now()), isTrue);
-      expect(queueEntry.createdAt.difference(new DateTime.now()),
-          greaterThan(new Duration(seconds: -1)));
+      expect(queueEntry.createdAt.isBefore(DateTime.now()), isTrue);
+      expect(queueEntry.createdAt.difference(DateTime.now()),
+          greaterThan(Duration(seconds: -1)));
     }
   }
 }

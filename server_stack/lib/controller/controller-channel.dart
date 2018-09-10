@@ -13,40 +13,38 @@
 
 library ors.controller.channel;
 
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:shelf/shelf.dart';
 import 'package:logging/logging.dart';
 import 'package:ors/model.dart' as _model;
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
 class Channel {
+  Channel(this._channelList);
+
   final Logger log =
-      new Logger('openreception.call_flow_control_server.Channel');
+      Logger('openreception.call_flow_control_server.Channel');
 
   final _model.ChannelList _channelList;
 
-  Channel(this._channelList);
 
-  shelf.Response list(shelf.Request request) {
+  Response list(Request request) {
     try {
-      List<Map> retval = new List<Map>();
+      List<Map> retval = List<Map>();
       _channelList.forEach((channel) {
         retval.add(channel.toMap());
       });
 
-      return new shelf.Response.ok(JSON.encode(retval));
+      return Response.ok(json.encode(retval));
     } catch (error, stacktrace) {
       log.severe(error, stacktrace);
-      return new shelf.Response.internalServerError(
+      return Response.internalServerError(
           body: 'Failed to retrieve channel list');
     }
   }
 
-  shelf.Response get(shelf.Request request) {
-    final String channelId = shelf_route.getPathParameter(request, 'chanid');
-
-    return new shelf.Response.ok(
-        JSON.encode(_channelList.get(channelId).toMap()));
-  }
+  Future<Response> get(
+          Request request, final String channelId) async =>
+      Response.ok(json.encode(_channelList.get(channelId).toMap()));
 }

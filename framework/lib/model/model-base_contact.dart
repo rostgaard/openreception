@@ -48,16 +48,17 @@ abstract class ObjectReference {
 
 @deprecated
 class ContactReference implements ObjectReference {
+  const ContactReference(this.id, this.name);
+
   @override
   final int id;
   @override
   final String name;
 
-  const ContactReference(this.id, this.name);
 
   @deprecated
   static ContactReference decode(Map<String, dynamic> map) =>
-      new ContactReference(map[key.id], map[key.name]);
+      ContactReference(map[key.id] as int, map[key.name] as String);
 
   bool get isEmpty => id == BaseContact.noId;
 
@@ -73,6 +74,11 @@ class ContactReference implements ObjectReference {
 }
 
 class ContactChange implements ObjectChange {
+  ContactChange(this.changeType, this.cid);
+
+  ContactChange.fromJson(Map<String, dynamic> map)
+      : changeType = changeTypeFromString(map[key.change] as String),
+        cid = map[key.cid] as int;
   @override
   final ChangeType changeType;
 
@@ -80,15 +86,11 @@ class ContactChange implements ObjectChange {
   final ObjectType objectType = ObjectType.contact;
   final int cid;
 
-  ContactChange(this.changeType, this.cid);
 
-  ContactChange.fromJson(Map<String, dynamic> map)
-      : changeType = changeTypeFromString(map[key.change]),
-        cid = map[key.cid];
 
   @deprecated
   static ContactChange decode(Map<String, dynamic> map) =>
-      new ContactChange(changeTypeFromString(map[key.change]), map[key.cid]);
+      ContactChange(changeTypeFromString(map[key.change]), map[key.cid]);
 
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -99,19 +101,21 @@ class ContactChange implements ObjectChange {
 }
 
 class OrganizationReference implements ObjectReference {
+
+
+  const OrganizationReference(this.id, this.name);
+
+  factory OrganizationReference.fromJson(Map<String, dynamic> map) =>
+      OrganizationReference(map[key.id], map[key.name]);
+
   @override
   final int id;
   @override
   final String name;
 
-  const OrganizationReference(this.id, this.name);
-
-  factory OrganizationReference.fromJson(Map<String, dynamic> map) =>
-      new OrganizationReference(map[key.id], map[key.name]);
-
   @deprecated
   static OrganizationReference decode(Map<String, dynamic> map) =>
-      new OrganizationReference.fromJson(map);
+      OrganizationReference.fromJson(map);
 
   @override
   Map<String, dynamic> toJson() =>
@@ -132,18 +136,18 @@ class ReceptionContact {
   ReceptionContact(this.contact, this.attr);
 
   ReceptionContact.empty()
-      : contact = new BaseContact.empty(),
-        attr = new ReceptionAttributes.empty();
+      : contact = BaseContact.empty(),
+        attr = ReceptionAttributes.empty();
 
   factory ReceptionContact.fromJson(Map<String, dynamic> map) =>
-      new ReceptionContact(
-          new BaseContact.fromJson(map[key.contact] as Map<String, dynamic>),
-          new ReceptionAttributes.fromJson(
+      ReceptionContact(
+          BaseContact.fromJson(map[key.contact] as Map<String, dynamic>),
+          ReceptionAttributes.fromJson(
               map[key.reception] as Map<String, dynamic>));
 
   @deprecated
   static ReceptionContact decode(Map<String, dynamic> map) =>
-      new ReceptionContact.fromJson(map);
+      ReceptionContact.fromJson(map);
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         key.contact: contact.toJson(),
@@ -152,14 +156,11 @@ class ReceptionContact {
 
   @deprecated
   ContactReference get contactReference =>
-      new ContactReference(contact.id, contact.name);
+      ContactReference(contact.id, contact.name);
 }
 
 class ReceptionReference implements ObjectReference {
-  @override
-  final int id;
-  @override
-  final String name;
+
 
   const ReceptionReference(this.id, this.name);
 
@@ -168,14 +169,19 @@ class ReceptionReference implements ObjectReference {
         name = '';
 
   factory ReceptionReference.fromJson(Map<String, dynamic> map) =>
-      new ReceptionReference(map[key.id], map[key.name]);
+      ReceptionReference(map[key.id], map[key.name]);
+
+  @override
+  final int id;
+  @override
+  final String name;
 
   bool get isEmpty => id == Reception.noId;
   bool get isNotEmpty => !isEmpty;
 
   @deprecated
   static ReceptionReference decode(Map<String, dynamic> map) =>
-      new ReceptionReference.fromJson(map);
+      ReceptionReference.fromJson(map);
 
   @override
   Map<String, dynamic> toJson() =>
@@ -203,16 +209,16 @@ class BaseContact {
   BaseContact.empty();
 
   /// Deserializing constructor.
-  BaseContact.fromJson(Map<String, dynamic> map)
-      : id = map[key.id],
-        name = map[key.name],
-        type = map[key.contactType],
-        enabled = map[key.enabled];
+  BaseContact.fromJson(Map<String, Object> map)
+      : id = map[key.id] as int,
+        name = map[key.name] as String,
+        type = map[key.contactType] as String,
+        enabled = map[key.enabled] as bool;
 
   /// Decoding factory.
   @deprecated
   static BaseContact decode(Map<String, dynamic> map) =>
-      new BaseContact.fromJson(map);
+      BaseContact.fromJson(map);
 
   /// Serilization function.
   Map<String, dynamic> toJson() => <String, dynamic>{

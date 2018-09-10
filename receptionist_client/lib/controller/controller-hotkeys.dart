@@ -17,44 +17,7 @@ part of orc.controller;
  * Setup global keyboard shortcuts and associated event streams.
  */
 class HotKeys {
-  static final HotKeys _singleton = new HotKeys._internal();
   factory HotKeys() => _singleton;
-
-  final Keyboard _keyDown = new Keyboard();
-
-  final Bus<html.KeyboardEvent> _altArrowDown = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altArrowUp = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altB = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altC = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altD = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altE = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altF = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altH = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altI = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altK = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altM = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altQ = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altS = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altSpace = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altT = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altV = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altW = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _altX = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _ctrlAltEnter = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _ctrlAltP = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _ctrlAltR = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _ctrlE = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _ctrlEsc = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _ctrlK = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _ctrlNumMinus = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _ctrlSpace = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _f1 = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _f7 = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _f8 = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _f9 = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _numDiv = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _numMult = new Bus<html.KeyboardEvent>();
-  final Bus<html.KeyboardEvent> _numPlus = new Bus<html.KeyboardEvent>();
 
   /**
    * Internal constructor.
@@ -107,6 +70,44 @@ class HotKeys {
 
     registerKeysPreventDefault(_keyDown, preventDefaultBindings);
   }
+
+  static final HotKeys _singleton = HotKeys._internal();
+
+  final Keyboard _keyDown = Keyboard();
+
+  final Bus<html.KeyboardEvent> _altArrowDown = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altArrowUp = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altB = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altC = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altD = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altE = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altF = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altH = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altI = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altK = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altM = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altQ = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altS = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altSpace = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altT = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altV = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altW = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _altX = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _ctrlAltEnter = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _ctrlAltP = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _ctrlAltR = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _ctrlE = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _ctrlEsc = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _ctrlK = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _ctrlNumMinus = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _ctrlSpace = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _f1 = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _f7 = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _f8 = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _f9 = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _numDiv = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _numMult = Bus<html.KeyboardEvent>();
+  final Bus<html.KeyboardEvent> _numPlus = Bus<html.KeyboardEvent>();
 
   Stream<html.KeyboardEvent> get onAltArrowDown => _altArrowDown.stream;
   Stream<html.KeyboardEvent> get onAltArrowUp => _altArrowUp.stream;
@@ -186,17 +187,12 @@ class HotKeys {
   }
 }
 
-/**
- * Convenience methods to push events unto the various hotkeys busses without
- * having an actual keyboard event.
- */
+/// Convenience methods to push events unto the various hotkeys busses without
+/// having an actual keyboard event.
 class SimulationHotKeys {
-  final HotKeys _hotKeys;
-
-  /**
-   * Constructor
-   */
+  /// Constructor
   SimulationHotKeys(HotKeys this._hotKeys);
+  final HotKeys _hotKeys;
 
   void altArrowDown() => _hotKeys._altArrowDown.fire(null);
   void altArrowUp() => _hotKeys._altArrowUp.fire(null);

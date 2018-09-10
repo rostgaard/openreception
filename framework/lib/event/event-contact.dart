@@ -16,6 +16,33 @@ part of orf.event;
 /// Model class representing a change in a persistent [model.BaseContact]
 /// object. May be serialized and sent via a notification socket.
 class ContactChange implements Event {
+
+
+  /// Create a creation event.
+  ContactChange.create(this.cid, [int uid])
+      : timestamp = DateTime.now(),
+        state = Change.created,
+        modifierUid = uid != null ? uid : model.User.noId;
+
+  /// Create a [ContactChange] object from serialized data stored in [map].
+  ContactChange.fromJson(Map<String, dynamic> map)
+      : cid = map[_Key._calendarChange][_Key._cid] as int,
+        modifierUid = map[_Key._calendarChange][_Key._modifierUid] as int,
+        state = map[_Key._calendarChange][_Key._state] as String,
+        timestamp = util.unixTimestampToDateTime(map[_Key._timestamp] as int);
+
+  /// Create a update event.
+  ContactChange.update(this.cid, [int uid])
+      : timestamp = DateTime.now(),
+        state = Change.updated,
+        modifierUid = uid != null ? uid : model.User.noId;
+
+  /// Create a deletion event.
+  ContactChange.delete(this.cid, [int uid])
+      : timestamp = DateTime.now(),
+        state = Change.deleted,
+        modifierUid = uid != null ? uid : model.User.noId;
+
   @override
   final DateTime timestamp;
 
@@ -30,32 +57,6 @@ class ContactChange implements Event {
 
   /// The modification state. Must be one of the valid [Change] values.
   final String state;
-
-  /// Create a new creation event.
-  ContactChange.create(this.cid, [int uid])
-      : timestamp = new DateTime.now(),
-        state = Change.created,
-        modifierUid = uid != null ? uid : model.User.noId;
-
-  /// Create a new [ContactChange] object from serialized data stored in [map].
-  ContactChange.fromJson(Map<String, dynamic> map)
-      : cid = map[_Key._calendarChange][_Key._cid],
-        modifierUid = map[_Key._calendarChange][_Key._modifierUid],
-        state = map[_Key._calendarChange][_Key._state],
-        timestamp = util.unixTimestampToDateTime(map[_Key._timestamp]);
-
-  /// Create a new update event.
-  ContactChange.update(this.cid, [int uid])
-      : timestamp = new DateTime.now(),
-        state = Change.updated,
-        modifierUid = uid != null ? uid : model.User.noId;
-
-  /// Create a new deletion event.
-  ContactChange.delete(this.cid, [int uid])
-      : timestamp = new DateTime.now(),
-        state = Change.deleted,
-        modifierUid = uid != null ? uid : model.User.noId;
-
   /// Determines if the object signifies a creation.
   bool get isCreate => state == Change.created;
 
@@ -69,7 +70,7 @@ class ContactChange implements Event {
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._modifierUid: modifierUid,

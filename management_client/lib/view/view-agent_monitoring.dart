@@ -23,5 +23,6 @@ import 'package:orf/model.dart' as model;
 part 'agent-monitoring/view-agent_info.dart';
 part 'agent-monitoring/view-agent_info_list.dart';
 
+
 String _remoteParty(model.Call call) =>
     call.inbound ? call.callerId : call.destination;

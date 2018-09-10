@@ -27,7 +27,7 @@ void _testModelHourAction() {
 abstract class _HourAction {
   static void serialization() {
     model.HourAction builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -37,7 +37,7 @@ abstract class _HourAction {
     model.HourAction builtObject = buildObject();
 
     model.HourAction deserializedObject = model.HourAction
-        .parse(JSON.decode(JSON.encode(builtObject)) as Map<String, dynamic>);
+        .parse(_json.decode(_json.encode(builtObject)) as Map<String, dynamic>);
 
     expect(builtObject.hours, equals(deserializedObject.hours));
     expect(builtObject.actions, equals(deserializedObject.actions));

@@ -3,7 +3,7 @@ part of ort.service;
 abstract class Message {
   static const int invalidMessageID = -1;
 
-  static final Logger _log = new Logger('$_namespace.Message');
+  static final Logger _log = Logger('$_namespace.Message');
 
   /**
    *
@@ -18,7 +18,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = new model.MessageContext.empty()
+    final context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -27,10 +27,10 @@ abstract class Message {
     final createdMessage = await sa.createsMessage(context);
 
     final event.MessageChange createEvent =
-        await nextMessageCreateEvent.timeout(new Duration(seconds: 3));
+        await nextMessageCreateEvent.timeout(Duration(seconds: 3));
 
     expect(createEvent.mid, equals(createdMessage.id));
-    expect(createEvent.timestamp.isBefore(new DateTime.now()), isTrue);
+    expect(createEvent.timestamp.isBefore(DateTime.now()), isTrue);
     expect(createEvent.modifierUid, equals(sa.user.id));
   }
 
@@ -45,7 +45,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = new model.MessageContext.empty()
+    final context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -55,10 +55,10 @@ abstract class Message {
     await sa.removesMessage(created);
 
     final event.MessageChange removeEvent =
-        await nextMessageRemoveEvent.timeout(new Duration(seconds: 3));
+        await nextMessageRemoveEvent.timeout(Duration(seconds: 3));
 
     expect(removeEvent.mid, equals(created.id));
-    expect(removeEvent.timestamp.isBefore(new DateTime.now()), isTrue);
+    expect(removeEvent.timestamp.isBefore(DateTime.now()), isTrue);
     expect(removeEvent.modifierUid, equals(sa.user.id));
   }
 
@@ -73,7 +73,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = new model.MessageContext.empty()
+    final context = model.MessageContext.empty()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -83,10 +83,10 @@ abstract class Message {
     final updatedMessage = await sa.updatesMessage(created);
 
     final event.MessageChange updateEvent =
-        await nextMessageUpdateEvent.timeout(new Duration(seconds: 3));
+        await nextMessageUpdateEvent.timeout(Duration(seconds: 3));
 
     expect(updateEvent.mid, equals(updatedMessage.id));
-    expect(updateEvent.timestamp.isBefore(new DateTime.now()), isTrue);
+    expect(updateEvent.timestamp.isBefore(DateTime.now()), isTrue);
     expect(updateEvent.modifierUid, equals(sa.user.id));
   }
 }

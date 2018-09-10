@@ -1,7 +1,7 @@
 part of ort.service;
 
 abstract class NotificationService {
-  static final Logger _log = new Logger('$_namespace.Notification');
+  static final Logger _log = Logger('$_namespace.Notification');
 
   /**
    *
@@ -10,7 +10,7 @@ abstract class NotificationService {
       service.NotificationService service) async {
     final int uid = 99;
     final int modUid = 88;
-    final event.UserChange testEvent = new event.UserChange.update(uid, modUid);
+    final event.UserChange testEvent = event.UserChange.update(uid, modUid);
 
     bool isExpectedEvent(event.Event e) =>
         e is event.UserChange &&
@@ -18,8 +18,8 @@ abstract class NotificationService {
         e.uid == uid &&
         e.modifierUid == modUid;
 
-    Future<Iterable> eventSubScriptions = Future
-        .wait(sockets.map((ns) => ns.onEvent.firstWhere(isExpectedEvent)));
+    Future<Iterable> eventSubScriptions = Future.wait(
+        sockets.map((ns) => ns.onEvent.firstWhere(isExpectedEvent)));
 
     await service.broadcastEvent(testEvent);
 
@@ -74,19 +74,19 @@ abstract class NotificationService {
     Iterable<int> recipientUids = recipients.map((s) => s.user.id);
 
     final event.Event sentEvent =
-        new event.UserChange.update(sas.first.user.id, sas.last.user.id);
+        event.UserChange.update(sas.first.user.id, sas.last.user.id);
 
     int completed = 0;
 
-    Completer comp = new Completer();
+    Completer comp = Completer();
     List<Error> errors = [];
     sas.forEach((sa) async {
-      Completer c = new Completer();
+      Completer c = Completer();
 
-      new Future.delayed(new Duration(milliseconds: 500), () {
+      Future.delayed(Duration(milliseconds: 500), () {
         if (!c.isCompleted) {
           if (recipientUids.contains(sa.user.id)) {
-            errors.add(new StateError('user: ${sa.user.toJson()} expected to'
+            errors.add(StateError('user: ${sa.user.toJson()} expected to'
                 ' receive message, but did not'));
           }
           c.complete();
@@ -96,9 +96,8 @@ abstract class NotificationService {
       (await sa.notifications).listen((e) {
         if (e is event.UserChange && e.isUpdate) {
           if (!recipientUids.contains(sa.user.id)) {
-            errors
-                .add(new StateError('user: ${sa.user.toJson()} not expected to'
-                    ' receive message, but did'));
+            errors.add(StateError('user: ${sa.user.toJson()} not expected to'
+                ' receive message, but did'));
           }
           c.complete();
         }

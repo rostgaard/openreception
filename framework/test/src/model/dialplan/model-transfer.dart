@@ -26,7 +26,7 @@ void _testModelTransfer() {
 abstract class _ModelTransfer {
   static void serialization() {
     model.Transfer builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -36,7 +36,7 @@ abstract class _ModelTransfer {
     model.Transfer builtObject = buildObject();
 
     model.Transfer deserializedObject =
-        model.Transfer.parse(JSON.decode(JSON.encode(builtObject)));
+        model.Transfer.parse(_json.decode(_json.encode(builtObject)));
 
     expect(builtObject.toJson(), equals(deserializedObject.toJson()));
 

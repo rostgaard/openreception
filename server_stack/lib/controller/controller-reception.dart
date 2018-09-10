@@ -16,41 +16,33 @@ library ors.controller.reception;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:logging/logging.dart';
 import 'package:orf/event.dart' as event;
 import 'package:orf/exceptions.dart';
 import 'package:orf/filestore.dart' as filestore;
-import 'package:orf/gzip_cache.dart' as gzip_cache;
 import 'package:orf/model.dart' as model;
 import 'package:orf/service.dart' as service;
 import 'package:ors/response_utils.dart';
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
-import 'package:logging/logging.dart';
+import 'package:shelf/shelf.dart';
 
 class Reception {
+  /// Default constructor.
+  Reception(this._rStore, this._notification, this._authservice);
+
   final filestore.Reception _rStore;
   final service.Authentication _authservice;
   final service.NotificationService _notification;
-  final gzip_cache.ReceptionCache _cache;
-  final Logger _log = new Logger('ors.controller.reception');
-
-  /**
-   * Default constructor.
-   */
-  Reception(this._rStore, this._notification, this._authservice, this._cache);
+  final Logger _log = Logger('ors.controller.reception');
 
   /**
    *
    */
-  Future<shelf.Response> list(shelf.Request request) async {
-    return okGzip(new Stream.fromIterable([await _cache.list()]));
+  Future<Response> list(Request request) async {
+    return okJson((await _rStore.list()).toList(growable: false));
   }
 
-  /**
-   *
-   */
-  Future<shelf.Response> get(shelf.Request request) async {
-    final int rid = int.parse(shelf_route.getPathParameter(request, 'rid'));
+  Future<Response> get(Request request, String ridParam) async {
+    final int rid = int.parse(ridParam);
 
     try {
       return okJson(await _rStore.get(rid));
@@ -59,15 +51,13 @@ class Reception {
     }
   }
 
-  /**
-   * shelf request handler for creating a new reception.
-   */
-  Future create(shelf.Request request) async {
+  /// Request handler for creating a reception.
+  Future<Response> create(Request request) async {
     model.Reception reception;
     model.User creator;
     try {
-      reception = await request.readAsString().then(JSON.decode).then(
-          (Map<String, dynamic> map) => new model.Reception.fromJson(map));
+      reception =
+          model.Reception.fromJson(json.decode(await request.readAsString()));
     } on FormatException catch (error) {
       Map response = {
         'status': 'bad request',
@@ -86,9 +76,7 @@ class Reception {
 
     final rRef = await _rStore.create(reception, creator);
 
-    _cache.emptyList();
-
-    final evt = new event.ReceptionChange.create(rRef.id, creator.id);
+    final evt = event.ReceptionChange.create(rRef.id, creator.id);
     try {
       await _notification.broadcastEvent(evt);
     } catch (e) {
@@ -97,15 +85,13 @@ class Reception {
     return okJson(rRef);
   }
 
-  /**
-   * Update a reception.
-   */
-  Future update(shelf.Request request) async {
+  /// Update a reception.
+  Future<Response> update(Request request, String ridParam) async {
     model.Reception reception;
     model.User modifier;
     try {
-      reception = await request.readAsString().then(JSON.decode).then(
-          (Map<String, dynamic> map) => new model.Reception.fromJson(map));
+      reception =
+          model.Reception.fromJson(json.decode(await request.readAsString()));
     } on FormatException catch (error) {
       Map response = {
         'status': 'bad request',
@@ -125,10 +111,7 @@ class Reception {
     try {
       final rRef = await _rStore.update(reception, modifier);
 
-      _cache.remove(rRef.id);
-      _cache.emptyList();
-
-      final evt = new event.ReceptionChange.update(rRef.id, modifier.id);
+      final evt = event.ReceptionChange.update(rRef.id, modifier.id);
       try {
         await _notification.broadcastEvent(evt);
       } catch (e) {
@@ -142,11 +125,9 @@ class Reception {
     }
   }
 
-  /**
-   * Removes a single reception from the data store.
-   */
-  Future remove(shelf.Request request) async {
-    final int rid = int.parse(shelf_route.getPathParameter(request, 'rid'));
+  /// Removes a single reception from the data store.
+  Future<Response> remove(Request request, String ridParam) async {
+    final int rid = int.parse(ridParam);
     model.User modifier;
 
     try {
@@ -158,11 +139,7 @@ class Reception {
     try {
       await _rStore.remove(rid, modifier);
 
-      _cache.remove(rid);
-
-      _cache.emptyList();
-
-      final evt = new event.ReceptionChange.delete(rid, modifier.id);
+      final evt = event.ReceptionChange.delete(rid, modifier.id);
       try {
         await _notification.broadcastEvent(evt);
       } catch (e) {
@@ -175,17 +152,10 @@ class Reception {
     }
   }
 
-  /**
-   *
-   */
-  Future<shelf.Response> history(shelf.Request request) async =>
+  Future<Response> history(Request request) async =>
       okJson((await _rStore.changes()).toList(growable: false));
 
-  /**
-   *
-   */
-  Future<shelf.Response> objectHistory(shelf.Request request) async {
-    final String ridParam = shelf_route.getPathParameter(request, 'rid');
+  Future<Response> objectHistory(Request request, String ridParam) async {
     int rid;
     try {
       rid = int.parse(ridParam);
@@ -196,11 +166,7 @@ class Reception {
     return okJson((await _rStore.changes(rid)).toList(growable: false));
   }
 
-  /**
-   *
-   */
-  Future<shelf.Response> changelog(shelf.Request request) async {
-    final String ridParam = shelf_route.getPathParameter(request, 'rid');
+  Future<Response> changelog(Request request, String ridParam) async {
     int rid;
     try {
       rid = int.parse(ridParam);

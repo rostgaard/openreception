@@ -2,7 +2,7 @@ part of ort.rest;
 
 void _runCalendarTests() {
   group('$_namespace.Calendar', () {
-    Logger log = new Logger('$_namespace.Calendar');
+    Logger log = Logger('$_namespace.Calendar');
 
     ServiceAgent sa;
     TestEnvironment env;
@@ -11,19 +11,19 @@ void _runCalendarTests() {
     model.Owner owner;
     service.RESTCalendarStore calendarStore;
 
-    setUp(() async {
-      env = new TestEnvironment();
+    setUpAll(() async {
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
       contact = await sa.createsContact();
 
-      owner = new model.OwningContact(contact.id);
+      owner = model.OwningContact(contact.id);
 
       cProcess = await env.requestCalendarserverProcess();
 
       calendarStore = cProcess.bindClient(env.httpClient, sa.authToken);
     });
 
-    tearDown(() async {
+    tearDownAll(() async {
       await env.clear();
     });
 
@@ -60,8 +60,8 @@ void _runCalendarTests() {
 
     test(
         'create after last is removed (contact owner)',
-        () => storeTest.Calendar
-            .createAfterLastRemove(owner, calendarStore, sa.user));
+        () => storeTest.Calendar.createAfterLastRemove(
+            owner, calendarStore, sa.user));
 
     test('get (contact owner)',
         () => storeTest.Calendar.get(owner, calendarStore, sa.user));
@@ -94,19 +94,19 @@ void _runCalendarTests() {
     model.Owner owner;
     service.RESTCalendarStore calendarStore;
 
-    setUp(() async {
-      env = new TestEnvironment();
+    setUpAll(() async {
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
       contact = await sa.createsContact();
 
-      owner = new model.OwningContact(contact.id);
+      owner = model.OwningContact(contact.id);
 
       cProcess = await env.requestCalendarserverProcess(withRevisioning: true);
 
       calendarStore = cProcess.bindClient(env.httpClient, sa.authToken);
     });
 
-    tearDown(() async {
+    tearDownAll(() async {
       await env.clear();
     });
 
@@ -115,24 +115,24 @@ void _runCalendarTests() {
 
     test(
         'latest change on create (contact owner)',
-        () => storeTest.Calendar
-            .latestChangeOnCreate(owner, calendarStore, sa.user));
+        () => storeTest.Calendar.latestChangeOnCreate(
+            owner, calendarStore, sa.user));
 
     test('change listing on update (contact owner)',
         () => storeTest.Calendar.changeOnUpdate(owner, calendarStore, sa.user));
 
     test(
         'latest change on update (contact owner)',
-        () => storeTest.Calendar
-            .latestChangeOnUpdate(owner, calendarStore, sa.user));
+        () => storeTest.Calendar.latestChangeOnUpdate(
+            owner, calendarStore, sa.user));
 
     test('change listing on remove (contact owner)',
         () => storeTest.Calendar.changeOnRemove(owner, calendarStore, sa.user));
 
     test(
         'latest change on remove (contact owner)',
-        () => storeTest.Calendar
-            .latestChangeOnRemove(owner, calendarStore, sa.user));
+        () => storeTest.Calendar.latestChangeOnRemove(
+            owner, calendarStore, sa.user));
   });
 
   // Setup/teardown Basic CRUD tests for reception owner.
@@ -144,14 +144,14 @@ void _runCalendarTests() {
     model.Owner owner;
     service.RESTCalendarStore calendarStore;
 
-    setUp(() async {
-      env = new TestEnvironment();
+    setUpAll(() async {
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
       await env.receptionStore.ready;
 
       reception = await sa.createsReception(await sa.createsOrganization());
 
-      owner = new model.OwningReception(reception.id);
+      owner = model.OwningReception(reception.id);
 
       cProcess = await env.requestCalendarserverProcess();
 
@@ -159,7 +159,7 @@ void _runCalendarTests() {
       sa.calendarStore = calendarStore;
     });
 
-    tearDown(() async {
+    tearDownAll(() async {
       await env.clear();
     });
 
@@ -171,8 +171,8 @@ void _runCalendarTests() {
 
     test(
         'create after last is removed (reception owner)',
-        () => storeTest.Calendar
-            .createAfterLastRemove(owner, calendarStore, sa.user));
+        () => storeTest.Calendar.createAfterLastRemove(
+            owner, calendarStore, sa.user));
 
     test('list (reception owner)',
         () => storeTest.Calendar.list(owner, calendarStore, sa.user));
@@ -192,14 +192,14 @@ void _runCalendarTests() {
     model.Owner owner;
     service.RESTCalendarStore calendarStore;
 
-    setUp(() async {
-      env = new TestEnvironment();
+    setUpAll(() async {
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
       await env.receptionStore.ready;
 
       reception = await sa.createsReception(await sa.createsOrganization());
 
-      owner = new model.OwningReception(reception.id);
+      owner = model.OwningReception(reception.id);
 
       cProcess = await env.requestCalendarserverProcess(withRevisioning: true);
 
@@ -207,7 +207,7 @@ void _runCalendarTests() {
       sa.calendarStore = calendarStore;
     });
 
-    tearDown(() async {
+    tearDownAll(() async {
       await env.clear();
     });
 
@@ -216,23 +216,23 @@ void _runCalendarTests() {
 
     test(
         'latest change on create (reception owner)',
-        () => storeTest.Calendar
-            .latestChangeOnCreate(owner, calendarStore, sa.user));
+        () => storeTest.Calendar.latestChangeOnCreate(
+            owner, calendarStore, sa.user));
 
     test('change listing on update (reception owner)',
         () => storeTest.Calendar.changeOnUpdate(owner, calendarStore, sa.user));
 
     test(
         'latest change on update (reception owner)',
-        () => storeTest.Calendar
-            .latestChangeOnUpdate(owner, calendarStore, sa.user));
+        () => storeTest.Calendar.latestChangeOnUpdate(
+            owner, calendarStore, sa.user));
 
     test('change listing on remove (reception owner)',
         () => storeTest.Calendar.changeOnRemove(owner, calendarStore, sa.user));
 
     test(
         'latest change on remove (reception owner)',
-        () => storeTest.Calendar
-            .latestChangeOnRemove(owner, calendarStore, sa.user));
+        () => storeTest.Calendar.latestChangeOnRemove(
+            owner, calendarStore, sa.user));
   });
 }

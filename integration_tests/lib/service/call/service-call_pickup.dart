@@ -1,11 +1,9 @@
 part of ort.service.call;
 
 abstract class Pickup {
-  static Logger log = new Logger('$_namespace.CallFlowControl.Pickup');
+  static Logger log = Logger('$_namespace.CallFlowControl.Pickup');
 
-  /**
-   * Tests the case where a receptionist tries to pick up a locked call.
-   */
+  /// Tests the case where a receptionist tries to pick up a locked call.
   static Future pickupLockedCall(model.ReceptionDialplan rdp,
       Receptionist receptionist, Customer customer) async {
     log.info('Customer $customer dials ${rdp.extension}');
@@ -16,12 +14,10 @@ abstract class Pickup {
     await receptionist.waitForLock(call.id);
 
     await expect(
-        receptionist.pickup(call), throwsA(new isInstanceOf<Conflict>()));
+        receptionist.pickup(call), throwsA(const TypeMatcher<Conflict>()));
   }
 
-  /**
-   * Tests the case where a receptionist tries to pick up a locked call.
-   */
+  /// Tests the case where a receptionist tries to pick up a locked call.
   static Future pickupCallTwice(model.ReceptionDialplan rdp,
       Receptionist receptionist, Customer customer) async {
     log.info('Customer $customer dials ${rdp.extension}');
@@ -32,7 +28,7 @@ abstract class Pickup {
     log.info('Receptionist $receptionist got call $call.');
     log.info('Receptionist $receptionist picks up call again');
     await expect(
-        receptionist.pickup(call), throwsA(new isInstanceOf<ClientError>()));
+        receptionist.pickup(call), throwsA(const TypeMatcher<ClientError>()));
   }
 
   /**
@@ -51,7 +47,7 @@ abstract class Pickup {
     log.info(
         'Receptionist 2 $receptionist2 tries to pick up the call as well.');
     await expect(
-        receptionist2.pickup(call), throwsA(new isInstanceOf<Forbidden>()));
+        receptionist2.pickup(call), throwsA(const TypeMatcher<Forbidden>()));
 
     log.info('Test done');
   }
@@ -64,8 +60,8 @@ abstract class Pickup {
       Receptionist receptionist,
       Receptionist receptionist2,
       Customer customer) async {
-    Completer c1 = new Completer();
-    Completer c2 = new Completer();
+    Completer c1 = Completer();
+    Completer c2 = Completer();
 
     log.info('Customer $customer dials ${rdp.extension}');
     await customer.dial(rdp.extension);
@@ -155,7 +151,7 @@ abstract class Pickup {
    */
   static Future pickupNonExistingCall(Receptionist receptionist) async {
     await expect(receptionist.callFlowControl.pickup('null'),
-        throwsA(new isInstanceOf<NotFound>()));
+        throwsA(const TypeMatcher<NotFound>()));
   }
 
   /**

@@ -30,17 +30,15 @@ class RESTUserStore implements storage.User {
   RESTUserStore(Uri this.host, String this.token, this._backend);
 
   @override
-  Future<Iterable<model.UserReference>> list() {
+  Future<Iterable<model.UserReference>> list() async {
     Uri url = resource.User.list(host);
     url = _appendToken(url, this.token);
 
-    return this
-        ._backend
-        .get(url)
-        .then((String reponse) => JSON.decode(reponse))
-        .then((Iterable<Map<String, dynamic>> userMaps) => userMaps.map(
-            (Map<String, dynamic> map) =>
-                new model.UserReference.fromJson(map)));
+    final List<dynamic> maps =
+    _json.decode(await _backend.get(url)) as List<dynamic>;
+
+    return maps.map(
+            (dynamic map) => model.UserReference.fromJson(map as Map<String, dynamic>));
   }
 
   @override
@@ -51,9 +49,8 @@ class RESTUserStore implements storage.User {
     return this
         ._backend
         .get(url)
-        .then((String reponse) => JSON.decode(reponse))
-        .then(((Map<String, dynamic> userMap) =>
-            new model.User.fromJson(userMap)));
+        .then((String reponse) => _json.decode(reponse))
+        .then(((userMap) => new model.User.fromJson(userMap)));
   }
 
   @override
@@ -61,19 +58,21 @@ class RESTUserStore implements storage.User {
     Uri url = resource.User.singleByIdentity(host, identity);
     url = _appendToken(url, this.token);
 
-    return _backend.get(url).then(JSON.decode).then(
-        ((Map<String, dynamic> userMap) => new model.User.fromJson(userMap)));
+    return _backend
+        .get(url)
+        .then(_json.decode)
+        .then(((userMap) => new model.User.fromJson(userMap)));
   }
 
   @override
-  Future<Iterable<String>> groups() {
+  Future<Iterable<String>> groups() async {
     Uri url = resource.User.group(host);
     url = _appendToken(url, this.token);
 
-    return this
-        ._backend
-        .get(url)
-        .then((String reponse) => JSON.decode(reponse) as Iterable<String>);
+    final List<dynamic> maps =
+    _json.decode(await _backend.get(url)) as List<dynamic>;
+
+    return maps.cast<String>();
   }
 
   @override
@@ -83,23 +82,21 @@ class RESTUserStore implements storage.User {
 
     return this
         ._backend
-        .post(url, JSON.encode(user))
-        .then((String reponse) => JSON.decode(reponse))
-        .then(((Map<String, dynamic> map) =>
-            new model.UserReference.fromJson(map)));
+        .post(url, _json.encode(user))
+        .then((String reponse) => _json.decode(reponse))
+        .then(((map) => new model.UserReference.fromJson(map)));
   }
 
   @override
-  Future<model.UserReference> update(model.User user, model.User creator) {
+  Future<model.UserReference> update(
+      model.User user, model.User creator) async {
     Uri url = resource.User.single(host, user.id);
     url = _appendToken(url, this.token);
 
-    return this
-        ._backend
-        .put(url, JSON.encode(user))
-        .then((String reponse) => JSON.decode(reponse))
-        .then(((Map<String, dynamic> map) =>
-            new model.UserReference.fromJson(map)));
+    final Map<String, dynamic> response =
+        _json.decode(await _backend.put(url, _json.encode(user)));
+
+    return model.UserReference.fromJson(response);
   }
 
   @override
@@ -117,8 +114,8 @@ class RESTUserStore implements storage.User {
 
     return _backend
         .get(uri)
-        .then(JSON.decode)
-        .then((Map<String, dynamic> map) => new model.UserStatus.fromJson(map));
+        .then(_json.decode)
+        .then((map) => new model.UserStatus.fromJson(map));
   }
 
   /// Updates the [model.UserStatus] object associated with [uid] to
@@ -132,19 +129,20 @@ class RESTUserStore implements storage.User {
 
     return _backend
         .post(uri, '')
-        .then(JSON.decode)
-        .then((Map<String, dynamic> map) => new model.UserStatus.fromJson(map));
+        .then(_json.decode)
+        .then((map) => new model.UserStatus.fromJson(map));
   }
 
   /// Returns an Iterable representation of the all the [model.UserStatus]
   /// objects currently known to the CallFlowControl server.
-  Future<Iterable<model.UserStatus>> userStatusList() {
+  Future<Iterable<model.UserStatus>> userStatusList() async {
     Uri uri = resource.User.userStateAll(host);
     uri = _appendToken(uri, token);
 
-    return _backend.get(uri).then(JSON.decode).then(
-        (Iterable<Map<String, dynamic>> maps) => maps.map(
-            (Map<String, dynamic> map) => new model.UserStatus.fromJson(map)));
+    final String response = await _backend.get(uri);
+    final Iterable<Map> maps = _json.decode(response);
+
+    return maps.map((map) => new model.UserStatus.fromJson(map));
   }
 
   /// Updates the [model.UserStatus] object associated with [userId] to
@@ -158,19 +156,20 @@ class RESTUserStore implements storage.User {
 
     return _backend
         .post(uri, '')
-        .then(JSON.decode)
-        .then((Map<String, dynamic> map) => new model.UserStatus.fromJson(map));
+        .then(_json.decode)
+        .then((map) => new model.UserStatus.fromJson(map));
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([int uid]) {
+  Future<Iterable<model.Commit>> changes([int uid]) async {
     Uri url = resource.User.change(host, uid);
     url = _appendToken(url, this.token);
 
-    Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
-        maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
+    final List<dynamic> maps =
+    _json.decode(await _backend.get(url)) as List<dynamic>;
 
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    return maps.map(
+            (dynamic map) => model.Commit.fromJson(map as Map<String, dynamic>));
   }
 
   Future<String> changelog(int uid) {
@@ -186,19 +185,16 @@ class RESTUserStore implements storage.User {
 
     return _backend
         .get(url)
-        .then((String reponse) => JSON.decode(reponse))
-        .then(((Map<String, dynamic> userMap) =>
-            new model.DailyReport.fromJson(userMap)));
+        .then((String reponse) => _json.decode(reponse))
+        .then(((userMap) => new model.DailyReport.fromJson(userMap)));
   }
 
-  Future<model.DailySummary> dailySummary(DateTime day) {
+  Future<model.DailySummary> dailySummary(DateTime day) async {
     Uri url = resource.User.dailySummary(host, day);
     url = _appendToken(url, this.token);
 
-    return _backend
-        .get(url)
-        .then((String reponse) => JSON.decode(reponse))
-        .then(((Map<String, dynamic> userMap) =>
-            new model.DailySummary.fromJson(userMap)));
+    final String body = await _backend.get(url);
+
+    return new model.DailySummary.fromJson(_json.decode(body));
   }
 }

@@ -46,7 +46,8 @@ part 'filestore/filestore-user.dart';
 
 const String _libraryName = 'openreception.filestore';
 
-final JsonEncoder _jsonpp = new JsonEncoder.withIndent('  ');
+const JsonEncoder _jsonpp = const JsonEncoder.withIndent('  ');
+const JsonCodec _json = const JsonCodec();
 
 final model.User _systemUser = new model.User.empty()
   ..name = 'System'
@@ -57,7 +58,7 @@ final model.User _systemUser = new model.User.empty()
 /// The generated author string will have the form `$name <$email>` and will
 /// be HTML-escaped.
 String _authorString(model.User user) =>
-    new HtmlEscape(HtmlEscapeMode.ATTRIBUTE).convert('${user.name}') +
+    new HtmlEscape(HtmlEscapeMode.attribute).convert('${user.name}') +
     ' <${user.address}>';
 
 /// Convenience function for checking that a [FileSystemEntity] is a
@@ -76,30 +77,6 @@ bool _isDirectory(FileSystemEntity fse) =>
 
 /// Filestore wrapper class that encloses all the filestores.
 class DataStore {
-  /// Calendar child store
-  final Calendar calendarStore;
-
-  /// Contact child store
-  final Contact contactStore;
-
-  /// Ivr menu child store
-  final Ivr ivrStore;
-
-  /// message child store
-  final Message messageStore;
-
-  /// Organization child store
-  final Organization organizationStore;
-
-  /// Reception child store
-  final Reception receptionStore;
-
-  /// Reception dialplan child store
-  final ReceptionDialplan receptionDialplanStore;
-
-  /// User child store
-  final User userStore;
-
   /// Create a new [DataStore] in directory [path].
   ///
   /// If [path] exists, then the [DataStore] will reuse the existing objects
@@ -140,18 +117,35 @@ class DataStore {
       Reception this.receptionStore,
       ReceptionDialplan this.receptionDialplanStore,
       User this.userStore);
+
+  /// Calendar child store
+  final Calendar calendarStore;
+
+  /// Contact child store
+  final Contact contactStore;
+
+  /// Ivr menu child store
+  final Ivr ivrStore;
+
+  /// message child store
+  final Message messageStore;
+
+  /// Organization child store
+  final Organization organizationStore;
+
+  /// Reception child store
+  final Reception receptionStore;
+
+  /// Reception dialplan child store
+  final ReceptionDialplan receptionDialplanStore;
+
+  /// User child store
+  final User userStore;
 }
 
 /// Simple file-based [ChangeLogger] class that bumps serialized objects
 /// (and the changetype) to a plain file.
 class ChangeLogger {
-  /// The [File] object changes are logged to
-  final File logFile;
-
-  /// Internal logger.
-  final Logger _log =
-      new Logger('orf.filestore.ChangeLogger');
-
   /// Create a new [ChangeLogger] in [filepath].
   ///
   /// The changelog file will be placed in a `changes.log` file within
@@ -167,10 +161,16 @@ class ChangeLogger {
     }
   }
 
+  /// The [File] object changes are logged to
+  final File logFile;
+
+  /// Internal logger.
+  final Logger _log = new Logger('orf.filestore.ChangeLogger');
+
   /// Append a [model.ChangelogEntry] to the [logFile].
   void add(model.ChangelogEntry object) {
-    logFile.writeAsStringSync(JSON.encode(object) + '\n',
-        mode: FileMode.APPEND);
+    logFile.writeAsStringSync(_json.encode(object) + '\n',
+        mode: FileMode.append);
   }
 
   /// Read the entire content of [logFile] into a [String] buffer.

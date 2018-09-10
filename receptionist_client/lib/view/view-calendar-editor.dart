@@ -164,32 +164,29 @@ class CalendarEditor extends ViewWidget {
     });
   }
 
-  /**
-   * Save the calendar entry.
-   *
-   * Clear the form when done, and then navigate one step back in history.
-   */
-  Future _save(ui_model.CalendarEntry entry) {
+  /// Save the calendar entry.
+  ///
+  /// Clear the form when done, and then navigate one step back in history.
+  Future<Null> _save(ui_model.CalendarEntry entry) async {
     Function removeUnsavedElement = _calendar.unsavedEntry(entry);
 
-    return _calendarController
-        .saveCalendarEvent(entry.calendarEntry, entry.owner)
-        .then((model.CalendarEntry savedEntry) {
+    try {
+      final savedEntry = await _calendarController.saveCalendarEvent(entry.calendarEntry, entry.owner);
       _log.info('$savedEntry successfully saved to database');
       _popup.success(
           _langMap[Key.calendarEditorSaveSuccessTitle], 'ID ${savedEntry.id}');
-    }).catchError((error) {
+    } catch (error) {
       model.CalendarEntry loadedEntry = _ui.loadedEntry.calendarEntry;
       _log.shout('Could not save calendar entry $loadedEntry');
       _popup.error(
           _langMap[Key.calendarEditorSaveErrorTitle], 'ID ${loadedEntry.id}');
       removeUnsavedElement();
-    }).whenComplete(() => _close());
+    }
+
+    _close();
   }
 
-  /**
-   * Render the widget with the [calendarEntry].
-   */
+  /// Render the widget with the [calendarEntry].
   void _render(ui_model.CalendarEntry calendarEntry, bool isNew) {
     _ui.setCalendarEntry(calendarEntry, isNew);
   }

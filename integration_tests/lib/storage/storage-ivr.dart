@@ -42,7 +42,7 @@ abstract class Ivr {
    *
    */
   static Future list(storage.Ivr ivrStore, [model.User user]) async {
-    expect((await ivrStore.list()), new isInstanceOf<Iterable>());
+    expect((await ivrStore.list()), TypeMatcher<Iterable>());
   }
 
   /**
@@ -55,7 +55,7 @@ abstract class Ivr {
 
     await ivrStore.remove(createdMenu.name, user);
     await expect(
-        ivrStore.get(createdMenu.name), throwsA(new isInstanceOf<NotFound>()));
+        ivrStore.get(createdMenu.name), throwsA(TypeMatcher<NotFound>()));
   }
 
   /**
@@ -88,12 +88,12 @@ abstract class Ivr {
 
     expect(commits.length, equals(1));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
-    final change = commits.first.changes.first;
+    final model.IvrChange change = commits.first.changes.first;
 
     expect(change.changeType, model.ChangeType.add);
     expect(change.menuName, created.name);
@@ -111,23 +111,23 @@ abstract class Ivr {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.IvrChange latestChange = commits.first.changes.first;
+    final model.IvrChange oldestChange = commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.modify);
     expect(latestChange.menuName, created.name);
@@ -148,23 +148,23 @@ abstract class Ivr {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.IvrChange latestChange = commits.first.changes.first;
+    final model.IvrChange oldestChange = commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.delete);
     expect(latestChange.menuName, created.name);

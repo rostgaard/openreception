@@ -24,22 +24,23 @@ import 'package:ors/response_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
+import 'package:shelf_router/shelf_router.dart' as shelf_route;
 
 /**
  *
  */
 class Contact {
-  final Logger _log = new Logger('server.router.contact');
+  /**
+   *
+   */
+  Contact(this._authService, this._notification, this._contactController);
+
+  final Logger _log = Logger('server.router.contact');
   final controller.Contact _contactController;
   final service.Authentication _authService;
 
   final service.NotificationService _notification;
 
-  /**
-   *
-   */
-  Contact(this._authService, this._notification, this._contactController);
 
   /**
    *
@@ -47,32 +48,33 @@ class Contact {
   void bindRoutes(dynamic router) {
     router
       ..get('/contact/history', _contactController.history)
-      ..get('/contact/cache', _contactController.cacheStats)
-      ..delete('/contact/cache', _contactController.emptyCache)
-      ..get('/contact/list/reception/{rid}', _contactController.listByReception)
+      ..get('/contact/list/reception/<rid>', _contactController.listByReception)
       ..post(
-          '/contact/{cid}/reception/{rid}', _contactController.addToReception)
-      ..put('/contact/{cid}/reception/{rid}',
+          '/contact/<cid>/reception/<rid>', _contactController.addToReception)
+      ..put('/contact/<cid>/reception/<rid>',
           _contactController.updateInReception)
-      ..delete('/contact/{cid}/reception/{rid}',
+      ..delete('/contact/<cid>/reception/<rid>',
           _contactController.removeFromReception)
-      ..get('/contact/{cid}/reception/{rid}/history',
+      ..get('/contact/<cid>/reception/<rid>/history',
           _contactController.receptionHistory)
-      ..get('/contact/{cid}/reception/changelog',
+      ..get('/contact/<cid>/reception/changelog',
           _contactController.receptionChangelog)
-      ..get('/contact/{cid}/reception/{rid}', _contactController.get)
-      ..get('/contact/{cid}/reception', _contactController.receptions)
-      ..get('/contact/{cid}/organization', _contactController.organizations)
-      ..get('/contact/{cid}', _contactController.base)
-      ..put('/contact/{cid}', _contactController.update)
-      ..delete('/contact/{cid}', _contactController.remove)
-      ..get('/contact/{cid}/history', _contactController.objectHistory)
-      ..get('/contact/{cid}/changelog', _contactController.changelog)
+      ..get('/contact/<cid>/reception/<rid>', _contactController.get)
+      ..get('/contact/<cid>/reception', _contactController.receptions)
+      ..get('/contact/<cid>/organization', _contactController.organizations)
+      ..get('/contact/<cid>', _contactController.base)
+      ..put('/contact/<cid>', _contactController.update)
+      ..delete('/contact/<cid>', _contactController.remove)
+      ..get('/contact/<cid>/history', _contactController.objectHistory)
+      ..get('/contact/<cid>/changelog', _contactController.changelog)
       ..get('/contact', _contactController.listBase)
       ..post('/contact', _contactController.create)
       ..get(
-          '/contact/organization/{oid}', _contactController.listByOrganization)
-      ..get('/contact/reception/{rid}', _contactController.listByReception);
+          '/contact/organization/<oid>', _contactController.listByOrganization)
+      ..get('/contact/reception/<rid>', _contactController.listByReception)
+      ..all('/<catch-all|.*>', (shelf.Request request) {
+        return shelf.Response.notFound('Page not found');
+      });
   }
 
   /**
@@ -80,20 +82,18 @@ class Contact {
    */
   Future<io.HttpServer> listen(
       {String hostname: '0.0.0.0', int port: 4010}) async {
-    final router = shelf_route.router();
+    final router = shelf_route.Router();
     bindRoutes(router);
 
     var handler = const shelf.Pipeline()
         .addMiddleware(
-            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);
 
     _log.fine('Using server on ${_authService.host} as authentication backend');
     _log.fine('Using server on ${_notification.host} as notification backend');
     _log.fine('Accepting incoming REST requests on http://$hostname:$port');
-    _log.fine('Serving routes:');
-    shelf_route.printRoutes(router, printer: (String item) => _log.fine(item));
 
     return await shelf_io.serve(handler, hostname, port);
   }

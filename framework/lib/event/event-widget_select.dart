@@ -30,9 +30,9 @@ class WidgetSelect implements Event {
 
   ///Default constructor. Takes [uid] of the user changing the widget and the
   /// [widgetName] as mandatory arguments.
-  WidgetSelect(this.uid, this.widgetName) : timestamp = new DateTime.now();
+  WidgetSelect(this.uid, this.widgetName) : timestamp = DateTime.now();
 
-  /// Create a new [WidgetSelect] object from serialized data stored in [map].
+  /// Create a [WidgetSelect] object from serialized data stored in [map].
   WidgetSelect.fromJson(Map<String, dynamic> map)
       : uid = map[_Key._changedBy],
         widgetName = map[_Key._widget],
@@ -42,7 +42,7 @@ class WidgetSelect implements Event {
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._changedBy: uid,

@@ -66,6 +66,15 @@ part 'model/model-when_what.dart';
 
 const String _libraryName = "openreception.model";
 
+List<String> stringList(final List<dynamic> list) {
+  return list.map((dynamic element) {
+    if (element is String) {
+      return element;
+    }
+    throw ArgumentError.value(element, "Element in list is not String");
+  }).toList();
+}
+
 /// [ChangelogEntry] interface.
 abstract class ChangelogEntry {
   /// The time of the change.

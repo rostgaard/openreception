@@ -1,13 +1,13 @@
 part of ort.service;
 
 abstract class PeerAccountService {
-  static Logger _log = new Logger('$_namespace.PeerAccountService');
+  static Logger _log = Logger('$_namespace.PeerAccountService');
 
   /**
    *
    */
   static Future list(service.PeerAccount paService) async {
-    expect(await paService.list(), new isInstanceOf<List>());
+    expect(await paService.list(), TypeMatcher<List>());
   }
 
   /**
@@ -55,9 +55,9 @@ abstract class PeerAccountService {
     await callFlow.stateReload();
 
     final phonio.SIPAccount account =
-        new phonio.SIPAccount(pa.username, pa.password, externalHostname);
+        phonio.SIPAccount(pa.username, pa.password, externalHostname);
 
-    final phonio.PJSUAProcess phone = new phonio.PJSUAProcess(
+    final phonio.PJSUAProcess phone = phonio.PJSUAProcess(
         config.simpleClientBinaryPath, config.pjsuaPortAvailablePorts.last);
 
     phone.addAccount(account);
@@ -70,11 +70,11 @@ abstract class PeerAccountService {
           .registered;
 
       if (!registered) {
-        await new Future.delayed(new Duration(milliseconds: 100));
+        await Future.delayed(Duration(milliseconds: 100));
         return true;
       }
       return false;
-    }).timeout(new Duration(seconds: 10));
+    }).timeout(Duration(seconds: 10));
 
     await phone.unregister();
     await phone.finalize();

@@ -1,7 +1,7 @@
 part of ort.process;
 
 class ContactServer implements ServiceProcess {
-  final Logger _log = new Logger('$_namespace.ContactServer');
+  final Logger _log = Logger('$_namespace.ContactServer');
   Process _process;
   final String path;
   final String storePath;
@@ -12,7 +12,7 @@ class ContactServer implements ServiceProcess {
   final Uri notificationUri;
   final bool enableRevisioning;
 
-  final Completer _ready = new Completer();
+  final Completer _ready = Completer();
   bool get ready => _ready.isCompleted;
   Future get whenReady => _ready.future;
 
@@ -32,22 +32,30 @@ class ContactServer implements ServiceProcess {
    *
    */
   Future _init() async {
-    final Stopwatch initTimer = new Stopwatch()..start();
+    final Stopwatch initTimer = Stopwatch()..start();
     whenReady.whenComplete(() {
       initTimer.stop();
       _log.info('Process initialization time was: '
           '${initTimer.elapsedMilliseconds}ms');
     });
 
-    final arguments = [
-      '$path/bin/contactserver.dart',
+    String processName;
+    final arguments = <String>[];
+    if (config.runNative) {
+      processName = '${config.buildPath}/contactserver';
+    } else {
+      processName = config.dartPath;
+      arguments.add('${config.serverStackPath}/bin/contactserver.dart');
+    }
+
+    arguments.addAll([
       '--filestore',
       storePath,
       '--httpport',
       servicePort.toString(),
       '--host',
       bindAddress
-    ];
+    ]);
 
     if (authUri != null) {
       arguments.addAll(['--auth-uri', authUri.toString()]);
@@ -63,12 +71,12 @@ class ContactServer implements ServiceProcess {
       arguments.add('--no-experimental-revisioning');
     }
 
-    _log.fine('Starting process /usr/bin/dart ${arguments.join(' ')}');
-    _process = await Process.start('/usr/bin/dart', arguments,
+    _log.fine('Starting process $processName ${arguments.join(' ')}');
+    _process = await Process.start(processName, arguments,
         workingDirectory: path)
       ..stdout
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
           .listen((String line) {
         _log.finest(line);
         if (!ready && line.contains('Ready to handle requests')) {
@@ -77,8 +85,8 @@ class ContactServer implements ServiceProcess {
         }
       })
       ..stderr
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
           .listen(_log.warning);
 
     _log.finest('Started contactserver process (pid: ${_process.pid})');
@@ -87,23 +95,21 @@ class ContactServer implements ServiceProcess {
     /// Protect from hangs caused by process crashes.
     _process.exitCode.then((int exitCode) {
       if (exitCode != 0 && !ready) {
-        _ready.completeError(new StateError('Failed to launch process. '
+        _ready.completeError(StateError('Failed to launch process. '
             'Exit code: $exitCode'));
       }
     });
   }
 
-  /**
-   * Constructs a new [service.CallFlowControl] based on the launch
-   * parametersof the process.
-   */
+  /// Constructs a [service.CallFlowControl] based on the launch
+  /// parameters of the process.
   service.RESTContactStore bindClient(service.Client client, AuthToken token,
       {Uri connectUri: null}) {
     if (connectUri == null) {
       connectUri = this.uri;
     }
 
-    return new service.RESTContactStore(connectUri, token.tokenName, client);
+    return service.RESTContactStore(connectUri, token.tokenName, client);
   }
 
   /**

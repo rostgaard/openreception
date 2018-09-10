@@ -105,7 +105,7 @@ Future parseStoreAndSummarize(List<FileSystemEntity> files, bool summarize,
       file = files.removeLast();
 
       basename = path.basename(file.path);
-      cdrJson = JSON.decode(file.readAsStringSync());
+      cdrJson = json.decode(file.readAsStringSync());
       cdrEntry = new CdrEntry(cdrJson, basename.split('____').last);
     } else {
       return;
@@ -130,7 +130,7 @@ Future parseStoreAndSummarize(List<FileSystemEntity> files, bool summarize,
         final String cdrFilePath =
             '${config.cdrEntryStore.path}/${date}/${state}_start_${cdrEntry.startEpoch}_rid_${cdrEntry.rid}_uid_${cdrEntry.uid}_${cdrEntry.uuid}.json';
         await cdrFileTmp.createSync(recursive: true);
-        await cdrFileTmp.writeAsString(JSON.encode(cdrEntry));
+        await cdrFileTmp.writeAsString(json.encode(cdrEntry));
         await cdrFileTmp.rename(cdrFilePath);
         savedToDisk = true;
         log.info(

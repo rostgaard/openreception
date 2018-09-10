@@ -19,6 +19,8 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class RESTCalendarStore implements storage.Calendar {
+  RESTCalendarStore(this.host, this.token, this._backend);
+
   final WebService _backend;
 
   /// The uri of the connected backend.
@@ -27,74 +29,81 @@ class RESTCalendarStore implements storage.Calendar {
   /// The token used for authenticating with the backed.
   final String token;
 
-  RESTCalendarStore(Uri this.host, String this.token, this._backend);
+  Future<String> changelog(model.Owner owner) {
+    Uri url = resource.Calendar.changelog(host, owner);
+    url = _appendToken(url, token);
 
-  @override
-  Future<Iterable<model.CalendarEntry>> list(model.Owner owner) {
-    Uri url = resource.Calendar.ownerBase(host, owner);
-
-    url = _appendToken(url, this.token);
-
-    Iterable<model.CalendarEntry> convertMaps(
-            Iterable<Map<String, dynamic>> maps) =>
-        maps.map((Map<String, dynamic> map) =>
-            new model.CalendarEntry.fromJson(map));
-
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    return _backend.get(url);
   }
 
   @override
-  Future<model.CalendarEntry> get(int id, model.Owner owner) {
-    Uri url = resource.Calendar.single(host, id, owner);
-    url = _appendToken(url, this.token);
+  Future<Iterable<model.Commit>> changes(model.Owner owner, [int eid]) async {
+    Uri url = resource.Calendar.changeList(host, owner, eid);
+    url = _appendToken(url, token);
 
-    return this._backend.get(url).then(JSON.decode).then(
-        (Map<String, dynamic> map) => new model.CalendarEntry.fromJson(map));
+    final String body = await _backend.get(url);
+    final List<dynamic> maps =
+        _json.decode(body) as List<dynamic>;
+
+    return maps.map((dynamic map) => model.Commit.fromJson(map as Map<String, dynamic>));
   }
 
   @override
   Future<model.CalendarEntry> create(
-      model.CalendarEntry entry, model.Owner owner, model.User user) {
+      model.CalendarEntry entry, model.Owner owner, model.User user) async {
     Uri url = resource.Calendar.ownerBase(host, owner);
-    url = _appendToken(url, this.token);
+    url = _appendToken(url, token);
 
-    return this._backend.post(url, JSON.encode(entry)).then(JSON.decode).then(
-        (Map<String, dynamic> map) => new model.CalendarEntry.fromJson(map));
+    final String response = await _backend.post(url, _json.encode(entry));
+
+    return model.CalendarEntry.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
+
   }
 
   @override
-  Future<model.CalendarEntry> update(
-      model.CalendarEntry entry, model.Owner owner, model.User modifier) {
-    Uri url = resource.Calendar.single(host, entry.id, owner);
-    url = _appendToken(url, this.token);
+  Future<model.CalendarEntry> get(int id, model.Owner owner) async {
+    Uri url = resource.Calendar.single(host, id, owner);
+    url = _appendToken(url, token);
 
-    return _backend.put(url, JSON.encode(entry)).then(JSON.decode).then(
-        (Map<String, dynamic> map) => new model.CalendarEntry.fromJson(map));
+    final String response = await _backend.get(url);
+
+    return model.CalendarEntry.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
+
+  }
+
+  @override
+  Future<Iterable<model.CalendarEntry>> list(model.Owner owner) async {
+    Uri url = resource.Calendar.ownerBase(host, owner);
+
+    url = _appendToken(url, token);
+
+    final List<dynamic> maps =
+        _json.decode(await _backend.get(url)) as List<dynamic>;
+
+    return maps
+        .map<model.CalendarEntry>((dynamic map)
+    => model.CalendarEntry.fromJson(map as Map<String, dynamic>));
   }
 
   @override
   Future<Null> remove(int eid, model.Owner owner, model.User user) async {
     Uri url = resource.Calendar.single(host, eid, owner);
-    url = _appendToken(url, this.token);
+    url = _appendToken(url, token);
 
     await _backend.delete(url);
   }
 
   @override
-  Future<Iterable<model.Commit>> changes(model.Owner owner, [int eid]) {
-    Uri url = resource.Calendar.changeList(host, owner, eid);
-    url = _appendToken(url, this.token);
+  Future<model.CalendarEntry> update(
+      model.CalendarEntry entry, model.Owner owner, model.User modifier) async {
+    Uri url = resource.Calendar.single(host, entry.id, owner);
+    url = _appendToken(url, token);
 
-    Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
-        maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
+    final String response = await _backend.put(url, _json.encode(entry));
 
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
-  }
-
-  Future<String> changelog(model.Owner owner) {
-    Uri url = resource.Calendar.changelog(host, owner);
-    url = _appendToken(url, this.token);
-
-    return _backend.get(url);
+    return model.CalendarEntry.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
   }
 }

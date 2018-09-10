@@ -20,7 +20,7 @@ import 'dart:html';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as markdown;
-import 'package:okeyee/okeyee.dart' as okeyee;
+import 'package:okeyee2/okeyee.dart' as okeyee;
 import 'package:orf/bus.dart';
 import 'package:orf/event.dart' as or_event;
 import 'package:orf/model.dart' as model;

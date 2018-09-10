@@ -28,7 +28,7 @@ void _testModelPlayback() {
 abstract class _ModelPlayback {
   static void serialization() {
     model.Playback builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -38,7 +38,7 @@ abstract class _ModelPlayback {
     model.Playback builtObject = buildObject();
 
     model.Playback deserializedObject =
-        model.Playback.parse(JSON.decode(JSON.encode(builtObject)));
+        model.Playback.parse(_json.decode(_json.encode(builtObject)));
 
     expect(builtObject.toJson(), equals(deserializedObject.toJson()));
 
@@ -98,6 +98,6 @@ abstract class _ModelPlayback {
     expect(builtObject.note, equals(note));
 
     expect(() => model.Playback.parse('layback locked $filename ($note) '),
-        throwsA(new isInstanceOf<FormatException>()));
+        throwsA(const TypeMatcher<FormatException>()));
   }
 }

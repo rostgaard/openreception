@@ -1,20 +1,19 @@
 part of ort.rest;
 
-/**
- * TODO: Add tests for both broadcast, send and FIFO message ordering.
- * Add CORS tests
- */
+/// TODO: Add tests for both broadcast, send and FIFO message ordering.
 void _runNotificationTests() {
   group('$_namespace.Notification', () {
-    List<ServiceAgent> sas = new List<ServiceAgent>();
+    Logger log = Logger('$_namespace.Notification');
+
+    List<ServiceAgent> sas = List<ServiceAgent>();
     TestEnvironment env;
     process.NotificationServer nProcess;
     service.NotificationService nService;
 
-    setUp(() async {
-      env = new TestEnvironment();
+    setUpAll(() async {
+      env = TestEnvironment();
       sas = [];
-      await Future.forEach(new List.generate(10, (i) => i),
+      await Future.forEach(List.generate(10, (i) => i),
           (_) async => sas.add(await env.createsServiceAgent()));
 
       nProcess = await env.requestNotificationserverProcess();
@@ -24,9 +23,19 @@ void _runNotificationTests() {
       await Future.wait(sas.map((sa) => sa.notificationSocket));
     });
 
-    tearDown(() async {
+    tearDownAll(() async {
       await env.clear();
     });
+
+    test(
+        'CORS headers present (existingUri)',
+        () async => isCORSHeadersPresent(
+            resource.Notification.clientConnections(nProcess.uri), log));
+
+    test(
+        'CORS headers present (non-existingUri)',
+        () async => isCORSHeadersPresent(
+            Uri.parse('${nProcess.uri}/nonexistingpath'), log));
 
     test(
         'Event broadcast',

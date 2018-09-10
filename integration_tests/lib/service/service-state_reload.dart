@@ -1,11 +1,9 @@
 part of ort.service;
 
 abstract class StateReload {
-  static Logger log = new Logger('$_namespace.CallFlowControl.UserState');
+  static Logger log = Logger('$_namespace.CallFlowControl.UserState');
 
-  /**
-   * Validates that the content of  [list1] and [list2] is the same.
-   */
+  /// Validates that the content of [list1] and [list2] is the same.
   static void _validateCallLists(
       Iterable<model.Call> list1, Iterable<model.Call> list2) {
     log.info('List 1:\n  ${list1.map((c) => c.toJson()).join('\n  ')}');

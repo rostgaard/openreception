@@ -151,8 +151,8 @@ Future main(List<String> args) async {
           callerIdNumber: config.callFlowControl.callerIdNumber));
 
   _log.info('Dialplan tools are ${compiler.option.goLive ? 'live ' : 'NOT live '
-          'diverting all voicemails to ${compiler.option.testEmail} and directing '
-          'all calls to ${compiler.option.testNumber}'}');
+      'diverting all voicemails to ${compiler.option.testEmail} and directing '
+      'all calls to ${compiler.option.testNumber}'}');
   _log.fine('Deploying generated xml files to $fsConfPath subdirs');
 
   gzip_cache.DialplanCache _cache =
@@ -163,13 +163,14 @@ Future main(List<String> args) async {
 
   final controller.ReceptionDialplan receptionDialplanHandler =
       new controller.ReceptionDialplan(_dpStore, _rStore, _authentication,
-          compiler, ivrHandler, fsConfPath, eslConfig, _cache);
+          compiler, ivrHandler, fsConfPath, eslConfig);
 
   final controller.PeerAccount peerAccountHandler =
       new controller.PeerAccount(_userStore, compiler, fsConfPath);
 
-  await (new router.Dialplan(_authentication, ivrHandler, peerAccountHandler,
-          receptionDialplanHandler))
+  await receptionDialplanHandler.ready;
+  await router.Dialplan(_authentication, ivrHandler, peerAccountHandler,
+          receptionDialplanHandler)
       .listen(hostname: parsedArgs['host'], port: port);
   _log.info('Ready to handle requests');
 }

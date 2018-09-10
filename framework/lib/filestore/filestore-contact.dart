@@ -17,7 +17,7 @@ part of orf.filestore;
 /// [model.ReceptionAttributes] objects.
 class Contact implements storage.Contact {
   /// Internal logger
-  final Logger _log = new Logger('$_libraryName.Contact');
+  final Logger _log = Logger('$_libraryName.Contact');
 
   /// Directory path to where the serialized [model.BaseContact] objects
   /// are stored on disk.
@@ -47,27 +47,27 @@ class Contact implements storage.Contact {
   /// changelog file.
   final bool logChanges;
 
-  Bus<event.ContactChange> _changeBus = new Bus<event.ContactChange>();
+  Bus<event.ContactChange> _changeBus = Bus<event.ContactChange>();
   Bus<event.ReceptionData> _receptionDataChangeBus =
-      new Bus<event.ReceptionData>();
+      Bus<event.ReceptionData>();
 
-  /// Creates a new [Contact] object-filestore at [path].
+  /// Creates a [Contact] object-filestore at [path].
   ///
   /// Needs an associated [Reception] store in order to be able
   /// extract "foreign" key data, such as receptions and organizations
   /// associated with single [model.BaseContact] objects.
   factory Contact(Reception receptionStore, String path,
       [GitEngine ge, bool enableChangelog]) {
-    if (!new Directory(path).existsSync()) {
-      new Directory(path).createSync();
+    if (!Directory(path).existsSync()) {
+      Directory(path).createSync();
     }
 
     if (path.isEmpty) {
-      throw new ArgumentError.value('', 'path', 'Path must not be empty');
+      throw ArgumentError.value('', 'path', 'Path must not be empty');
     }
 
     if (ge != null) {
-      ge.init().catchError((dynamic error, StackTrace stackTrace) => Logger.root
+      ge.init().catchError((Object error, StackTrace stackTrace) => Logger.root
           .shout('Failed to initialize git engine', error, stackTrace));
     }
 
@@ -75,12 +75,12 @@ class Contact implements storage.Contact {
       enableChangelog = true;
     }
 
-    final Directory trashDir = new Directory(path + '/.trash');
+    final Directory trashDir = Directory(path + '/.trash');
     if (!trashDir.existsSync()) {
       trashDir.createSync();
     }
 
-    return new Contact._internal(path, receptionStore, new Calendar(path, ge),
+    return Contact._internal(path, receptionStore, Calendar(path, ge),
         ge, enableChangelog, trashDir);
   }
 
@@ -131,9 +131,9 @@ class Contact implements storage.Contact {
   /// Rebuilds the entire index.
   void _buildIndex() {
     int highestId = 0;
-    Stopwatch timer = new Stopwatch()..start();
+    Stopwatch timer = Stopwatch()..start();
     _log.info('Building index');
-    List<FileSystemEntity> idDirs = new Directory(path).listSync();
+    List<FileSystemEntity> idDirs = Directory(path).listSync();
 
     for (FileSystemEntity fse in idDirs) {
       if (_isDirectory(fse))
@@ -151,7 +151,7 @@ class Contact implements storage.Contact {
 
     _log.info('Built index of ${_index.keys.length} elements in'
         ' ${timer.elapsedMilliseconds}ms');
-    _sequencer = new Sequencer(path, explicitId: highestId);
+    _sequencer = Sequencer(path, explicitId: highestId);
   }
 
   Future<Iterable<model.BaseContact>> _contactsOfReception(int rid) async =>
@@ -162,7 +162,7 @@ class Contact implements storage.Contact {
   Future<Null> addData(
       model.ReceptionAttributes attr, model.User modifier) async {
     if (attr.receptionId == model.Reception.noId) {
-      throw new ArgumentError('attr.receptionId must be valid');
+      throw ArgumentError('attr.receptionId must be valid');
     }
 
     final Directory recDir = _receptionDir(attr.cid);
@@ -170,14 +170,14 @@ class Contact implements storage.Contact {
       recDir.createSync();
     }
 
-    final File file = new File('${recDir.path}/${attr.receptionId}.json');
+    final File file = File('${recDir.path}/${attr.receptionId}.json');
 
     if (file.existsSync()) {
-      throw new ClientError('File already exists, please update instead');
+      throw ClientError('File already exists, please update instead');
     }
 
     file.writeAsStringSync(_jsonpp.convert(attr));
-    _log.finest('Created new file ${file.path}');
+    _log.finest('Created file ${file.path}');
 
     if (this._git != null) {
       await _git.add(
@@ -188,12 +188,12 @@ class Contact implements storage.Contact {
     }
 
     if (logChanges) {
-      new ChangeLogger(recDir.path).add(
-          new model.ReceptionDataChangelogEntry.create(
+      ChangeLogger(recDir.path).add(
+          model.ReceptionDataChangelogEntry.create(
               modifier.reference, attr));
     }
 
-    _receptionDataChangeBus.fire(new event.ReceptionData.create(
+    _receptionDataChangeBus.fire(event.ReceptionData.create(
         attr.cid, attr.receptionId, modifier.id));
   }
 
@@ -208,13 +208,13 @@ class Contact implements storage.Contact {
     final Directory dir = _contactDir(contact.id);
 
     if (dir.existsSync()) {
-      throw new ClientError('File already exists, please update instead');
+      throw ClientError('File already exists, please update instead');
     }
 
     dir.createSync();
-    final File file = new File('${dir.path}/contact.json');
+    final File file = File('${dir.path}/contact.json');
 
-    _log.finest('Creating new file ${file.path}');
+    _log.finest('Creating file ${file.path}');
     file.writeAsStringSync(_jsonpp.convert(contact));
 
     /// Update index
@@ -229,27 +229,27 @@ class Contact implements storage.Contact {
     }
 
     if (logChanges) {
-      new ChangeLogger(dir.path).add(
-          new model.ContactChangelogEntry.create(modifier.reference, contact));
+      ChangeLogger(dir.path).add(
+          model.ContactChangelogEntry.create(modifier.reference, contact));
     }
 
-    _changeBus.fire(new event.ContactChange.create(contact.id, modifier.id));
+    _changeBus.fire(event.ContactChange.create(contact.id, modifier.id));
 
     return contact;
   }
 
   @override
   Future<model.BaseContact> get(int id) async {
-    final File file = new File('$path/$id/contact.json');
+    final File file = File('$path/$id/contact.json');
 
     if (!file.existsSync()) {
-      throw new NotFound('No file ${file.path}');
+      throw NotFound('No file ${file.path}');
     }
 
     try {
       final String jsonString = file.readAsStringSync();
-      final model.BaseContact bc = new model.BaseContact.fromJson(
-          JSON.decode(jsonString) as Map<String, dynamic>);
+      final model.BaseContact bc = model.BaseContact.fromJson(
+          _json.decode(jsonString) as Map<String, Object>);
 
       return bc;
     } catch (e) {
@@ -261,16 +261,16 @@ class Contact implements storage.Contact {
   Future<model.ReceptionAttributes> data(int id, int rid) async {
     final File file = _receptionFile(id, rid);
     if (!file.existsSync()) {
-      throw new NotFound('No file: ${file.path}');
+      throw NotFound('No file: ${file.path}');
     }
 
-    return new model.ReceptionAttributes.fromJson(
-        JSON.decode(await file.readAsString()) as Map<String, dynamic>);
+    return model.ReceptionAttributes.fromJson(
+        _json.decode(await file.readAsString()) as Map<String, Object>);
   }
 
   @override
   Future<Iterable<model.BaseContact>> list() async {
-    if (!new Directory(path).existsSync()) {
+    if (!Directory(path).existsSync()) {
       return const <model.BaseContact>[];
     }
 
@@ -307,7 +307,7 @@ class Contact implements storage.Contact {
     Iterable<model.ReceptionReference> rRefs =
         await receptionStore._receptionsOfOrg(organizationId);
 
-    Set<model.BaseContact> contacts = new Set<model.BaseContact>();
+    Set<model.BaseContact> contacts = Set<model.BaseContact>();
 
     await Future.wait(rRefs.map((model.ReceptionReference rRef) async {
       contacts.addAll(await _contactsOfReception(rRef.id));
@@ -321,9 +321,9 @@ class Contact implements storage.Contact {
     Iterable<model.ReceptionReference> rRefs = await receptions(cid);
 
     Set<model.OrganizationReference> orgs =
-        new Set<model.OrganizationReference>();
+        Set<model.OrganizationReference>();
     await Future.wait(rRefs.map((model.ReceptionReference rRef) async {
-      orgs.add(new model.OrganizationReference(
+      orgs.add(model.OrganizationReference(
           (await receptionStore.get(rRef.id)).oid, ''));
     }));
 
@@ -333,30 +333,27 @@ class Contact implements storage.Contact {
   @override
   Future<Iterable<model.ReceptionContact>> receptionContacts(int rid) async {
     final Iterable<FileSystemEntity> subDirs =
-        new Directory(path).listSync().where(_isDirectory);
+        Directory(path).listSync().where(_isDirectory);
 
     List<model.ReceptionContact> rcs = <model.ReceptionContact>[];
     await Future.wait(subDirs.map((FileSystemEntity fse) async {
-      final File ridFile = new File(fse.path + '/receptions/$rid.json');
+      final File ridFile = File(fse.path + '/receptions/$rid.json');
 
       if (ridFile.existsSync()) {
         final String bn = basename(fse.path);
 
         if (!bn.startsWith('.')) {
-          final File contactFile = new File('${fse.path}/contact.json');
-          final Future<model.BaseContact> bc = contactFile
-              .readAsString()
-              .then(JSON.decode)
-              .then((Map<String, dynamic> map) =>
-                  new model.BaseContact.fromJson(map));
+          final File contactFile = File('${fse.path}/contact.json');
+          final Future<model.BaseContact> bc = contactFile.readAsString().then(
+              (final String s) =>
+                  model.BaseContact.fromJson(_json.decode(s)));
 
           final Future<model.ReceptionAttributes> attr = ridFile
               .readAsString()
-              .then(JSON.decode)
-              .then((Map<String, dynamic> map) =>
-                  new model.ReceptionAttributes.fromJson(map));
+              .then((final String s) =>
+                  model.ReceptionAttributes.fromJson(_json.decode(s)));
 
-          rcs.add(new model.ReceptionContact(await bc, await attr));
+          rcs.add(model.ReceptionContact(await bc, await attr));
         }
       }
     }));
@@ -377,20 +374,20 @@ class Contact implements storage.Contact {
   @override
   Future<Null> remove(int cid, model.User modifier) async {
     if (!_index.containsKey(cid)) {
-      throw new NotFound();
+      throw NotFound();
     }
 
-    final Directory contactDir = new Directory('$path/$cid');
+    final Directory contactDir = Directory('$path/$cid');
 
     /// Remove reception references.
     await Future.forEach(await receptions(cid),
         (model.ReceptionReference rRef) async {
       _receptionDataChangeBus
-          .fire(new event.ReceptionData.delete(cid, rRef.id, modifier.id));
+          .fire(event.ReceptionData.delete(cid, rRef.id, modifier.id));
     });
 
     /// Remove calendar entries.
-    final model.Owner owner = new model.OwningContact(cid);
+    final model.Owner owner = model.OwningContact(cid);
     await Future.forEach(await calendarStore.list(owner),
         (model.CalendarEntry entry) async {
       calendarStore._deleteNotify(entry.id, owner, modifier);
@@ -398,7 +395,7 @@ class Contact implements storage.Contact {
 
     if (this._git != null) {
       /// Go ahead and remove the file.
-      final File contactFile = new File(_index[cid]);
+      final File contactFile = File(_index[cid]);
       await _git.remove(
           contactFile,
           'uid:${modifier.id} - ${modifier.name} '
@@ -409,25 +406,25 @@ class Contact implements storage.Contact {
     _index.remove(cid);
 
     if (logChanges) {
-      new ChangeLogger(contactDir.path)
-          .add(new model.ContactChangelogEntry.delete(modifier.reference, cid));
+      ChangeLogger(contactDir.path)
+          .add(model.ContactChangelogEntry.delete(modifier.reference, cid));
     }
 
     await contactDir.rename(trashDir.path + '/$cid');
 
-    _changeBus.fire(new event.ContactChange.delete(cid, modifier.id));
+    _changeBus.fire(event.ContactChange.delete(cid, modifier.id));
   }
 
   @override
   Future<Null> removeData(int id, int rid, model.User modifier) async {
     if (id == model.BaseContact.noId || rid == model.Reception.noId) {
-      throw new ClientError('Empty id');
+      throw ClientError('Empty id');
     }
 
-    final Directory recDir = new Directory('$path/$id/receptions');
-    final File file = new File('${recDir.path}/$rid.json');
+    final Directory recDir = Directory('$path/$id/receptions');
+    final File file = File('${recDir.path}/$rid.json');
     if (!file.existsSync()) {
-      throw new NotFound('No file $file');
+      throw NotFound('No file $file');
     }
 
     _log.finest('Removing file ${file.path}');
@@ -443,21 +440,21 @@ class Contact implements storage.Contact {
     }
 
     if (logChanges) {
-      new ChangeLogger(recDir.path).add(
-          new model.ReceptionDataChangelogEntry.delete(
+      ChangeLogger(recDir.path).add(
+          model.ReceptionDataChangelogEntry.delete(
               modifier.reference, id, rid));
     }
 
     _receptionDataChangeBus
-        .fire(new event.ReceptionData.delete(id, rid, modifier.id));
+        .fire(event.ReceptionData.delete(id, rid, modifier.id));
   }
 
   @override
   Future<Null> update(model.BaseContact contact, model.User modifier) async {
-    final File file = new File('$path/${contact.id}/contact.json');
+    final File file = File('$path/${contact.id}/contact.json');
 
     if (!file.existsSync()) {
-      throw new NotFound();
+      throw NotFound();
     }
 
     file.writeAsStringSync(_jsonpp.convert(contact));
@@ -471,26 +468,26 @@ class Contact implements storage.Contact {
     }
 
     if (logChanges) {
-      new ChangeLogger('$path/${contact.id}').add(
-          new model.ContactChangelogEntry.update(modifier.reference, contact));
+      ChangeLogger('$path/${contact.id}').add(
+          model.ContactChangelogEntry.update(modifier.reference, contact));
     }
 
-    _changeBus.fire(new event.ContactChange.update(contact.id, modifier.id));
+    _changeBus.fire(event.ContactChange.update(contact.id, modifier.id));
   }
 
   @override
   Future<Null> updateData(
       model.ReceptionAttributes attr, model.User modifier) async {
     if (attr.cid == model.BaseContact.noId) {
-      throw new ClientError('Empty id');
+      throw ClientError('Empty id');
     }
-    final Directory recDir = new Directory('$path/${attr.cid}/receptions');
-    final File file = new File('${recDir.path}/${attr.receptionId}.json');
+    final Directory recDir = Directory('$path/${attr.cid}/receptions');
+    final File file = File('${recDir.path}/${attr.receptionId}.json');
     if (!file.existsSync()) {
-      throw new NotFound('No file $file');
+      throw NotFound('No file $file');
     }
 
-    _log.finest('Creating new file ${file.path}');
+    _log.finest('Creating file ${file.path}');
     file.writeAsStringSync(_jsonpp.convert(attr));
 
     if (this._git != null) {
@@ -502,12 +499,12 @@ class Contact implements storage.Contact {
     }
 
     if (logChanges) {
-      new ChangeLogger(recDir.path).add(
-          new model.ReceptionDataChangelogEntry.update(
+      ChangeLogger(recDir.path).add(
+          model.ReceptionDataChangelogEntry.update(
               modifier.reference, attr));
     }
 
-    _receptionDataChangeBus.fire(new event.ReceptionData.update(
+    _receptionDataChangeBus.fire(event.ReceptionData.update(
         attr.cid, attr.receptionId, modifier.id));
   }
 
@@ -521,19 +518,19 @@ class Contact implements storage.Contact {
   @override
   Future<Iterable<model.Commit>> changes([int cid, int rid]) async {
     if (this._git == null) {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           'Filestore is instantiated without git support');
     }
 
     FileSystemEntity fse;
 
     if (cid == null) {
-      fse = new Directory(path);
+      fse = Directory(path);
     } else {
       if (rid == null) {
-        fse = new Directory('$path/$cid');
+        fse = Directory('$path/$cid');
       } else {
-        fse = new File('$path/$cid/receptions/$rid.json');
+        fse = File('$path/$cid/receptions/$rid.json');
       }
     }
 
@@ -561,22 +558,22 @@ class Contact implements storage.Contact {
       final int id = int.parse(parts.first);
 
       if (parts.last == 'contact.json') {
-        return new model.ContactChange(fc.changeType, id);
+        return model.ContactChange(fc.changeType, id);
       } else if (parts.length > 2 && parts[1] == 'receptions') {
         final int rid = int.parse(parts[2].split('.').first);
-        return new model.ReceptionAttributeChange(fc.changeType, id, rid);
+        return model.ReceptionAttributeChange(fc.changeType, id, rid);
       } else {
-        throw new StateError('Could not parse filechange ${fc.toJson()}');
+        throw StateError('Could not parse filechange ${fc.toJson()}');
       }
     }
 
     Iterable<model.Commit> changes = gitChanges.map((Change change) =>
-        new model.Commit()
+        model.Commit()
           ..uid = extractUid(change.message)
           ..changedAt = change.changeTime
           ..commitHash = change.commitHash
           ..authorIdentity = change.author
-          ..changes = new List<model.ObjectChange>.from(
+          ..changes = List<model.ObjectChange>.from(
               change.fileChanges.map(convertFilechange)));
 
     _log.info(changes.map((model.Commit c) => c.toJson()));
@@ -586,17 +583,17 @@ class Contact implements storage.Contact {
 
   /// Return the logged changelog values for [cid] as a raw string.
   Future<String> changeLog(int cid) async =>
-      logChanges ? new ChangeLogger(_contactDir(cid).path).contents() : '';
+      logChanges ? ChangeLogger(_contactDir(cid).path).contents() : '';
 
   /// Return the logged reception data changelog values for [cid] as a raw
   /// string.
   Future<String> receptionChangeLog(int cid) async =>
-      logChanges ? new ChangeLogger(_receptionDir(cid).path).contents() : '';
+      logChanges ? ChangeLogger(_receptionDir(cid).path).contents() : '';
 
-  Directory _receptionDir(int cid) => new Directory('$path/$cid/receptions');
+  Directory _receptionDir(int cid) => Directory('$path/$cid/receptions');
 
   File _receptionFile(int cid, int rid) =>
-      new File('$path/$cid/receptions/$rid.json');
+      File('$path/$cid/receptions/$rid.json');
 
-  Directory _contactDir(int cid) => new Directory('$path/$cid');
+  Directory _contactDir(int cid) => Directory('$path/$cid');
 }

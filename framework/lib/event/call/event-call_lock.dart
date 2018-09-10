@@ -15,21 +15,20 @@ part of orf.event;
 
 /// Event that notifies about a call being locked.
 class CallLock extends CallEvent {
-  @override
-  final String eventName = _Key._callLock;
-
   /// Default constructor. Subtypes the general [CallEvent] class and should
   /// be used to notify clients about a call being locked.
   CallLock(model.Call call) : super(call);
 
-  /// Create a new [CallLock] object from serialized data stored in [map].
+  /// Create a [CallLock] object from serialized data stored in [map].
   CallLock.fromJson(Map<String, dynamic> map) : super.fromJson(map);
+  @override
+  final String eventName = _Key._callLock;
 
   /// Returns an umodifiable map representation of the object, suitable for
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._call: call.toJson()

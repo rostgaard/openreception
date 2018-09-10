@@ -34,7 +34,7 @@ abstract class _ResourceNotification {
 
   static void notificationsBadSchema() => expect(
       () => resource.Notification.notifications(_notificationService),
-      throwsA(new isInstanceOf<ArgumentError>()));
+      throwsA(const TypeMatcher<ArgumentError>()));
 
   static void send() => expect(resource.Notification.send(_notificationService),
       equals(Uri.parse('$_notificationService/send')));

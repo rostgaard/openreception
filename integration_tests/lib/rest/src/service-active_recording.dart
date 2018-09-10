@@ -4,8 +4,7 @@ part of ort.service;
  *
  */
 abstract class ActiveRecording {
-  static Logger log =
-      new Logger('$libraryName.CallFlowControl.ActiveRecording');
+  static Logger log = Logger('service.CallFlowControl.ActiveRecording');
 
   /**
    *
@@ -18,5 +17,5 @@ abstract class ActiveRecording {
    */
   static void getNonExisting(service.CallFlowControl callFlow) => expect(
       callFlow.activeRecording('none'),
-      throwsA(new isInstanceOf<storage.NotFound>()));
+      throwsA(const TypeMatcher<storage.NotFound>()));
 }

@@ -13,32 +13,24 @@
 
 part of ors.model;
 
-/**
- * Holds a list of currently active recordings based on events from FreeSWITCH.
- */
+/// Holds a list of currently active recordings based on events from FreeSWITCH.
 class ActiveRecordings extends IterableBase<model.ActiveRecording> {
   ///Internal logger.
   Logger _log = new Logger('ors.model.ActiveRecordings');
 
-  /**
-   * Active recordings are, internally, stored as maps to enable easy lookup.
-   */
-  Map<String, model.ActiveRecording> _recordings = {};
+  /// Active recordings are, internally, stored as maps to enable easy lookup.
+  final Map<String, model.ActiveRecording> _recordings = {};
 
   /// Interator simply forwards the values of the map in no particular order.
   @override
   Iterator<model.ActiveRecording> get iterator => _recordings.values.iterator;
 
-  /**
-   * Retrive a specific recording identified by its channel [uuid].
-   */
-  model.ActiveRecording get(String uuid) => _recordings.containsKey(uuid)
+  /// Retrive a specific recording identified by its channel [uuid].
+  Future<model.ActiveRecording> get(String uuid) async => _recordings.containsKey(uuid)
       ? _recordings[uuid]
       : throw new NotFound('No active recordings on uuid');
 
-  /**
-   * Handle an incoming [esl.Event] packet
-   */
+  /// Handle an incoming [esl.Event] packet
   void handleEvent(esl.Event event) {
     void dispatch() {
       switch (event.eventName) {
@@ -70,8 +62,6 @@ class ActiveRecordings extends IterableBase<model.ActiveRecording> {
     }
   }
 
-  /**
-   * JSON serialization function.
-   */
+  /// JSON serialization function.
   List toJson() => this.toList(growable: false);
 }

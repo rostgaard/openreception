@@ -23,39 +23,30 @@ import 'package:args/args.dart';
 
 /// Configuration class for Datastore service.
 class Datastore {
-  /// ESL configuration values
-  final EslConfig eslconfig;
-
-  /// Creates a new [Datastore] configuration object.
+  /// Creates a [Datastore] configuration object.
   ///
   /// Optionally takes in [eslconfig], which defaults to a standard config
   /// if omitted.
   const Datastore({EslConfig this.eslconfig: const EslConfig()});
 
-  /// Creates a new [Datastore] configuration object from parsed
+  /// Creates a [Datastore] configuration object from parsed
   /// agument [results].
   factory Datastore.fromArgs(ArgResults results) {
-    final EslConfig eslconfig = new EslConfig.fromArgs(results);
+    final EslConfig eslconfig = EslConfig.fromArgs(results);
 
-    return new Datastore(eslconfig: eslconfig);
+    return Datastore(eslconfig: eslconfig);
   }
 
-  /// Creates a new [Datastore] object with default values.
+  /// Creates a [Datastore] object with default values.
   factory Datastore.defaults() => const Datastore();
+
+  /// ESL configuration values
+  final EslConfig eslconfig;
 }
 
 /// Configuration class for ESL configuration values.
 class EslConfig {
-  /// The hostname of the ESL server.
-  final String hostname;
-
-  /// The password for authenticating against the ESL server.
-  final String password;
-
-  /// The port of the ESL server.
-  final int port;
-
-  /// Creates a new [EslConfig] object.
+  /// Creates a [EslConfig] object.
   ///
   /// Optionally takes in [hostname], [password] and [port] that falls back
   /// to default values if omitted.
@@ -64,7 +55,7 @@ class EslConfig {
       String this.password: 'ClueCon',
       int this.port: 8021});
 
-  /// Creates a new [EslConfig] object from a [dsn] string.
+  /// Creates a [EslConfig] object from a [dsn] string.
   ///
   /// A dsn string for [EslConfig] has the form <password>@<host>:<port>,
   /// where the port may be omitted.
@@ -81,7 +72,7 @@ class EslConfig {
       final List<String> split = dsn.split('@');
 
       if (split.length > 2) {
-        throw new FormatException('Dsn $dsn contains too many "@" characters');
+        throw FormatException('Dsn $dsn contains too many "@" characters');
       } else if (split.length == 2) {
         password = split.first;
         dsn = split.last;
@@ -91,29 +82,38 @@ class EslConfig {
     {
       final List<String> split = dsn.split(':');
       if (split.length > 2) {
-        throw new FormatException('Dsn $dsn contains too many ":" characters');
+        throw FormatException('Dsn $dsn contains too many ":" characters');
       } else if (split.length == 2) {
         port = int.parse(split.last);
       }
       hostname = split.first;
     }
 
-    return new EslConfig(hostname: hostname, password: password, port: port);
+    return EslConfig(hostname: hostname, password: password, port: port);
   }
 
-  /// Creates a new [EslConfig]  configuration object from parsed
+  /// Creates a [EslConfig]  configuration object from parsed
   /// agument [results].
   factory EslConfig.fromArgs(ArgResults results) {
-    final String hostname = results['esl-hostname'];
-    final String password = results['esl-password'];
-    final int port = int.parse(results['esl-port']);
+    final String hostname = results['esl-hostname'] as String;
+    final String password = results['esl-password'] as String;
+    final int port = results['esl-port'] as int;
 
-    return new EslConfig(hostname: hostname, port: port, password: password);
+    return EslConfig(hostname: hostname, port: port, password: password);
   }
+
+  /// The hostname of the ESL server.
+  final String hostname;
+
+  /// The password for authenticating against the ESL server.
+  final String password;
+
+  /// The port of the ESL server.
+  final int port;
 
   /// A dsn represenation of the [EslConfig].
   ///
-  /// The representation is suitable for creating a new [EslConfig] object
+  /// The representation is suitable for creating a [EslConfig] object
   /// using the [EslConfig.fromDsn] constructor.
   String toDsn() => password + '@' + hostname + ':' + port.toString();
 
@@ -125,7 +125,7 @@ class EslConfig {
   static ArgParser get argParser {
     EslConfig defaults = const EslConfig();
 
-    return new ArgParser()
+    return ArgParser()
       ..addOption('esl-hostname',
           defaultsTo: defaults.hostname, help: 'The hostname of the ESL server')
       ..addOption('esl-password',
@@ -152,6 +152,28 @@ abstract class StandardConfig {
 
 /// Authentication server configuration values.
 class AuthServer extends StandardConfig {
+  const AuthServer(
+      {this.clientId: 'google-client-id',
+      this.tokenLifetime: const Duration(hours: 12),
+      this.clientSecret: 'google-client-secret',
+      this.tokenDir: ''});
+
+  /// Creates a [AuthServer] configuration object from parsed
+  /// agument [results].
+  factory AuthServer.fromArgs(ArgResults results) {
+    final String clientId = results['google-client-id'] as String;
+    final String clientSecret = results['google-client-secret'] as String;
+    final Duration lifetime =
+        Duration(seconds: int.parse(results['token-lifetime'] as String));
+    final String tokenDir = results['token-dir'] as String;
+
+    return AuthServer(
+        clientId: clientId,
+        tokenLifetime: lifetime,
+        clientSecret: clientSecret,
+        tokenDir: tokenDir);
+  }
+
   final Duration tokenLifetime;
   final String clientId;
   final String clientSecret;
@@ -159,28 +181,6 @@ class AuthServer extends StandardConfig {
 
   @override
   final int httpPort = 4050;
-
-  const AuthServer(
-      {this.clientId: 'google-client-id',
-      this.tokenLifetime: const Duration(hours: 12),
-      this.clientSecret: 'google-client-secret',
-      this.tokenDir: ''});
-
-  /// Creates a new [AuthServer] configuration object from parsed
-  /// agument [results].
-  factory AuthServer.fromArgs(ArgResults results) {
-    final String clientId = results['google-client-id'];
-    final String clientSecret = results['google-client-secret'];
-    final Duration lifetime =
-        new Duration(seconds: int.parse(results['token-lifetime']));
-    final String tokenDir = results['token-dir'];
-
-    return new AuthServer(
-        clientId: clientId,
-        tokenLifetime: lifetime,
-        clientSecret: clientSecret,
-        tokenDir: tokenDir);
-  }
 
   Uri get clientUri => Uri.parse('http://localhost:8080');
 
@@ -194,7 +194,7 @@ class AuthServer extends StandardConfig {
   static ArgParser get argParser {
     AuthServer defaults = const AuthServer();
 
-    return new ArgParser()
+    return ArgParser()
       ..addOption('google-client-id',
           defaultsTo: defaults.clientId, help: 'The Google client ID')
       ..addOption('google-client-secret',

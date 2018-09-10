@@ -26,7 +26,7 @@ void _testModelRingtone() {
 abstract class _ModelRingtone {
   static void serialization() {
     model.Ringtone builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -36,7 +36,7 @@ abstract class _ModelRingtone {
     model.Ringtone builtObject = buildObject();
 
     model.Ringtone deserializedObject =
-        model.Ringtone.parse(JSON.decode(JSON.encode(builtObject)));
+        model.Ringtone.parse(_json.decode(_json.encode(builtObject)));
 
     expect(builtObject.toJson(), equals(deserializedObject.toJson()));
 

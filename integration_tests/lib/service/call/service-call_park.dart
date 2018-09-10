@@ -1,12 +1,10 @@
 part of ort.service.call;
 
 abstract class CallPark {
-  static Logger log = new Logger('$_namespace.CallFlowControl.Park');
+  static Logger log = Logger('$_namespace.CallFlowControl.Park');
 
-  /**
-   * Tests if call unpark events occur when a call is being hung up while
-   * in a parking lot.
-   */
+  /// Tests if call unpark events occur when a call is being hung up while
+  /// in a parking lot.
   static Future unparkEventFromHangup(model.ReceptionDialplan rdp,
       Receptionist receptionist, Customer caller) async {
     log.info('$caller dials the reception at ${rdp.extension}');
@@ -31,19 +29,15 @@ abstract class CallPark {
     await receptionist.waitForHangup(parkedCall.id);
   }
 
-  /**
-   * Validates that the /call/park interface indeed returns 404 when the
-   * call is no longer present.
-   */
+  /// Validates that the /call/park interface indeed returns 404 when the
+  /// call is no longer present.
   static Future parkNonexistingCall(
       model.ReceptionDialplan rdp, Receptionist receptionist) async {
     await expect(receptionist.callFlowControl.park('null'),
-        throwsA(new isInstanceOf<NotFound>()));
+        throwsA(const TypeMatcher<NotFound>()));
   }
 
-  /**
-   * Tests a park pickup loop on a known call.
-   */
+  /// Tests a park pickup loop on a known call.
   static Future explicitParkPickup(model.ReceptionDialplan rdp,
       Receptionist receptionist, Customer caller) async {
     log.info('Caller dials the reception at ${rdp.extension}');
@@ -91,9 +85,7 @@ abstract class CallPark {
     await receptionist.waitForHangup(parkedCall.id);
   }
 
-  /**
-   * Tests the call list length.
-   */
+  /// Tests the call list length.
   static Future parkCallListLength(model.ReceptionDialplan rdp,
       Receptionist receptionist, Customer caller) async {
     log.info('Caller dials the reception at ${rdp.extension}');

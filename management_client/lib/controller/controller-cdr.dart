@@ -17,7 +17,7 @@ class Cdr {
     }
 
     return html.HttpRequest.getString(url).then((String response) {
-      return JSON.decode(response) as Map<String, dynamic>;
+      return json.decode(response) as Map<String, dynamic>;
     });
   }
 
@@ -38,7 +38,7 @@ class Cdr {
     }
 
     return html.HttpRequest.getString(url).then((String response) {
-      return JSON.decode(response) as Map<String, dynamic>;
+      return json.decode(response) as Map<String, dynamic>;
     });
   }
 }

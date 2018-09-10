@@ -21,13 +21,14 @@ import 'dart:async';
 /// This is basically just a thin wrapper around [StreamController] that
 /// provides a broadcast stream.
 class Bus<Type> {
+  Bus() {
+    _streamController = new StreamController<Type>.broadcast();
+  }
   StreamController<Type> _streamController;
 
   /// Default constructor. Creates and initializes a new broadcast stream
   /// that emits objects of [Type].
-  Bus() {
-    _streamController = new StreamController<Type>.broadcast();
-  }
+
 
   /// The stream of the [Bus] that emits objects of [Type].
   Stream<Type> get stream => _streamController.stream;

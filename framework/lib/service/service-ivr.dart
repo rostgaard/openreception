@@ -19,6 +19,8 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class RESTIvrStore implements storage.Ivr {
+  RESTIvrStore(Uri this.host, String this.token, this._backend);
+
   final WebService _backend;
 
   /// The uri of the connected backend.
@@ -27,84 +29,81 @@ class RESTIvrStore implements storage.Ivr {
   /// The token used for authenticating with the backed.
   final String token;
 
-  RESTIvrStore(Uri this.host, String this.token, this._backend);
-
   @override
-  Future<model.IvrMenu> create(model.IvrMenu menu, [model.User user]) {
+  Future<model.IvrMenu> create(model.IvrMenu menu, [model.User user]) async {
     Uri url = resource.Ivr.list(host);
-    url = _appendToken(url, this.token);
+    url = _appendToken(url, token);
+    print(menu.toJson());
 
-    return this
-        ._backend
-        .post(url, JSON.encode(menu))
-        .then(JSON.decode)
-        .then((Map<String, dynamic> map) => new model.IvrMenu.fromJson(map));
+    final String response = await _backend.post(url, _json.encode(menu));
+
+    return model.IvrMenu.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
   }
 
   Future<Iterable<String>> deploy(String menuName) async {
     Uri url = resource.Ivr.deploy(host, menuName);
-    url = _appendToken(url, this.token);
+    url = _appendToken(url, token);
 
-    return JSON.decode(await _backend.post(url, '')) as Iterable<String>;
+    return _json.decode(await _backend.post(url, '')) as Iterable<String>;
   }
 
   @override
   Future<Null> remove(String menuName, model.User modifier) async {
-    Uri url = resource.Ivr.single(this.host, menuName);
-    url = _appendToken(url, this.token);
+    Uri url = resource.Ivr.single(host, menuName);
+    url = _appendToken(url, token);
 
     await _backend.delete(url);
   }
 
   @override
-  Future<model.IvrMenu> get(String menuName) {
-    Uri url = resource.Ivr.single(this.host, menuName);
-    url = _appendToken(url, this.token);
+  Future<model.IvrMenu> get(String menuName) async {
+    Uri url = resource.Ivr.single(host, menuName);
+    url = _appendToken(url, token);
 
-    return this
-        ._backend
-        .get(url)
-        .then(JSON.decode)
-        .then((Map<String, dynamic> map) => new model.IvrMenu.fromJson(map));
+    final String response = await _backend.get(url);
+    return model.IvrMenu.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
   }
 
   @override
-  Future<Iterable<model.IvrMenu>> list() {
+  Future<Iterable<model.IvrMenu>> list() async {
     Uri url = resource.Ivr.list(host);
-    url = _appendToken(url, this.token);
+    url = _appendToken(url, token);
 
-    Iterable<model.IvrMenu> castMaps(Iterable<Map<String, dynamic>> maps) =>
-        maps.map((Map<String, dynamic> map) => new model.IvrMenu.fromJson(map));
+    final String response = await _backend.get(url);
+    final List<Map<String, dynamic>> maps =
+        (_json.decode(response) as List<dynamic>).cast<Map<String, dynamic>>();
 
-    return this._backend.get(url).then(JSON.decode).then(castMaps);
+    return maps.map((Map<String, dynamic> map) => model.IvrMenu.fromJson(map));
   }
 
   @override
-  Future<model.IvrMenu> update(model.IvrMenu menu, [model.User user]) {
-    Uri url = resource.Ivr.single(this.host, menu.name);
-    url = _appendToken(url, this.token);
+  Future<model.IvrMenu> update(model.IvrMenu menu, [model.User user]) async {
+    Uri url = resource.Ivr.single(host, menu.name);
+    url = _appendToken(url, token);
 
-    return this
-        ._backend
-        .put(url, JSON.encode(menu))
-        .then(JSON.decode)
-        .then((Map<String, dynamic> map) => new model.IvrMenu.fromJson(map));
+    final String response = await _backend.put(url, _json.encode(menu));
+
+    return model.IvrMenu.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
+    ;
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([String menuName]) {
+  Future<Iterable<model.Commit>> changes([String menuName]) async {
     Uri url = resource.Ivr.changeList(host, menuName);
-    url = _appendToken(url, this.token);
+    url = _appendToken(url, token);
 
-    Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
-        maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
-
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    final String response = await _backend.get(url);
+    final List<Map<String, dynamic>> maps =
+        (_json.decode(response) as List<dynamic>).cast<Map<String, dynamic>>();
+    return maps.map((Map<String, dynamic> map) => model.Commit.fromJson(map));
   }
 
   Future<String> changelog(String menuName) {
     Uri url = resource.Ivr.changelog(host, menuName);
-    url = _appendToken(url, this.token);
+    url = _appendToken(url, token);
 
     return _backend.get(url);
   }

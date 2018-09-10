@@ -15,15 +15,6 @@ part of orf.model;
 
 /// Model class of a recording currently active in the system.
 class ActiveRecording {
-  /// The name of the agent channel currently being recorded.
-  final String agentChannel;
-
-  /// The filesystem path to the recording file.
-  final String path;
-
-  /// The time the recording was started.
-  final DateTime started;
-
   /// Default constructor. Requires [agentChannel] and [path] to be provided
   ActiveRecording(this.agentChannel, this.path) : started = new DateTime.now();
 
@@ -32,6 +23,15 @@ class ActiveRecording {
       : agentChannel = map[key.agentChannel],
         path = map[key.path],
         started = util.unixTimestampToDateTime(map[key.started]);
+
+  /// The name of the agent channel currently being recorded.
+  final String agentChannel;
+
+  /// The filesystem path to the recording file.
+  final String path;
+
+  /// The time the recording was started.
+  final DateTime started;
 
   /// Decoding factory.
   @deprecated

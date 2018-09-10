@@ -88,7 +88,7 @@ class Configuration {
     cdrPartiallyStoredDirectory =
         new Directory(cfgMap['cdrPartiallyStoredDirectory']);
     cdrSummaryDirectory = new Directory(cfgMap['cdrSummaryDirectory']);
-    _key = JSON.encode(cfgMap['key']);
+    _key = json.encode(cfgMap['key']);
     longCallBoundaryInSeconds = cfgMap['longCallBoundaryInSeconds'];
     saveAgentChannelEntries = cfgMap['saveAgentChannelEntries'];
     scopes = cfgMap['scopes'] as List<String>;
@@ -105,7 +105,7 @@ class Configuration {
         'cdrErrorsDirectory': cdrErrorsDirectory.path,
         'cdrPartiallyStoredDirectory': cdrPartiallyStoredDirectory.path,
         'cdrSummaryDirectory': cdrSummaryDirectory.path,
-        'key': JSON.decode(_key),
+        'key': json.decode(_key),
         'longCallBoundaryInSeconds': longCallBoundaryInSeconds,
         'saveAgentChannelEntries': saveAgentChannelEntries,
         'scopes': scopes,

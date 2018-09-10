@@ -200,7 +200,7 @@ class Reception {
       List<model.OrganizationReference> list = orgs.toList()..sort(compareTo);
       _search.updateSourceList(list);
 
-      _search.selectElement(null, (model.OrganizationReference listItem, _) {
+      _search.selectElement(null, (dynamic listItem, _) {
         return listItem.id == r.oid;
       });
 

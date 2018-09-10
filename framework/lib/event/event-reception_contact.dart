@@ -34,22 +34,22 @@ class ReceptionData implements Event {
   /// The modification state. Must be one of the valid [Change] values.
   final String state;
 
-  /// Create a new creation event.
+  /// Create a creation event.
   ReceptionData.create(this.cid, this.rid, this.modifierUid)
-      : this.timestamp = new DateTime.now(),
+      : this.timestamp = DateTime.now(),
         state = Change.created;
 
-  /// Create a new update event.
+  /// Create a update event.
   ReceptionData.update(this.cid, this.rid, this.modifierUid)
-      : this.timestamp = new DateTime.now(),
+      : this.timestamp = DateTime.now(),
         state = Change.updated;
 
-  /// Create a new deletion event.
+  /// Create a deletion event.
   ReceptionData.delete(this.cid, this.rid, this.modifierUid)
-      : this.timestamp = new DateTime.now(),
+      : this.timestamp = DateTime.now(),
         state = Change.deleted;
 
-  /// Create a new [ReceptionData] object from serialized data stored in [map].
+  /// Create a [ReceptionData] object from serialized data stored in [map].
   ReceptionData.fromJson(Map<String, dynamic> map)
       : cid = map[_Key._receptionData][_Key._cid],
         rid = map[_Key._receptionData][_Key._rid],
@@ -70,7 +70,7 @@ class ReceptionData implements Event {
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._modifierUid: modifierUid,

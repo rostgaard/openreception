@@ -15,41 +15,35 @@ library ors.controller.message;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:shelf/shelf.dart';
 import 'package:logging/logging.dart';
 import 'package:orf/event.dart' as event;
-import 'package:orf/filestore.dart' as filestore;
-import 'package:orf/gzip_cache.dart' as gzip_cache;
+import 'package:orf/exceptions.dart';
+import 'package:orf/filestore.dart' as fileStore;
 import 'package:orf/model.dart' as model;
 import 'package:orf/service.dart' as service;
 import 'package:orf/storage.dart' as storage;
-import 'package:orf/exceptions.dart';
 import 'package:ors/response_utils.dart';
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
 class Message {
-  final Logger _log = new Logger('controller.message');
+  Message(this._messageStore, this._messageQueue, this._authService,
+      this._notification);
+
+  final Logger _log = Logger('controller.message');
   final service.Authentication _authService;
   final service.NotificationService _notification;
-  final gzip_cache.MessageCache _cache;
 
-  final filestore.Message _messageStore;
+  final fileStore.Message _messageStore;
   final storage.MessageQueue _messageQueue;
 
-  Message(this._messageStore, this._messageQueue, this._authService,
-      this._notification, this._cache);
-
-  /**
-   * HTTP Request handler for returning a single message resource.
-   */
-  Future<shelf.Response> get(shelf.Request request) async {
-    final String midStr = shelf_route.getPathParameter(request, 'mid');
+  /// HTTP Request handler for returning a single message resource.
+  Future<Response> get(Request request, String midParam) async {
     int mid;
 
     try {
-      mid = int.parse(midStr);
+      mid = int.parse(midParam);
     } on FormatException {
-      final msg = 'Bad message id: $midStr';
+      final msg = 'Bad message id: $midParam';
       _log.warning(msg);
 
       return clientError(msg);
@@ -69,10 +63,8 @@ class Message {
     }
   }
 
-  /**
-   * HTTP Request handler for updating a single message resource.
-   */
-  Future<shelf.Response> update(shelf.Request request) async {
+  /// HTTP Request handler for updating a single message resource.
+  Future<Response> update(Request request, String midParam) async {
     model.User modifier;
 
     /// User object fetching.
@@ -85,12 +77,11 @@ class Message {
       return authServerDown();
     }
 
-    String content;
+    Map content;
     model.Message message;
     try {
-      content = await request.readAsString();
-      message = new model.Message.fromJson(
-          JSON.decode(content) as Map<String, dynamic>)..sender = modifier;
+      content = json.decode(await request.readAsString());
+      message = model.Message.fromJson(content)..sender = modifier;
       if (message.id == model.Message.noId) {
         return clientError('Refusing to update a non-existing message. '
             'set messageID or use the PUT method instead.');
@@ -105,7 +96,7 @@ class Message {
     model.Message createdMessage =
         await _messageStore.update(message, modifier);
 
-    final evt = new event.MessageChange.update(
+    final evt = event.MessageChange.update(
         createdMessage.id, modifier.id, message.state, message.createdAt);
 
     try {
@@ -116,10 +107,8 @@ class Message {
     return okJson(createdMessage);
   }
 
-  /**
-   * HTTP Request handler for removing a single message resource.
-   */
-  Future<shelf.Response> remove(shelf.Request request) async {
+  /// HTTP Request handler for removing a single message resource.
+  Future<Response> remove(Request request, String midParam) async {
     model.User modifier;
 
     try {
@@ -128,13 +117,13 @@ class Message {
       return authServerDown();
     }
 
-    final int mid = int.parse(shelf_route.getPathParameter(request, 'mid'));
+    final int mid = int.parse(midParam);
 
     try {
       await _messageStore.remove(mid, modifier);
 
-      final evt = new event.MessageChange.delete(
-          mid, modifier.id, model.MessageState.unknown, new DateTime.now());
+      final evt = event.MessageChange.delete(
+          mid, modifier.id, model.MessageState.unknown, DateTime.now());
 
       try {
         await _notification.broadcastEvent(evt);
@@ -148,50 +137,48 @@ class Message {
     return okJson(const {});
   }
 
-  /**
-   * Builds a list of previously stored messages left on a single day.
-   */
-  Future<shelf.Response> list(shelf.Request request) async {
-    final String dayStr = shelf_route.getPathParameter(request, 'day');
+  Future<Response> listToday(Request request) async {
+    return okJson((await _messageStore.listDay(DateTime.now())));
+
+  }
+
+    /// Builds a list of previously stored messages left on a single day.
+  Future<Response> list(Request request, String dayParam) async {
     DateTime day;
 
     try {
-      final List<String> part = dayStr.split('-');
+      final List<String> part = dayParam.split('-');
 
-      day = new DateTime(
-          int.parse(part[0]), int.parse(part[1]), int.parse(part[2]));
+      day =
+          DateTime(int.parse(part[0]), int.parse(part[1]), int.parse(part[2]));
     } catch (e) {
-      final String msg = 'Day parsing failed: $dayStr';
+      final String msg = 'Day parsing failed: $dayParam';
       _log.warning(msg, e);
       return clientError(msg);
     }
 
     try {
-      return okGzip(new Stream.fromIterable([await _cache.list(day)]));
+      return okJson((await _messageStore.listDay(day)));
     } catch (error, stackTrace) {
       _log.severe(error, stackTrace);
-      return serverError(error.toString);
+      return serverError(error.toString());
     }
   }
 
-  /**
-   * Builds a list of draft messages, filtering by the parameters passed in
-   * the queryParameters of the request.
-   */
-  Future<shelf.Response> listDrafts(shelf.Request request) async {
+  /// Builds a list of draft messages, filtering by the parameters passed in
+  /// the queryParameters of the request.
+  Future<Response> listDrafts(Request request) async {
     try {
-      return okGzip(new Stream.fromIterable([await _cache.listDrafts()]));
+      return okJson((await _messageStore.listDrafts()).toList(growable: false));
     } catch (error, stackTrace) {
       _log.severe(error, stackTrace);
-      return serverError(error.toString);
+      return serverError(error.toString());
     }
   }
 
-  /**
-   * Enqueues a messages for dispathing via the transport layer specified in
-   * the endpoints belonging to the message recipients.
-   */
-  Future<shelf.Response> send(shelf.Request request) async {
+  /// Enqueues a messages for dispatching via the transport layer specified in
+  /// the endpoints belonging to the message recipients.
+  Future<Response> send(Request request, String midParam) async {
     model.User user;
 
     /// User object fetching.
@@ -208,8 +195,9 @@ class Message {
     model.Message message;
     try {
       content = await request.readAsString();
-      message = new model.Message.fromJson(
-          JSON.decode(content) as Map<String, dynamic>)..sender = user;
+      message =
+          model.Message.fromJson(json.decode(content) as Map<String, dynamic>)
+            ..sender = user;
 
       if ([model.Message.noId, null].contains(message.id)) {
         return clientError('Invalid message ID');
@@ -224,7 +212,7 @@ class Message {
     final model.MessageQueueEntry queueItem =
         await _messageQueue.enqueue(message);
 
-    final evt = new event.MessageChange.update(
+    final evt = event.MessageChange.update(
         message.id, user.id, message.state, message.createdAt);
 
     try {
@@ -235,12 +223,10 @@ class Message {
     return okJson(queueItem);
   }
 
-  /**
-   * Persistently stores a messages. If the message already exists, a
-   * [ClientError] is returned to the client.
-   * the client.
-   */
-  Future<shelf.Response> create(shelf.Request request) async {
+  /// Persistently stores a messages. If the message already exists, a
+  /// [ClientError] is returned to the client.
+  /// the client.
+  Future<Response> create(Request request) async {
     model.User modifier;
 
     /// User object fetching.
@@ -253,21 +239,20 @@ class Message {
       return authServerDown();
     }
 
-    String content;
+    Map content;
     model.Message message;
     try {
-      content = await request.readAsString();
-      message = new model.Message.fromJson(
-          JSON.decode(content) as Map<String, dynamic>)
+      content = json.decode(await request.readAsString());
+      message = model.Message.fromJson(content)
         ..sender = modifier
-        ..createdAt = new DateTime.now();
+        ..createdAt = DateTime.now();
 
       if (message.id != model.Message.noId) {
         return clientError('Refusing to re-create existing message. '
             'Remove messageID or use the POST method instead.');
       }
     } catch (error, stackTrace) {
-      final msg = 'Failed to parse message in PUT body. body:$content';
+      final msg = 'Failed to parse message in POST body. body:${content}';
       _log.severe(msg, error, stackTrace);
 
       return clientError(msg);
@@ -276,8 +261,8 @@ class Message {
     final model.Message createdMessage =
         await _messageStore.create(message, modifier);
 
-    final evt = new event.MessageChange.create(createdMessage.id,
-        createdMessage.id, createdMessage.state, createdMessage.createdAt);
+    final evt = event.MessageChange.create(createdMessage.id, createdMessage.id,
+        createdMessage.state, createdMessage.createdAt);
 
     try {
       await _notification.broadcastEvent(evt);
@@ -288,17 +273,12 @@ class Message {
     return okJson(createdMessage);
   }
 
-  /**
-   * Retrieves the history of the message store.
-   */
-  Future<shelf.Response> history(shelf.Request request) async =>
+  /// Retrieves the history of the message store.
+  Future<Response> history(Request request) async =>
       okJson((await _messageStore.changes()).toList(growable: false));
 
-  /**
-   * Retrieves the history of a single message object.
-   */
-  Future<shelf.Response> objectHistory(shelf.Request request) async {
-    final String midParam = shelf_route.getPathParameter(request, 'mid');
+  /// Retrieves the history of a single message object.
+  Future<Response> objectHistory(Request request, String midParam) async {
     int mid;
     try {
       mid = int.parse(midParam);
@@ -309,15 +289,12 @@ class Message {
     return okJson((await _messageStore.changes(mid)).toList(growable: false));
   }
 
-  /**
-   *
-   */
-  Future<shelf.Response> queryById(shelf.Request request) async {
+  Future<Response> queryById(Request request) async {
     final String body = await request.readAsString();
 
     List<int> ids;
     try {
-      ids = JSON.decode(body) as List<int>;
+      ids = json.decode(body) as List<int>;
     } on FormatException {
       return clientError('Bad list: $body');
     }

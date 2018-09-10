@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:io';
-
-import 'package:logging/logging.dart';
-import 'package:phonio/phonio.dart' as Phonio;
 import 'dart:math' show Random;
 
+import 'package:logging/logging.dart';
 import 'package:ort/support.dart' as support;
+import 'package:phonio/phonio.dart' as Phonio;
 
-Logger log = new Logger('Call-Spawner');
-Logger _statusLog = new Logger('Status');
+Logger log = Logger('Call-Spawner');
+Logger _statusLog = Logger('Status');
 
 const List<String> _receptionNumbers = const [
   '12340001',
@@ -18,12 +17,12 @@ const List<String> _receptionNumbers = const [
   '12340005',
   '12340006'
 ];
-final Random rand = new Random(new DateTime.now().millisecondsSinceEpoch);
+final Random rand = Random(DateTime.now().millisecondsSinceEpoch);
 
 enum CallDirection { inbound, outbound }
 
 Map<String, CallDirection> _calls = {};
-Set<support.Customer> customers = new Set();
+Set<support.Customer> customers = Set();
 
 Iterable _outboundCalls() =>
     _calls.values.where((CallDirection dir) => dir == CallDirection.outbound);
@@ -46,7 +45,7 @@ void updateStatus() {
 
 dynamic _randomChoice(List pool) {
   if (pool.isEmpty) {
-    throw new ArgumentError('Cannot find a random value in an empty list');
+    throw ArgumentError('Cannot find a random value in an empty list');
   }
 
   final int index = rand.nextInt(pool.length);
@@ -62,31 +61,29 @@ void main() {
 
   //support.SupportTools st;
 
-  ProcessSignal.SIGINT.watch().listen((_) {
+  ProcessSignal.sigint.watch().listen((_) {
     log.info('SIGINT caught, hanging up all calls.');
     _stopping = true;
 
     //st.tearDownCustomers();
 
-    return new Future.delayed(new Duration(seconds: 3))
+    return Future.delayed(Duration(seconds: 3))
         .then((_) => updateStatus())
         .then((_) => exit(0));
   });
 
-  ProcessSignal.SIGTERM.watch().listen((_) {
+  ProcessSignal.sigterm.watch().listen((_) {
     log.info('SIGTERM caught, hanging up all calls.');
     _stopping = true;
 
     customers.forEach((support.Customer customer) => customer.hangupAll());
 
-    return Future
-        .wait(
+    return Future.wait(
             customers.map((support.Customer customer) => customer.hangupAll()))
         .then((_) => log.info('Hung up all calls.'))
-        .then((_) => new Future.delayed(new Duration(seconds: 3)))
+        .then((_) => Future.delayed(Duration(seconds: 3)))
 //        .then((_) => st.tearDown())
-        .then((_) =>
-            new Future.delayed(new Duration(seconds: 3)).then((_) => exit(0)));
+        .then((_) => Future.delayed(Duration(seconds: 3)).then((_) => exit(0)));
   });
 
 //   support.SupportTools.instance
@@ -109,14 +106,14 @@ Future start_spawning() async {
   });
 }
 
-Duration _randomWait() => new Duration(milliseconds: rand.nextInt(3000) + 500);
+Duration _randomWait() => Duration(milliseconds: rand.nextInt(3000) + 500);
 
 String _id(support.Customer customer, String id) => '${customer.hashCode}_$id';
 
 Future customerAutoDialing(support.Customer customer) {
   StreamSubscription subscription;
   subscription = customer.phoneEvents.listen((Phonio.Event event) {
-    // Spawn a new call as soon as the old call is disconnected.
+    // Spawn a call as soon as the old call is disconnected.
     if (event is Phonio.CallDisconnected) {
       bool outbound =
           _calls[_id(customer, event.callId)] == CallDirection.outbound;
@@ -131,13 +128,13 @@ Future customerAutoDialing(support.Customer customer) {
       }
 
       if (outbound) {
-        new Future.delayed(new Duration(milliseconds: 100))
+        Future.delayed(Duration(milliseconds: 100))
             .then((_) => customer.dial(_randomChoice(_receptionNumbers)));
       }
     } else if (event is Phonio.CallIncoming) {
       _scheduleHangup(customer, event.callId);
 
-      final List<int> actions = new List.generate(10, (int i) => i);
+      final List<int> actions = List.generate(10, (int i) => i);
       final chosenAction = _randomChoice(actions);
 
       log.info('Got incoming call to ${event.callee}');
@@ -154,7 +151,7 @@ Future customerAutoDialing(support.Customer customer) {
           Duration randomWait = _randomWait();
           log.info(
               'Declining call to ${event.callee} in ${randomWait.inMilliseconds}ms');
-          new Future.delayed(randomWait).then((_) => customer.hangup(call));
+          Future.delayed(randomWait).then((_) => customer.hangup(call));
         } else {
           log.warning('Failed to hangup call with ID ${call.id}');
         }
@@ -170,7 +167,7 @@ Future customerAutoDialing(support.Customer customer) {
         Phonio.Call call = customer.phone.activeCalls
             .firstWhere((Phonio.Call call) => call.id == event.callId);
 
-        new Future.delayed(randomWait).then((_) => customer.pickup(call));
+        Future.delayed(randomWait).then((_) => customer.pickup(call));
       }
     } else if (event is Phonio.CallOutgoing) {
       _scheduleHangup(customer, event.callId);
@@ -182,7 +179,7 @@ Future customerAutoDialing(support.Customer customer) {
   int outboundCallsPerAgent = 1;
   return Future.doWhile(() {
     outboundCallsPerAgent = outboundCallsPerAgent - 1;
-    return new Future.delayed(new Duration(milliseconds: 50))
+    return Future.delayed(Duration(milliseconds: 50))
         .then((_) => customer.dial(_randomChoice(_receptionNumbers)).then((_) {
               return outboundCallsPerAgent != 0 && !_stopping;
             }));
@@ -194,8 +191,8 @@ Future getCustomers() async {
     customers.add(support.CustomerPool.instance.aquire());
   }
 
-  return Future
-      .wait(customers.map((support.Customer customer) => customer.initialize()))
+  return Future.wait(
+          customers.map((support.Customer customer) => customer.initialize()))
       .then((_) => customers);
 }
 
@@ -203,7 +200,7 @@ Future _scheduleHangup(support.Customer customer, String callId) {
   log.info('Scheduling hangup of call with id ${callId} '
       'for agent ${customer.phone.defaultAccount.username}');
 
-  return new Future.delayed(new Duration(seconds: 60)).then((_) {
+  return Future.delayed(Duration(seconds: 60)).then((_) {
     Phonio.Call call = customer.phone.activeCalls.firstWhere(
         (Phonio.Call call) => call.id == callId,
         orElse: () => null);

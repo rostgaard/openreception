@@ -13,24 +13,20 @@
 
 part of orf.model;
 
+List<String> _stringList(final List<dynamic> list) {
+  return list.map((dynamic element) {
+    if (element is String) {
+      return element;
+    }
+    throw ArgumentError.value(element, "Element in list is not String");
+  }).toList();
+}
+
 /// Configuration for clients. Is provided by the config server and contains
 /// information about where to locate the various services provided by the
 /// server stack.
 class ClientConfiguration {
-  Uri authServerUri;
-  Uri calendarServerUri;
-  Uri callFlowServerUri;
-  Uri cdrServerUri;
-  Uri contactServerUri;
-  Uri dialplanServerUri;
-  bool hideInboundCallerId;
-  Uri messageServerUri;
-  List<String> myIdentifiers;
-  Uri notificationServerUri;
-  Uri notificationSocketUri;
-  Uri receptionServerUri;
-  String systemLanguage;
-  Uri userServerUri;
+
 
   /// Build an uninitialized object
   ClientConfiguration.empty();
@@ -45,12 +41,27 @@ class ClientConfiguration {
         dialplanServerUri = Uri.parse(map[key.dialplanServerURI]),
         hideInboundCallerId = map[key.hideInboundCallerId],
         messageServerUri = Uri.parse(map[key.messageServerURI]),
-        myIdentifiers = map[key.myIdentifiers] as List<String>,
+        myIdentifiers = _stringList(map[key.myIdentifiers]),
         notificationServerUri = Uri.parse(map[key.notificationServerUri]),
         notificationSocketUri = Uri.parse(map[key.notificationSocket]),
         receptionServerUri = Uri.parse(map[key.receptionServerURI]),
         systemLanguage = map[key.systemLanguage],
         userServerUri = Uri.parse(map[key.userServerURI]);
+
+  Uri authServerUri;
+  Uri calendarServerUri;
+  Uri callFlowServerUri;
+  Uri cdrServerUri;
+  Uri contactServerUri;
+  Uri dialplanServerUri;
+  bool hideInboundCallerId;
+  Uri messageServerUri;
+  List<String> myIdentifiers;
+  Uri notificationServerUri;
+  Uri notificationSocketUri;
+  Uri receptionServerUri;
+  String systemLanguage;
+  Uri userServerUri;
 
   ///Returns a map reflection of the object suitable for data transfer.
   Map<String, dynamic> toJson() => <String, dynamic>{

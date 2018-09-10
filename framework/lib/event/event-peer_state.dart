@@ -23,20 +23,20 @@ class PeerState implements Event {
   /// The peer that changed state.
   final model.Peer peer;
 
-  /// Create a new [PeerState] object from a [model.Peer] object.
-  PeerState(this.peer) : this.timestamp = new DateTime.now();
+  /// Create a [PeerState] object from a [model.Peer] object.
+  PeerState(this.peer) : this.timestamp = DateTime.now();
 
-  /// Create a new [PeerState] object from serialized data stored in [map].
+  /// Create a [PeerState] object from serialized data stored in [map].
   PeerState.fromJson(Map<String, dynamic> map)
       : this.peer =
-            new model.Peer.fromJson(map[_Key._peer] as Map<String, dynamic>),
+            model.Peer.fromJson(map[_Key._peer] as Map<String, dynamic>),
         this.timestamp = util.unixTimestampToDateTime(map[_Key._timestamp]);
 
   /// Returns an umodifiable map representation of the object, suitable for
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._peer: peer.toJson()

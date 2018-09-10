@@ -27,7 +27,7 @@ void _testModelReceptionTransfer() {
 abstract class _ModelReceptionTransfer {
   static void serialization() {
     model.ReceptionTransfer builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -37,7 +37,7 @@ abstract class _ModelReceptionTransfer {
     model.ReceptionTransfer builtObject = buildObject();
 
     model.ReceptionTransfer deserializedObject =
-        model.ReceptionTransfer.parse(JSON.decode(JSON.encode(builtObject)));
+        model.ReceptionTransfer.parse(_json.decode(_json.encode(builtObject)));
 
     expect(builtObject.toJson(), equals(deserializedObject.toJson()));
 
@@ -53,7 +53,7 @@ abstract class _ModelReceptionTransfer {
     expect(model.ReceptionTransfer.parse(buffer1), isNotNull);
     expect(model.ReceptionTransfer.parse(buffer2), isNotNull);
     expect(() => model.ReceptionTransfer.parse(buffer3),
-        throwsA(new isInstanceOf<FormatException>()));
+        throwsA(const TypeMatcher<FormatException>()));
   }
 
   static model.ReceptionTransfer buildObject() {

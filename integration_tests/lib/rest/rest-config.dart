@@ -2,14 +2,14 @@ part of ort.rest;
 
 void _runConfigTests() {
   group('$_namespace.Config', () {
-    Logger log = new Logger('$_namespace.Config');
+    Logger log = Logger('$_namespace.Config');
 
     ServiceAgent sa;
     TestEnvironment env;
     process.ConfigServer cProcess;
 
-    setUp(() async {
-      env = new TestEnvironment();
+    setUpAll(() async {
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       cProcess = await env.requestConfigServerProcess();
@@ -18,7 +18,7 @@ void _runConfigTests() {
       await Future.wait([cProcess.whenReady]);
     });
 
-    tearDown(() async {
+    tearDownAll(() async {
       await env.clear();
     });
 
@@ -41,14 +41,15 @@ void _runConfigTests() {
                 .clientConfig()
                 .then((model.ClientConfiguration configuration) {
               expect(configuration, isNotNull);
-              expect(configuration.authServerUri, new isInstanceOf<Uri>());
-              expect(configuration.callFlowServerUri, new isInstanceOf<Uri>());
-              expect(configuration.contactServerUri, new isInstanceOf<Uri>());
-              expect(configuration.messageServerUri, new isInstanceOf<Uri>());
+              expect(configuration.authServerUri, const TypeMatcher<Uri>());
+              expect(configuration.callFlowServerUri, const TypeMatcher<Uri>());
+              expect(configuration.contactServerUri, const TypeMatcher<Uri>());
+              expect(configuration.messageServerUri, const TypeMatcher<Uri>());
+              expect(configuration.notificationSocketUri,
+                  const TypeMatcher<Uri>());
               expect(
-                  configuration.notificationSocketUri, new isInstanceOf<Uri>());
-              expect(configuration.receptionServerUri, new isInstanceOf<Uri>());
-              expect(configuration.systemLanguage, new isInstanceOf<String>());
+                  configuration.receptionServerUri, const TypeMatcher<Uri>());
+              expect(configuration.systemLanguage, const TypeMatcher<String>());
             }));
   });
 }

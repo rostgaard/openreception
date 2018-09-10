@@ -32,21 +32,21 @@ class IvrMenuChange implements Event {
   final String state;
 
   IvrMenuChange._internal(this.menuName, this.modifierUid, this.state)
-      : timestamp = new DateTime.now();
+      : timestamp = DateTime.now();
 
-  /// Create a new creation event.
+  /// Create a creation event.
   factory IvrMenuChange.create(String menuName, int modifierUid) =>
-      new IvrMenuChange._internal(menuName, modifierUid, Change.created);
+      IvrMenuChange._internal(menuName, modifierUid, Change.created);
 
-  /// Create a new update event.
+  /// Create a update event.
   factory IvrMenuChange.update(String menuName, int modifierUid) =>
-      new IvrMenuChange._internal(menuName, modifierUid, Change.updated);
+      IvrMenuChange._internal(menuName, modifierUid, Change.updated);
 
-  /// Create a new deletion event.
+  /// Create a deletion event.
   factory IvrMenuChange.delete(String menuName, int modifierUid) =>
-      new IvrMenuChange._internal(menuName, modifierUid, Change.deleted);
+      IvrMenuChange._internal(menuName, modifierUid, Change.deleted);
 
-  /// Create a new [IvrMenuChange] object from serialized data stored in [map].
+  /// Create a [IvrMenuChange] object from serialized data stored in [map].
   IvrMenuChange.fromJson(Map<String, dynamic> map)
       : modifierUid = map[_Key._modifierUid],
         menuName = map[_Key._menuName],
@@ -66,7 +66,7 @@ class IvrMenuChange implements Event {
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._modifierUid: modifierUid,

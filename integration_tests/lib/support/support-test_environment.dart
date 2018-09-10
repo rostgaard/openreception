@@ -24,7 +24,7 @@ class TestEnvironmentConfig {
     final nics = await NetworkInterface.list();
     externalIp = nics.first.addresses.first.address;
 
-    eslConf = new or_conf.EslConfig(
+    eslConf = or_conf.EslConfig(
         hostname: config.eslHost,
         password: config.eslPassword,
         port: config.eslPort);
@@ -36,7 +36,7 @@ Test environment:
   EslConfig: ${eslConf.toDsn()}''';
 }
 
-TestEnvironmentConfig _envConfig = new TestEnvironmentConfig();
+TestEnvironmentConfig _envConfig = TestEnvironmentConfig();
 
 class CircularCounter {
   final int _start;
@@ -60,17 +60,17 @@ class CircularCounter {
   }
 }
 
-CircularCounter _networkPortCounter = new CircularCounter(9000, 11000);
+CircularCounter _networkPortCounter = CircularCounter(9000, 11000);
 
 class TestEnvironment {
-  Logger _log = new Logger('TestEnvironment');
-  model.User _user = new model.User.empty()
+  Logger _log = Logger('TestEnvironment');
+  model.User _user = model.User.empty()
     ..id = 0
     ..name = 'System User'
     ..address = 'openreception@localhost';
 
   TestEnvironmentConfig get envConfig => _envConfig;
-  final PhonePool phonePool = new PhonePool.empty(_networkPortCounter);
+  final PhonePool phonePool = PhonePool.empty(_networkPortCounter);
   final Directory runpath;
   bool _isTmpDir = true;
 
@@ -98,7 +98,7 @@ class TestEnvironment {
    *
    */
   service.Client get httpClient =>
-      _httpClient != null ? _httpClient : new service.Client();
+      _httpClient != null ? _httpClient : service.Client();
 
   int get nextNetworkport => _networkPortCounter.nextInt;
 
@@ -110,11 +110,11 @@ class TestEnvironment {
    */
   Future<process.FreeSwitch> requestFreeswitchProcess() async {
     if (_freeswitch == null) {
-      _freeswitch = new process.FreeSwitch(
-          '/usr/bin/freeswitch',
-          new Directory('/tmp').createTempSync('freeswitch-').path,
-          new Directory('conf'),
-          new Directory('sounds'));
+      _freeswitch = process.FreeSwitch(
+          '/usr/local/freeswitch/bin/freeswitch',
+          Directory('/tmp').createTempSync('freeswitch-').path,
+          Directory('conf'),
+          Directory('sounds'));
     }
     await _freeswitch.whenReady;
     return _freeswitch;
@@ -124,7 +124,7 @@ class TestEnvironment {
    *
    */
   service.WebSocketClient requestWebsocket() {
-    final ws = new service.WebSocketClient();
+    final ws = service.WebSocketClient();
     _allocatedWebSockets.add(ws);
 
     return ws;
@@ -135,7 +135,7 @@ class TestEnvironment {
    */
   Future<process.ConfigServer> requestConfigServerProcess() async {
     if (_configProcess == null) {
-      _configProcess = new process.ConfigServer(config.serverStackPath,
+      _configProcess = process.ConfigServer(config.serverStackPath,
           bindAddress: envConfig.externalIp, servicePort: nextNetworkport);
     }
 
@@ -147,7 +147,7 @@ class TestEnvironment {
   /// Spawn a CDR server process within the current evironment.
   Future<process.CdrServer> requestCdrServerProcess() async {
     if (_cdrProcess == null) {
-      _cdrProcess = new process.CdrServer(config.serverStackPath,
+      _cdrProcess = process.CdrServer(config.serverStackPath,
           bindAddress: envConfig.externalIp,
           servicePort: nextNetworkport,
           authUri: (await requestAuthserverProcess()).uri);
@@ -164,7 +164,7 @@ class TestEnvironment {
   Future<process.ContactServer> requestContactserverProcess(
       {bool withRevisioning: false}) async {
     if (_contactServer == null) {
-      _contactServer = new process.ContactServer(
+      _contactServer = process.ContactServer(
           config.serverStackPath, runpath.path,
           bindAddress: envConfig.externalIp,
           servicePort: nextNetworkport,
@@ -184,7 +184,7 @@ class TestEnvironment {
   Future<process.MessageDispatcher> requestMessagedispatcherProcess(
       {bool withRevisioning: false}) async {
     if (_messageDispatcher == null) {
-      _messageDispatcher = new process.MessageDispatcher(
+      _messageDispatcher = process.MessageDispatcher(
           config.serverStackPath, runpath.path,
           bindAddress: envConfig.externalIp,
           servicePort: nextNetworkport,
@@ -203,7 +203,7 @@ class TestEnvironment {
   Future<process.MessageServer> requestMessageserverProcess(
       {bool withRevisioning: false}) async {
     if (_messageProcess == null) {
-      _messageProcess = new process.MessageServer(
+      _messageProcess = process.MessageServer(
           config.serverStackPath, runpath.path,
           bindAddress: envConfig.externalIp,
           servicePort: nextNetworkport,
@@ -223,7 +223,7 @@ class TestEnvironment {
   Future<process.CalendarServer> requestCalendarserverProcess(
       {bool withRevisioning: false}) async {
     if (_calendarServer == null) {
-      _calendarServer = new process.CalendarServer(
+      _calendarServer = process.CalendarServer(
           config.serverStackPath, runpath.path,
           bindAddress: envConfig.externalIp,
           servicePort: nextNetworkport,
@@ -242,9 +242,8 @@ class TestEnvironment {
    */
   Future<process.AuthServer> requestAuthserverProcess() async {
     if (_authProcess == null) {
-      _authProcess = new process.AuthServer(
-          config.serverStackPath, runpath.path,
-          initialTokens: [new AuthToken(_user)]..addAll(await userTokens),
+      _authProcess = process.AuthServer(config.serverStackPath, runpath.path,
+          initialTokens: [AuthToken(_user)]..addAll(await userTokens),
           bindAddress: envConfig.externalIp,
           servicePort: nextNetworkport);
     }
@@ -260,7 +259,7 @@ class TestEnvironment {
   Future<process.DialplanServer> requestDialplanProcess(
       {bool withRevisioning: false}) async {
     if (_dialplanProcess == null) {
-      _dialplanProcess = new process.DialplanServer(config.serverStackPath,
+      _dialplanProcess = process.DialplanServer(config.serverStackPath,
           runpath.path, (await requestFreeswitchProcess()).confPath,
           authUri: (await requestAuthserverProcess()).uri,
           bindAddress: envConfig.externalIp,
@@ -281,7 +280,7 @@ class TestEnvironment {
    */
   Future<process.CallFlowControl> requestCallFlowProcess() async {
     if (_callflowProcess == null) {
-      _callflowProcess = new process.CallFlowControl(
+      _callflowProcess = process.CallFlowControl(
           config.serverStackPath, runpath.path,
           bindAddress: envConfig.externalIp,
           servicePort: nextNetworkport,
@@ -302,7 +301,7 @@ class TestEnvironment {
    */
   Future<process.NotificationServer> requestNotificationserverProcess() async {
     if (_notificationProcess == null) {
-      _notificationProcess = new process.NotificationServer(
+      _notificationProcess = process.NotificationServer(
           config.serverStackPath, runpath.path,
           bindAddress: envConfig.externalIp,
           servicePort: nextNetworkport,
@@ -320,7 +319,7 @@ class TestEnvironment {
   Future<process.ReceptionServer> requestReceptionserverProcess(
       {bool withRevisioning: false}) async {
     if (_receptionServer == null) {
-      _receptionServer = new process.ReceptionServer(
+      _receptionServer = process.ReceptionServer(
           config.serverStackPath, runpath.path,
           bindAddress: envConfig.externalIp,
           servicePort: nextNetworkport,
@@ -340,7 +339,7 @@ class TestEnvironment {
   Future<process.UserServer> requestUserserverProcess(
       {bool withRevisioning: false}) async {
     if (_userServer == null) {
-      _userServer = new process.UserServer(config.serverStackPath, runpath.path,
+      _userServer = process.UserServer(config.serverStackPath, runpath.path,
           bindAddress: envConfig.externalIp,
           servicePort: nextNetworkport,
           authUri: (await requestAuthserverProcess()).uri,
@@ -360,12 +359,9 @@ class TestEnvironment {
   filestore.User get userStore {
     if (_userStore == null) {
       final String path = '${runpath.path}/user';
-      _log.info('Creating user store from $path');
-      _userStore = new filestore.User(
-          path,
-          enableRevisions
-              ? new filestore.GitEngine(path, logStdout: true)
-              : null);
+      _log.fine('Creating user store from $path');
+      _userStore = filestore.User(path,
+          enableRevisions ? filestore.GitEngine(path, logStdout: true) : null);
     }
 
     return _userStore;
@@ -378,12 +374,9 @@ class TestEnvironment {
   filestore.Ivr get ivrStore {
     if (_ivrStore == null) {
       final String path = '${runpath.path}/ivr';
-      _log.info('Creating ivr store from $path');
-      _ivrStore = new filestore.Ivr(
-          path,
-          enableRevisions
-              ? new filestore.GitEngine(path, logStdout: true)
-              : null);
+      _log.fine('Creating ivr store from $path');
+      _ivrStore = filestore.Ivr(path,
+          enableRevisions ? filestore.GitEngine(path, logStdout: true) : null);
     }
 
     return _ivrStore;
@@ -396,13 +389,10 @@ class TestEnvironment {
   filestore.ReceptionDialplan get dialplanStore {
     if (_dpStore == null) {
       final String path = '${runpath.path}/dialplan';
-      _log.info('Creating dialplan store from $path');
+      _log.fine('Creating dialplan store from $path');
 
-      _dpStore = new filestore.ReceptionDialplan(
-          path,
-          enableRevisions
-              ? new filestore.GitEngine(path, logStdout: true)
-              : null);
+      _dpStore = filestore.ReceptionDialplan(path,
+          enableRevisions ? filestore.GitEngine(path, logStdout: true) : null);
     }
 
     return _dpStore;
@@ -415,14 +405,10 @@ class TestEnvironment {
   filestore.Contact get contactStore {
     if (_contactStore == null) {
       final String path = '${runpath.path}/contact';
-      _log.info('Creating calendar store from $path');
+      _log.fine('Creating calendar store from $path');
 
-      _contactStore = new filestore.Contact(
-          receptionStore,
-          path,
-          enableRevisions
-              ? new filestore.GitEngine(path, logStdout: true)
-              : null);
+      _contactStore = filestore.Contact(receptionStore, path,
+          enableRevisions ? filestore.GitEngine(path, logStdout: true) : null);
     }
 
     return _contactStore;
@@ -435,13 +421,10 @@ class TestEnvironment {
   filestore.Message get messageStore {
     if (_messageStore == null) {
       final String path = '${runpath.path}/message';
-      _log.info('Creating message store from $path');
+      _log.fine('Creating message store from $path');
 
-      _messageStore = new filestore.Message(
-          path,
-          enableRevisions
-              ? new filestore.GitEngine(path, logStdout: true)
-              : null);
+      _messageStore = filestore.Message(path,
+          enableRevisions ? filestore.GitEngine(path, logStdout: true) : null);
     }
 
     return _messageStore;
@@ -454,9 +437,9 @@ class TestEnvironment {
   filestore.MessageQueue get messageQueue {
     if (_messageQueue == null) {
       final String path = '${runpath.path}/message_queue';
-      _log.info('Creating message queue store from $path');
+      _log.fine('Creating message queue store from $path');
 
-      _messageQueue = new filestore.MessageQueue(path);
+      _messageQueue = filestore.MessageQueue(path);
     }
 
     return _messageQueue;
@@ -469,13 +452,10 @@ class TestEnvironment {
   filestore.Reception get receptionStore {
     if (_receptionStore == null) {
       final String path = '${runpath.path}/reception';
-      _log.info('Creating reception store from $path');
+      _log.fine('Creating reception store from $path');
 
-      _receptionStore = new filestore.Reception(
-          path,
-          enableRevisions
-              ? new filestore.GitEngine(path, logStdout: true)
-              : null);
+      _receptionStore = filestore.Reception(path,
+          enableRevisions ? filestore.GitEngine(path, logStdout: true) : null);
     }
 
     return _receptionStore;
@@ -488,15 +468,13 @@ class TestEnvironment {
   filestore.Organization get organizationStore {
     if (_organizationStore == null) {
       final String path = '${runpath.path}/organization';
-      _log.info('Creating organization store from $path');
+      _log.fine('Creating organization store from $path');
 
-      _organizationStore = new filestore.Organization(
+      _organizationStore = filestore.Organization(
           contactStore,
           receptionStore,
           path,
-          enableRevisions
-              ? new filestore.GitEngine(path, logStdout: true)
-              : null);
+          enableRevisions ? filestore.GitEngine(path, logStdout: true) : null);
     }
 
     return _organizationStore;
@@ -508,9 +486,9 @@ class TestEnvironment {
   TestEnvironment({String path: '', this.enableRevisions: false})
       : runpath = path.isEmpty
             ? Directory.systemTemp.createTempSync('filestore-')
-            : new Directory(path) {
+            : Directory(path) {
     _isTmpDir = path.isEmpty;
-    _log.info('New test environment created in directory $runpath');
+    _log.fine('New test environment created in directory $runpath');
   }
 
   /**
@@ -539,7 +517,7 @@ class TestEnvironment {
     }
 
     if (runpath.existsSync() && _isTmpDir) {
-      _log.info('Clearing test environment created in directory $runpath');
+      _log.fine('Clearing test environment created in directory $runpath');
       runpath.deleteSync(recursive: true);
     }
 
@@ -568,73 +546,73 @@ class TestEnvironment {
     allocatedCustomers = [];
 
     if (_callflowProcess != null) {
-      _log.info('Shutting down callflow process $_callflowProcess');
+      _log.fine('Shutting down callflow process $_callflowProcess');
       await _callflowProcess.terminate();
       _callflowProcess = null;
     }
 
     if (_dialplanProcess != null) {
-      _log.info('Shutting down dialplan server process $_dialplanProcess');
+      _log.fine('Shutting down dialplan server process $_dialplanProcess');
       await _dialplanProcess.terminate();
       _dialplanProcess = null;
     }
 
     if (_contactServer != null) {
-      _log.info('Shutting down contact server process $_contactServer');
+      _log.fine('Shutting down contact server process $_contactServer');
       await _contactServer.terminate();
       _contactServer = null;
     }
 
     if (_calendarServer != null) {
-      _log.info('Shutting down calendar server process $_calendarServer');
+      _log.fine('Shutting down calendar server process $_calendarServer');
       await _calendarServer.terminate();
       _calendarServer = null;
     }
 
     if (_receptionServer != null) {
-      _log.info('Shutting down reception server process $_receptionServer');
+      _log.fine('Shutting down reception server process $_receptionServer');
       await _receptionServer.terminate();
       _receptionServer = null;
     }
 
     if (_messageProcess != null) {
-      _log.info('Shutting down message server process $_messageProcess');
+      _log.fine('Shutting down message server process $_messageProcess');
       await _messageProcess.terminate();
       _messageProcess = null;
     }
     if (_messageDispatcher != null) {
-      _log.info('Shutting down message dispatcher process $_messageDispatcher');
+      _log.fine('Shutting down message dispatcher process $_messageDispatcher');
       await _messageDispatcher.terminate();
       _messageDispatcher = null;
     }
 
     if (_configProcess != null) {
-      _log.info('Shutting down config server process $_configProcess');
+      _log.fine('Shutting down config server process $_configProcess');
       await _configProcess.terminate();
       _configProcess = null;
     }
 
     if (_userServer != null) {
-      _log.info('Shutting down user server process $_userServer');
+      _log.fine('Shutting down user server process $_userServer');
       await _userServer.terminate();
       _userServer = null;
     }
 
     if (_notificationProcess != null) {
-      _log.info(
+      _log.fine(
           'Shutting down notification server process $_notificationProcess');
       await _notificationProcess.terminate();
       _notificationProcess = null;
     }
 
     if (_authProcess != null) {
-      _log.info('Shutting down authentication server process $_authProcess');
+      _log.fine('Shutting down authentication server process $_authProcess');
       await _authProcess.terminate();
       _authProcess = null;
     }
 
     if (_cdrProcess != null) {
-      _log.info('Shutting down cdr server process $_cdrProcess');
+      _log.fine('Shutting down cdr server process $_cdrProcess');
       await _cdrProcess.terminate();
       _cdrProcess = null;
     }
@@ -646,10 +624,10 @@ class TestEnvironment {
   Future finalize() async {
     await clear();
     if (_freeswitch != null) {
-      _log.info('Terminating FreeSWITCH');
+      _log.fine('Terminating FreeSWITCH');
       await _freeswitch.terminate();
-      _log.info('Deleting directory ${_freeswitch.basePath}');
-      await new Directory(_freeswitch.basePath).deleteSync(recursive: true);
+      _log.fine('Deleting directory ${_freeswitch.basePath}');
+      await Directory(_freeswitch.basePath).deleteSync(recursive: true);
     }
 
     await Future.forEach(process.launchedProcesses, (Process p) async {
@@ -661,7 +639,7 @@ class TestEnvironment {
     });
 
     if (_httpClient != null) {
-      _log.info('Terminating HttpClient');
+      _log.fine('Terminating HttpClient');
       await _httpClient.client.close(force: true);
     }
   }
@@ -678,7 +656,7 @@ class TestEnvironment {
       sa.id = (await _userStore.create(sa, _user)).id;
     }
 
-    return new ServiceAgent(runpath, sa, this);
+    return ServiceAgent(runpath, sa, this);
   }
 
   /**
@@ -688,7 +666,7 @@ class TestEnvironment {
     final uRefs = await userStore.list();
 
     return Future.wait(
-        uRefs.map((uRef) async => new AuthToken(await userStore.get(uRef.id))));
+        uRefs.map((uRef) async => AuthToken(await userStore.get(uRef.id))));
   }
 
   /**

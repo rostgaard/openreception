@@ -99,11 +99,9 @@ main() async {
   log.severe('main() why am I dying? I am supposed to run forever!');
 }
 
-/**
- * Creates [folder] in the [parent] folder and returns its id.
- *
- * Throws if the folder cannot be created.
- */
+/// Creates [folder] in the [parent] folder and returns its id.
+///
+/// Throws if the folder cannot be created.
 Future<String> createFolderAndReturnId(drive.DriveApi driveApi,
     drive.ParentReference parent, String folder, Logger log) async {
   try {
@@ -125,13 +123,11 @@ Future<String> createFolderAndReturnId(drive.DriveApi driveApi,
   }
 }
 
-/**
- * Delete [file].
- *
- * Logs success to info and failure to severe.
- *
- * Does not throw.
- */
+/// Delete [file].
+///
+/// Logs success to info and failure to severe.
+///
+/// Does not throw.
 void delete(File file, Logger log) {
   try {
     file.deleteSync();
@@ -141,13 +137,11 @@ void delete(File file, Logger log) {
   }
 }
 
-/**
- * Returns true if the [nameParts] file is found in [parent], else false.
- *
- * This checks both the title and ASCII only title of [nameParts].
- *
- * Returns false if the Google Drive check throws.
- */
+/// Returns true if the [nameParts] file is found in [parent], else false.
+///
+/// This checks both the title and ASCII only title of [nameParts].
+///
+/// Returns false if the Google Drive check throws.
 Future<bool> exists(drive.DriveApi driveApi, drive.ParentReference parent,
     NameParts nameParts, Logger log) async {
   try {
@@ -162,12 +156,10 @@ Future<bool> exists(drive.DriveApi driveApi, drive.ParentReference parent,
   }
 }
 
-/**
- * Return a folder id for [folder] with parent [parent]. If [folder] does not
- * exist, then create it and return the new id.
- *
- * Returns an empty String on errors. Does not throw.
- */
+/// Return a folder id for [folder] with parent [parent]. If [folder] does not
+/// exist, then create it and return the new id.
+///
+/// Returns an empty String on errors. Does not throw.
 Future<String> folderId(drive.DriveApi driveApi, drive.ParentReference parent,
     String folder, Logger log) async {
   String id;
@@ -192,14 +184,12 @@ Future<String> folderId(drive.DriveApi driveApi, drive.ParentReference parent,
   return id;
 }
 
-/**
- * Returns the id of [folder], if [folder] as a child of [parent] exists.
- *
- * Throws [NoFolderFoundException] if [folder] does not exist or if it is marked
- * trashed.
- *
- * Throws [ApiRequestError] if the call to Google Drive fails.
- */
+/// Returns the id of [folder], if [folder] as a child of [parent] exists.
+///
+/// Throws [NoFolderFoundException] if [folder] does not exist or if it is marked
+/// trashed.
+///
+/// Throws [ApiRequestError] if the call to Google Drive fails.
 Future<String> folderIdIfExists(drive.DriveApi driveApi,
     drive.ParentReference parent, String folder, Logger log) async {
   final String query = '"${parent.id}" in parents'
@@ -221,11 +211,9 @@ Future<String> folderIdIfExists(drive.DriveApi driveApi,
   return list.items.first.id;
 }
 
-/**
- * Fetch a [ORModel.ClientConfiguration] object.
- *
- * Throws [ORFException] on failure.
- */
+/// Fetch a [ORModel.ClientConfiguration] object.
+///
+/// Throws [ORFException] on failure.
 Future<ORModel.ClientConfiguration> getConfigORF(
     Config config, Logger log) async {
   try {
@@ -238,37 +226,29 @@ Future<ORModel.ClientConfiguration> getConfigORF(
   }
 }
 
-/**
- * Returns a [ORModel.Reception] object if the given [receptionID] resolves to a
- * reception.
- *
- * Throws [ORFException] if no reception is found.
- */
+/// Returns a [ORModel.Reception] object if the given [receptionID] resolves to a
+/// reception.
+///
+/// Throws [ORFException] if no reception is found.
 ORFReception getReception;
 
-/**
- * Returns a [ORModel.ActiveRecording] object if then given [channel] resolves
- * to an active call.
- *
- * Throws [ORFException] if no call is found.
- */
+/// Returns a [ORModel.ActiveRecording] object if then given [channel] resolves
+/// to an active call.
+///
+/// Throws [ORFException] if no call is found.
 ORFRecordings getRecordings;
 
-/**
- * Returns a [ORModel.User] object if the given [userID] resolves to an user.
- *
- * Throws [ORFException] if no user is found.
- */
+/// Returns a [ORModel.User] object if the given [userID] resolves to an user.
+///
+/// Throws [ORFException] if no user is found.
 ORFUser getUser;
 
-/**
- * Start an upload session.
- *
- * Logs if it finds a suspicious amount of files in the [recordingsDirectory].
- * It is considered suspicious if there are more than 500 files sitting there.
- *
- * Does not throw. Terminal errors are logged to severe.
- */
+/// Start an upload session.
+///
+/// Logs if it finds a suspicious amount of files in the [recordingsDirectory].
+/// It is considered suspicious if there are more than 500 files sitting there.
+///
+/// Does not throw. Terminal errors are logged to severe.
 Future go(
     drive.DriveApi driveApi,
     Directory recordingsDirectory,
@@ -302,25 +282,21 @@ Future go(
   }
 }
 
-/**
- * Returns the channel id part of the [file] file name.
- *
- * See README.md for information on the required file name format.
- */
+/// Returns the channel id part of the [file] file name.
+///
+/// See README.md for information on the required file name format.
 String harvestChannelId(File file) {
   final List<String> parts =
       path.basenameWithoutExtension(file.path).split('_');
   return parts[0];
 }
 
-/**
- * Harvest a [NameParts] object from [file].
- *
- * This also fetches agent and reception related data using the ORF [getUser]
- * and [getReception] functions.
- *
- * Throws [HarvestException] if the split fails.
- */
+/// Harvest a [NameParts] object from [file].
+///
+/// This also fetches agent and reception related data using the ORF [getUser]
+/// and [getReception] functions.
+///
+/// Throws [HarvestException] if the split fails.
 Future<NameParts> harvestNameParts(File file, Logger log) async {
   try {
     String agentName;
@@ -374,23 +350,21 @@ Future<NameParts> harvestNameParts(File file, Logger log) async {
   }
 }
 
-/**
- * Returns a list of [drive.ParentReference]s for the [nameParts] object that
- * will ultimately end up being uploaded.
- *
- * If some of the needed parents are missing, this function will try to create
- * them.
- *
- * Never returns an empty list. At a bare minimum it will contain [allFolder].
- *
- * NOTE: The immediate folder child of parent [receptionsFolder] is named by the
- * first 6 characters of the [nameParts.receptionExten] string postfixed with
- * xx. What this basically means is that this will only really make sense for 8
- * character long danish telephone numbers.
- *
- * Does not throw. Errors are logged and whatever parents might've been created
- * are returned.
- */
+/// Returns a list of [drive.ParentReference]s for the [nameParts] object that
+/// will ultimately end up being uploaded.
+///
+/// If some of the needed parents are missing, this function will try to create
+/// them.
+///
+/// Never returns an empty list. At a bare minimum it will contain [allFolder].
+///
+/// NOTE: The immediate folder child of parent [receptionsFolder] is named by the
+/// first 6 characters of the [nameParts.receptionExten] string postfixed with
+/// xx. What this basically means is that this will only really make sense for 8
+/// character long danish telephone numbers.
+///
+/// Does not throw. Errors are logged and whatever parents might've been created
+/// are returned.
 Future<List<drive.ParentReference>> parents(
     drive.DriveApi driveApi,
     NameParts nameParts,
@@ -498,24 +472,13 @@ Future<List<drive.ParentReference>> parents(
   return list;
 }
 
-/**
- * Returns [time] as an ISO8601 String without the milliseconds and with the T
- * replaced with one whitespace. toLocal() is called on [time] before building
- * the string.
- *
- * Does not throw.
- */
-String saneTimeStamp(DateTime time) =>
-    time.toLocal().toIso8601String().split('.').first.replaceAll('T', ' ');
 
-/**
- * Returns a [Logger] with [Level.ALL].
- *
- * [Level.INFO] and below is logged to STDOUT. Everything above [Level.INFO] is
- * sent to STDERR.
- *
- * Does not throw.
- */
+/// Returns a [Logger] with [Level.ALL].
+///
+/// [Level.INFO] and below is logged to STDOUT. Everything above [Level.INFO] is
+/// sent to STDERR.
+///
+/// Does not throw.
 Logger setupLogging() {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord record) {
@@ -531,20 +494,18 @@ Logger setupLogging() {
   return new Logger('drvupld');
 }
 
-/**
- * Upload [file] to Google Drive.
- *
- * All uploaded files will have the [allFolder] parent set. Depending on the
- * file name it will be assigned appropriate parent references in [agentFolder]
- * and [receptionFolder].
- *
- * This calls itself recursively as long as there are files left in the [files]
- * list. One file is removed from the list on each call to [upload].
- *
- * Exits drvupld if uploading a file takes more than 300 seconds.
- *
- * Does not throw. Logs errors to warning and severe.
- */
+/// Upload [file] to Google Drive.
+///
+/// All uploaded files will have the [allFolder] parent set. Depending on the
+/// file name it will be assigned appropriate parent references in [agentFolder]
+/// and [receptionFolder].
+///
+/// This calls itself recursively as long as there are files left in the [files]
+/// list. One file is removed from the list on each call to [upload].
+///
+/// Exits drvupld if uploading a file takes more than 300 seconds.
+///
+/// Does not throw. Logs errors to warning and severe.
 Future upload(
     drive.DriveApi driveApi,
     List<FileSystemEntity> files,

@@ -32,6 +32,6 @@ Future main(List<String> args) async {
       new service.NotificationSocket(client);
 
   notificationSocket.onEvent.listen((event) {
-    print(JSON.encode(event));
+    print(json.encode(event));
   });
 }

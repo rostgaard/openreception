@@ -19,6 +19,8 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class RESTCDRService {
+  RESTCDRService(Uri this.host, String this.token, this._backend);
+
   final WebService _backend;
 
   /// The uri of the connected backend.
@@ -26,6 +28,4 @@ class RESTCDRService {
 
   /// The token used for authenticating with the backed.
   final String token;
-
-  RESTCDRService(Uri this.host, String this.token, this._backend);
 }

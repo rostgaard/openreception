@@ -17,9 +17,8 @@ part 'filestore/filestore-reception.dart';
 part 'filestore/filestore-user.dart';
 
 const String _namespace = 'filestore';
-/**
- * Run all filestore tests.
- */
+
+/// Run all filestore tests.
 allTests() {
   _runReceptionTests();
   _runCalendarTests();

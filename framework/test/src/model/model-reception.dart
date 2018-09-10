@@ -25,7 +25,7 @@ abstract class _ModelReception {
   static void deserialization() {
     model.Reception builtObject = buildObject();
     model.Reception deserializedObject = new model.Reception.fromJson(
-        JSON.decode(JSON.encode(builtObject)) as Map<String, dynamic>);
+        _json.decode(_json.encode(builtObject)) as Map<String, dynamic>);
 
     expect(builtObject.addresses, equals(deserializedObject.addresses));
     expect(
@@ -62,7 +62,7 @@ abstract class _ModelReception {
 
   /// Merely asserts that no exceptions arise during a serialization.
   static void serialization() =>
-      expect(() => JSON.encode(buildObject()), returnsNormally);
+      expect(() => _json.encode(buildObject()), returnsNormally);
 
   static model.Reception buildObject() {
     final List<String> addresses = <String>['Somewhere else'];

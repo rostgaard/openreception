@@ -2,14 +2,14 @@ part of ort.rest;
 
 void _runContactTests() {
   group('$_namespace.Contact', () {
-    Logger log = new Logger('$_namespace.Contact');
+    Logger log = Logger('$_namespace.Contact');
 
     ServiceAgent sa;
     TestEnvironment env;
     process.ContactServer cProcess;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       cProcess = await env.requestContactserverProcess();
@@ -91,7 +91,7 @@ void _runContactTests() {
     process.ContactServer cProcess;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       cProcess = await env.requestContactserverProcess(withRevisioning: true);

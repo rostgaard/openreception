@@ -19,16 +19,10 @@ import 'package:logging/logging.dart';
 import 'package:orf/exceptions.dart';
 import 'package:orf/service.dart' as Service;
 import 'package:ors/controller/controller-cdr.dart' as controller;
-import 'package:route/server.dart';
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf/shelf_io.dart' as shelf_io;
-import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
-
-import 'package:ors/configuration.dart';
 
 const String libraryName = 'cdrserver.router';
-final Logger log = new Logger(libraryName);
+final Logger log = Logger(libraryName);
 
 const Map<String, String> corsHeaders = const {
   'Access-Control-Allow-Origin': '*',
@@ -37,7 +31,7 @@ const Map<String, String> corsHeaders = const {
 
 Future<io.HttpServer> start(Service.Authentication authService,
     {String hostname: '0.0.0.0', int port: 4090}) async {
-  final controller.Cdr cdrController = new controller.Cdr();
+  final controller.Cdr cdrController = controller.Cdr();
 
   Future<shelf.Response> _lookupToken(shelf.Request request) async {
     String token = request.requestedUri.queryParameters['token'];
@@ -45,14 +39,14 @@ Future<io.HttpServer> start(Service.Authentication authService,
     try {
       await authService.validate(token);
     } on NotFound {
-      return new shelf.Response.forbidden('Invalid token');
+      return shelf.Response.forbidden('Invalid token');
     } on io.SocketException {
-      return new shelf.Response.internalServerError(
+      return shelf.Response.internalServerError(
           body: 'Cannot reach authserver');
     } catch (error, stackTrace) {
       log.severe('Authentication validation lookup failed: $error:$stackTrace');
 
-      return new shelf.Response.internalServerError(body: error.toString());
+      return shelf.Response.internalServerError(body: error.toString());
     }
 
     /// Do not intercept the request, but let the next handler take care of it.
@@ -65,18 +59,18 @@ Future<io.HttpServer> start(Service.Authentication authService,
   shelf.Middleware checkAuthentication = shelf.createMiddleware(
       requestHandler: _lookupToken, responseHandler: null);
 
-  var router = shelf_route.router(fallbackHandler: send404)
-    ..get('/from/{from}/to/{to}/kind/{kind}', cdrController.process);
-
-  var handler = const shelf.Pipeline()
-      .addMiddleware(
-          shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
-      .addMiddleware(checkAuthentication)
-      .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
-      .addHandler(router.handler);
-
-  log.fine('Serving interfaces:');
-  shelf_route.printRoutes(router, printer: (String item) => log.fine(item));
-
-  return await shelf_io.serve(handler, hostname, port);
+//  var router = shelf_route.router(fallbackHandler: send404)
+//    ..get('/from/{from}/to/{to}/kind/{kind}', cdrController.process);
+//
+//  var handler = const shelf.Pipeline()
+//      .addMiddleware(
+//          shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+//      .addMiddleware(checkAuthentication)
+//      .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
+//      .addHandler(router.handler);
+//
+//  log.fine('Serving interfaces:');
+//  shelf_route.printRoutes(router, printer: (String item) => log.fine(item));
+//
+//  return await shelf_io.serve(handler, hostname, port);
 }

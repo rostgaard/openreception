@@ -78,7 +78,7 @@ class UIGlobalCallQueue extends UIModel {
 
     return new LIElement()
       ..dataset['id'] = call.id
-      ..dataset['object'] = JSON.encode(call)
+      ..dataset['object'] = json.encode(call)
       ..children.addAll([callDesc, callWaitTimer])
       ..classes.add(call.inbound ? 'inbound' : 'outbound')
       ..classes.toggle('locked', call.locked)

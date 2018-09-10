@@ -27,9 +27,9 @@ part 'controller/controller-user.dart';
 const String _libraryName = 'controller';
 
 final Popup popup = new Popup(
-    new Uri.file('/image/popup_error.png'),
-    new Uri.file('/image/popup_info.png'),
-    new Uri.file('/image/popup_success.png'));
+    new Uri.file('image/popup_error.png'),
+    new Uri.file('image/popup_info.png'),
+    new Uri.file('image/popup_success.png'));
 
 Function onForbidden = () => null;
 

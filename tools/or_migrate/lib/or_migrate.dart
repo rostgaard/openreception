@@ -62,10 +62,10 @@ class MigrationEnvironment {
 
     Iterable<Future<or_model.Message>> converted = messages.map(convertMessage);
 
-    await Future.forEach(converted, (or_model.Message msg) async {
+    for (Future<or_model.Message> msg in converted) {
       await _dataStore.messageStore
           .create(await msg, modifier, enforceId: true);
-    });
+    }
 
     _log.info('Imported ${converted.length} messages'
         ' in ${timer.elapsedMilliseconds}ms');
@@ -76,7 +76,7 @@ class MigrationEnvironment {
    */
   Future importUsers() async {
     final Stopwatch timer = new Stopwatch()..start();
-    final Iterable users = await userService.list();
+    final users = await userService.list();
 
     Iterable<or_model.User> converted =
         await Future.wait(users.map((old_or_model.User user) async {
@@ -94,9 +94,7 @@ class MigrationEnvironment {
         ' in ${timer.elapsedMilliseconds}ms');
   }
 
-  /**
-   * Imports dialplans
-   */
+  /// Imports dialplans
   Future importDialplans() async {
     final Stopwatch timer = new Stopwatch()..start();
     final Iterable dialplans = await dialplanService.list();
@@ -113,9 +111,7 @@ class MigrationEnvironment {
         ' in ${timer.elapsedMilliseconds}ms');
   }
 
-  /**
-   * Imports organizations
-   */
+  /// Imports organizations
   Future importOrganizations() async {
     final Stopwatch timer = new Stopwatch()..start();
     final Iterable orgs = await organizationService.list();
@@ -131,9 +127,7 @@ class MigrationEnvironment {
         ' in ${timer.elapsedMilliseconds}ms');
   }
 
-  /**
-   * Imports receptions
-   */
+  /// Imports receptions
   Future importReceptions() async {
     final Stopwatch timer = new Stopwatch()..start();
     final Iterable recs = await receptionService.list();
@@ -189,9 +183,9 @@ class MigrationEnvironment {
    */
   Future importBaseContacts() async {
     final Stopwatch timer = new Stopwatch()..start();
-    final Iterable contacts = await contactService.list();
+    final contacts = await contactService.list();
 
-    Iterable converted = contacts.map(convertContact);
+    Iterable<or_model.BaseContact> converted = contacts.map(convertContact);
 
     await Future.forEach(converted, (or_model.BaseContact contact) async {
       if (contact.enabled) {
@@ -212,12 +206,12 @@ class MigrationEnvironment {
    */
   Future importCalendarEntries() async {
     final Stopwatch timer = new Stopwatch()..start();
-    final Iterable contacts = await contactService.list();
+    final  contacts = await contactService.list();
 
     int count = 0;
     await Future.forEach(contacts, (old_or_model.BaseContact contact) async {
       if (contact.enabled) {
-        Iterable entries = await calendarService
+        final entries = await calendarService
             .list(new old_or_model.OwningContact(contact.id));
 
         await Future.forEach(entries.map(convertCalendarEntry),
@@ -240,10 +234,10 @@ class MigrationEnvironment {
       }
     });
 
-    final Iterable recs = await receptionService.list();
+    final  recs = await receptionService.list();
     await Future.forEach(recs, (old_or_model.Reception rec) async {
       if (rec.enabled) {
-        Iterable entries = await calendarService
+        final entries = await calendarService
             .list(new old_or_model.OwningReception(rec.ID));
 
         await Future.forEach(entries.map(convertCalendarEntry),
@@ -269,9 +263,7 @@ class MigrationEnvironment {
         ' in ${timer.elapsedMilliseconds}ms');
   }
 
-  /**
-   * Import reception attributes.
-   */
+  /// Import reception attributes.
   Future importReceptionAttributes() async {
     final Stopwatch timer = new Stopwatch()..start();
     final Iterable recs = await receptionService.list();
@@ -309,9 +301,7 @@ class MigrationEnvironment {
         ' in ${timer.elapsedMilliseconds}ms');
   }
 
-  /**
-   * Validates users
-   */
+  /// Validates users
   Future validateUsers() async {
     final Stopwatch timer = new Stopwatch()..start();
     final Iterable localUsers = await _dataStore.userStore.list();
@@ -328,9 +318,7 @@ class MigrationEnvironment {
         ' in ${timer.elapsedMilliseconds}ms');
   }
 
-  /**
-   * Validates receptions
-   */
+  /// Validates receptions
   Future validateReceptions() async {
     final Stopwatch timer = new Stopwatch()..start();
     final Iterable localUsers = await _dataStore.userStore.list();
@@ -374,7 +362,7 @@ class MigrationEnvironment {
         ..contactName = oldMsg.context.contactName
         ..rid = oldMsg.context.receptionID
         ..receptionName = oldMsg.context.receptionName)
-      ..flag = new or_model.MessageFlag(oldMsg.flag.toJson())
+      ..flag = new or_model.MessageFlag(oldMsg.flag.toJson().map((s) => s))
       ..callerInfo = (new or_model.CallerInfo.empty()
         ..name = oldMsg.callerInfo.name
         ..company = oldMsg.callerInfo.company
@@ -392,7 +380,7 @@ class MigrationEnvironment {
    *
    */
   or_model.IvrMenu convertIvr(old_or_model.IvrMenu menu) =>
-      or_model.IvrMenu.decode(menu.toJson());
+      or_model.IvrMenu.fromJson(menu.toJson());
 
   /**
    *

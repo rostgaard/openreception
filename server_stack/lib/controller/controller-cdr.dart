@@ -15,21 +15,19 @@ library ors.controller.cdr;
 import 'dart:async';
 import 'dart:io' as io;
 
+import 'package:shelf/shelf.dart';
 import 'package:logging/logging.dart';
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
-
 import 'package:ors/configuration.dart';
 
 class Cdr {
-  final Logger _log = new Logger('cdr_server.controller.cdr');
 
-  /**
-   * Constructor.
-   */
+  /// Constructor.
   Cdr();
 
-  Future<shelf.Response> process(shelf.Request request) async {
+  final Logger _log = new Logger('cdr_server.controller.cdr');
+
+
+  Future<Response> process(Request request) async {
     String direction = '';
     DateTime from;
     String kind;
@@ -38,42 +36,37 @@ class Cdr {
     List<String> uids = new List<String>();
 
     try {
-      from = DateTime.parse(
-          Uri.decodeComponent(shelf_route.getPathParameter(request, 'from')));
-      to = DateTime.parse(
-          Uri.decodeComponent(shelf_route.getPathParameter(request, 'to')));
+      from =
+          DateTime.parse(Uri.decodeComponent(request.path.variables['from']));
+      to = DateTime.parse(Uri.decodeComponent(request.path.variables['to']));
 
       if (from.isAtSameMomentAs(to) || from.isAfter(to)) {
         throw new FormatException('Invalid timestamps. From must be before to');
       }
 
-      kind = shelf_route
-          .getPathParameter(request, 'kind')
-          .toString()
-          .toLowerCase();
+      kind = request.path.variables['kind'].toString().toLowerCase();
       if (!['list', 'summary'].contains(kind)) {
         throw new FormatException('Invalid kind value');
       }
 
-      if (request.requestedUri.queryParameters.containsKey('direction')) {
-        direction =
-            request.requestedUri.queryParameters['direction'].toLowerCase();
+      if (request.path.variables.containsKey('direction')) {
+        direction = request.path.variables['direction'].toLowerCase();
         if (!['both', 'inbound', 'outbound'].contains(direction)) {
           throw new FormatException('Invalid direction value');
         }
       }
 
-      if (request.requestedUri.queryParameters.containsKey('rids')) {
-        rids = request.requestedUri.queryParameters['rids'].split(',');
+      if (request.path.variables.containsKey('rids')) {
+        rids = request.path.variables['rids'].split(',');
       }
 
-      if (request.requestedUri.queryParameters.containsKey('uids')) {
-        uids = request.requestedUri.queryParameters['uids'].split(',');
+      if (request.path.variables.containsKey('uids')) {
+        uids = request.path.variables['uids'].split(',');
       }
     } on FormatException catch (error) {
-      _log.warning('Bad request string: ${request.requestedUri}');
+      _log.warning('Bad request string: ${request.path}');
       _log.warning(error.message);
-      return new shelf.Response.internalServerError(
+      return new Response.serverError(
           body: 'Cannot parse request string');
     }
 
@@ -105,6 +98,6 @@ class Cdr {
 
     final io.ProcessResult pr = await io.Process.run('dart', args);
     _log.info('Executing dart ${args.join(' ')}');
-    return new shelf.Response.ok(pr.stdout);
+    return new Response.ok(pr.stdout);
   }
 }

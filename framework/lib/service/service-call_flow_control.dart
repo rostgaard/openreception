@@ -19,6 +19,8 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class CallFlowControl {
+  CallFlowControl(this.host, this.token, this._backend);
+
   final WebService _backend;
 
   /// The uri of the connected backend.
@@ -27,60 +29,63 @@ class CallFlowControl {
   /// The token used for authenticating with the backed.
   final String token;
 
-  CallFlowControl(this.host, this.token, this._backend);
-
-  /// Retrives the currently active recordings
-  Future<Iterable<model.ActiveRecording>> activeRecordings() {
+  /// Retrieves the currently active recordings
+  Future<Iterable<model.ActiveRecording>> activeRecordings() async {
     Uri uri = resource.CallFlowControl.activeRecordings(host);
     uri = _appendToken(uri, token);
 
-    Iterable<model.ActiveRecording> decodeMaps(
-            Iterable<Map<String, dynamic>> maps) =>
-        maps.map((Map<String, dynamic> map) =>
-            new model.ActiveRecording.fromJson(map));
+    final List<dynamic> maps =
+    _json.decode(await _backend.get(uri)) as List<dynamic>;
 
-    return _backend.get(uri).then(JSON.decode).then(decodeMaps);
+    return maps.map((dynamic map)
+    => model.ActiveRecording.fromJson(map as Map<String, dynamic>));
   }
 
-  /// Retrives the currently active recordings
-  Future<model.ActiveRecording> activeRecording(String channel) {
+  /// Retrieves the currently active recordings
+  Future<model.ActiveRecording> activeRecording(String channel) async {
     Uri uri = resource.CallFlowControl.activeRecording(host, channel);
     uri = _appendToken(uri, token);
 
-    return _backend.get(uri).then(JSON.decode).then(
-        (Map<String, dynamic> map) => new model.ActiveRecording.fromJson(map));
+    final String response = await _backend.get(uri);
+
+    return model.ActiveRecording.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
   }
 
   /// Retrives the stats of all agents.
-  Future<Iterable<model.AgentStatistics>> agentStats() {
+  Future<Iterable<model.AgentStatistics>> agentStats() async {
     Uri uri = resource.CallFlowControl.agentStatistics(host);
     uri = _appendToken(uri, token);
 
-    Iterable<model.AgentStatistics> decodeMaps(
-            Iterable<Map<String, dynamic>> maps) =>
-        maps.map((Map<String, dynamic> map) =>
-            new model.AgentStatistics.fromJson(map));
+    final List<dynamic> maps =
+    _json.decode(await _backend.get(uri)) as List<dynamic>;
 
-    return _backend.get(uri).then(JSON.decode).then(decodeMaps);
+    return maps.map((dynamic map)
+    => model.AgentStatistics.fromJson(map as Map<String, dynamic>));
   }
 
   /// Retrives the stats of a single agent.
-  Future<model.AgentStatistics> agentStat(int userId) {
+  Future<model.AgentStatistics> agentStat(int userId) async {
     Uri uri = resource.CallFlowControl.agentStatistic(host, userId);
     uri = _appendToken(uri, token);
 
-    return _backend.get(uri).then(JSON.decode).then(
-        (Map<String, dynamic> map) => new model.AgentStatistics.fromJson(map));
+    final String response = await _backend.get(uri);
+
+    return model.AgentStatistics.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
   }
 
   /// Retrives the current Call list.
-  Future<Iterable<model.Call>> callList() {
+  Future<Iterable<model.Call>> callList() async {
     Uri uri = resource.CallFlowControl.list(host);
     uri = _appendToken(uri, token);
 
-    return _backend.get(uri).then(JSON.decode).then(
-        (Iterable<Map<String, dynamic>> callMaps) => callMaps
-            .map((Map<String, dynamic> map) => new model.Call.fromJson(map)));
+
+    final List<dynamic> maps =
+    _json.decode(await _backend.get(uri)) as List<dynamic>;
+
+    return maps.map((dynamic map)
+    => model.Call.fromJson(map as Map<String, dynamic>));
   }
 
   /// Retrives the a specific channel as a Map.
@@ -89,18 +94,18 @@ class CallFlowControl {
     uri = _appendToken(uri, token);
 
     return _backend.get(uri).then(
-        (String response) => (JSON.decode(response) as Map<String, dynamic>));
+        (String response) => (_json.decode(response) as Map<String, dynamic>));
   }
 
   /// Returns a single call resource.
-  Future<model.Call> get(String callID) {
+  Future<model.Call> get(String callID) async {
     Uri uri = resource.CallFlowControl.single(host, callID);
     uri = _appendToken(uri, token);
 
-    return _backend
-        .get(uri)
-        .then(JSON.decode)
-        .then((Map<String, dynamic> map) => new model.Call.fromJson(map));
+    final String response = await _backend.get(uri);
+
+    return model.Call.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
   }
 
   /// Hangs up the call identified by [callID].
@@ -111,46 +116,50 @@ class CallFlowControl {
     await _backend.post(uri, '');
   }
 
-  /// Originate a new call via the server.
+  /// Originate a call via the server.
   Future<model.Call> originate(
-      String extension, model.OriginationContext context) {
+      String extension, model.OriginationContext context)  async {
     Uri uri = resource.CallFlowControl.originate(host, extension, context);
     uri = _appendToken(uri, token);
 
-    return _backend.post(uri, '').then(JSON.decode).then(
-        (Map<String, dynamic> callMap) => new model.Call.fromJson(callMap));
+    final String response = await _backend.post(uri, '');
+
+    return model.Call.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
   }
 
   /// Parks the call identified by [callID].
-  Future<model.Call> park(String callID) {
+  Future<model.Call> park(String callID) async {
     Uri uri = resource.CallFlowControl.park(host, callID);
     uri = _appendToken(uri, token);
 
-    return _backend
-        .post(uri, '')
-        .then(JSON.decode)
-        .then((Map<String, dynamic> map) => new model.Call.fromJson(map));
+    final String response = await _backend.post(uri, '');
+
+    return model.Call.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
   }
 
   /// Retrives the current Peer list.
-  Future<Iterable<model.Peer>> peerList() {
+  Future<Iterable<model.Peer>> peerList() async {
     Uri uri = resource.CallFlowControl.peerList(host);
     uri = _appendToken(uri, token);
 
-    return _backend
-        .get(uri)
-        .then((String response) => (JSON.decode(response)))
-        .then((Iterable<Map<String, dynamic>> maps) => maps
-            .map((Map<String, dynamic> map) => new model.Peer.fromJson(map)));
+    final List<dynamic> maps =
+    _json.decode(await _backend.get(uri)) as List<dynamic>;
+
+    return maps.map((dynamic map)
+    => model.Peer.fromJson(map as Map<String, dynamic>));
   }
 
   /// Picks up the call identified by [callID].
-  Future<model.Call> pickup(String callID) {
+  Future<model.Call> pickup(String callID) async {
     Uri uri = resource.CallFlowControl.pickup(host, callID);
     uri = _appendToken(uri, token);
 
-    return _backend.post(uri, '').then(JSON.decode).then(
-        (Map<String, dynamic> callMap) => new model.Call.fromJson(callMap));
+    final String response = await _backend.post(uri,'');
+
+    return model.Call.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
   }
 
   /// Asks the server to perform a reload.

@@ -270,7 +270,7 @@ class UIMessageCompose extends UIModel {
     final String recipientsList = _recipientsList.dataset['recipients-list'];
 
     if (recipientsList != null && recipientsList.isNotEmpty) {
-      return new Set<model.MessageEndpoint>.from(JSON
+      return new Set<model.MessageEndpoint>.from(json
           .decode(recipientsList)
           .map((Map<String, dynamic> map) =>
               new model.MessageEndpoint.fromJson(map)));
@@ -304,7 +304,7 @@ class UIMessageCompose extends UIModel {
     List<LIElement> list = new List<LIElement>();
 
     Iterable maps = recipients.map((model.MessageEndpoint r) => r.toJson());
-    _recipientsList.dataset['recipients-list'] = JSON.encode(maps.toList());
+    _recipientsList.dataset['recipients-list'] = json.encode(maps.toList());
 
     toRecipients().forEach((model.MessageEndpoint recipient) {
       list.add(new LIElement()..text = contactString(recipient));

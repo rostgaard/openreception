@@ -18,6 +18,7 @@ class Config {
   final String eslHost = 'localhost';
   final int eslPort = 8021;
 
+  final bool runNative = true;
   /**
    *
    */

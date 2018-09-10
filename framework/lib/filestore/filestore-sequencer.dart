@@ -15,23 +15,23 @@ part of orf.filestore;
 
 class Sequencer {
   /// Internal logger
-  final Logger _log = new Logger('$_libraryName.GitEngine');
+  final Logger _log = Logger('$_libraryName.GitEngine');
   final String path;
 
   File _sequencerFile;
 
-  /// Create new sequencer file from [path].
+  /// Create sequencer file from [path].
   ///
   /// If [explicitId] is set _and_ the [path] contains no sequencer file, the id
-  /// of the new sequencer file will be set to [explicitId].
+  /// of the sequencer file will be set to [explicitId].
   Sequencer(this.path, {int explicitId: 0}) {
     if (path.isEmpty) {
-      throw new ArgumentError.value('', 'path', 'Path must not be empty');
+      throw ArgumentError.value('', 'path', 'Path must not be empty');
     }
 
-    _sequencerFile = new File('$path/.or_filestore-sequencer');
+    _sequencerFile = File('$path/.or_filestore-sequencer');
     if (!_sequencerFile.existsSync()) {
-      _log.info('Creating new sequencer file ${_sequencerFile.path}');
+      _log.info('Creating sequencer file ${_sequencerFile.path}');
       _currentId = _findHighestId();
     } else if (explicitId > 0) {
       _currentId = explicitId;
@@ -74,7 +74,7 @@ class Sequencer {
       }
     }
 
-    Iterable<int> listing = new Directory(path).listSync().map(fseToId);
+    Iterable<int> listing = Directory(path).listSync().map(fseToId);
 
     int maximum = 0;
 

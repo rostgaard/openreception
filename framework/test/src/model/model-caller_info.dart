@@ -25,7 +25,7 @@ abstract class _ModelCallerInfo {
   static void deserialization() {
     model.CallerInfo obj = buildObject();
     model.CallerInfo deserializedObj = new model.CallerInfo.fromJson(
-        JSON.decode(JSON.encode(obj)) as Map<String, dynamic>);
+        _json.decode(_json.encode(obj)) as Map<String, dynamic>);
 
     expect(obj.cellPhone, equals(deserializedObj.cellPhone));
     expect(obj.company, equals(deserializedObj.company));
@@ -39,7 +39,7 @@ abstract class _ModelCallerInfo {
 
   static void serialization() {
     model.CallerInfo builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);

@@ -19,6 +19,8 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class RESTContactStore implements storage.Contact {
+  RESTContactStore(Uri this.host, String this.token, this._backend);
+
   final WebService _backend;
 
   /// The uri of the connected backend.
@@ -27,19 +29,16 @@ class RESTContactStore implements storage.Contact {
   /// The token used for authenticating with the backed.
   final String token;
 
-  RESTContactStore(Uri this.host, String this.token, this._backend);
-
   @override
   Future<Iterable<model.ReceptionReference>> receptions(int id) async {
     Uri url = resource.Contact.receptions(host, id);
     url = _appendToken(url, token);
 
-    final Iterable<Map<String, dynamic>> maps = await _backend.get(url).then(
-        (String response) =>
-            JSON.decode(response) as Iterable<Map<String, dynamic>>);
+    final List<dynamic> maps =
+        _json.decode(await _backend.get(url)) as List<dynamic>;
 
-    return maps.map((Map<String, dynamic> map) =>
-        new model.ReceptionReference.fromJson(map));
+    return maps.cast<Map<String, dynamic>>().map(
+        (Map<String, dynamic> map) => model.ReceptionReference.fromJson(map));
   }
 
   @override
@@ -49,10 +48,10 @@ class RESTContactStore implements storage.Contact {
 
     final Iterable<Map<String, dynamic>> maps = await _backend.get(url).then(
         (String response) =>
-            JSON.decode(response) as Iterable<Map<String, dynamic>>);
+            _json.decode(response) as Iterable<Map<String, dynamic>>);
 
     return maps.map((Map<String, dynamic> map) =>
-        new model.OrganizationReference.fromJson(map));
+        model.OrganizationReference.fromJson(map));
   }
 
   @override
@@ -61,8 +60,8 @@ class RESTContactStore implements storage.Contact {
     url = _appendToken(url, token);
 
     return _backend.get(url).then((String response) =>
-        new model.BaseContact.fromJson(
-            JSON.decode(response) as Map<String, dynamic>));
+        model.BaseContact.fromJson(
+            _json.decode(response) as Map<String, dynamic>));
   }
 
   @override
@@ -71,8 +70,10 @@ class RESTContactStore implements storage.Contact {
     Uri url = resource.Contact.root(host);
     url = _appendToken(url, token);
 
-    return _backend.post(url, JSON.encode(contact)).then(JSON.decode).then(
-        (Map<String, dynamic> map) => new model.BaseContact.fromJson(map));
+    return _backend
+        .post(url, _json.encode(contact))
+        .then(_json.decode)
+        .then((map) => model.BaseContact.fromJson(map));
   }
 
   @override
@@ -80,7 +81,7 @@ class RESTContactStore implements storage.Contact {
     Uri url = resource.Contact.single(host, contact.id);
     url = _appendToken(url, token);
 
-    await _backend.put(url, JSON.encode(contact));
+    await _backend.put(url, _json.encode(contact));
   }
 
   @override
@@ -96,9 +97,9 @@ class RESTContactStore implements storage.Contact {
     Uri url = resource.Contact.list(host);
     url = _appendToken(url, token);
 
-    return _backend.get(url).then((String response) =>
-        (JSON.decode(response) as Iterable<Map<String, dynamic>>).map(
-            (Map<String, dynamic> map) => new model.BaseContact.fromJson(map)));
+    return _backend.get(url).then((String response) => (_json.decode(response)
+            as Iterable<Map<String, dynamic>>)
+        .map((Map<String, dynamic> map) => model.BaseContact.fromJson(map)));
   }
 
   @override
@@ -107,8 +108,8 @@ class RESTContactStore implements storage.Contact {
     url = _appendToken(url, token);
 
     return _backend.get(url).then((String response) =>
-        new model.ReceptionAttributes.fromJson(
-            JSON.decode(response) as Map<String, dynamic>));
+        model.ReceptionAttributes.fromJson(
+            _json.decode(response) as Map<String, dynamic>));
   }
 
   @override
@@ -117,9 +118,9 @@ class RESTContactStore implements storage.Contact {
     url = _appendToken(url, token);
 
     return _backend.get(url).then((String response) =>
-        (JSON.decode(response) as Iterable<Map<String, dynamic>>).map(
+        (_json.decode(response) as Iterable<Map<String, dynamic>>).map(
             (Map<String, dynamic> map) =>
-                new model.ReceptionContact.fromJson(map)));
+                model.ReceptionContact.fromJson(map)));
   }
 
   @override
@@ -128,7 +129,7 @@ class RESTContactStore implements storage.Contact {
         resource.Contact.singleByReception(host, attr.cid, attr.receptionId);
     url = _appendToken(url, token);
 
-    await _backend.post(url, JSON.encode(attr));
+    await _backend.post(url, _json.encode(attr));
   }
 
   @override
@@ -136,9 +137,9 @@ class RESTContactStore implements storage.Contact {
     Uri url = resource.Contact.organizationContacts(host, oid);
     url = _appendToken(url, token);
 
-    return _backend.get(url).then((String response) =>
-        (JSON.decode(response) as Iterable<Map<String, dynamic>>).map(
-            (Map<String, dynamic> map) => new model.BaseContact.fromJson(map)));
+    return _backend.get(url).then((String response) => (_json.decode(response)
+            as Iterable<Map<String, dynamic>>)
+        .map((Map<String, dynamic> map) => model.BaseContact.fromJson(map)));
   }
 
   @override
@@ -156,18 +157,18 @@ class RESTContactStore implements storage.Contact {
         resource.Contact.singleByReception(host, attr.cid, attr.receptionId);
     url = _appendToken(url, token);
 
-    await _backend.put(url, JSON.encode(attr));
+    await _backend.put(url, _json.encode(attr));
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([int cid, int rid]) {
+  Future<Iterable<model.Commit>> changes([int cid, int rid]) async {
     Uri url = resource.Contact.change(host, cid, rid);
     url = _appendToken(url, this.token);
 
-    Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
-        maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
+    final String response = await _backend.get(url);
+    final Iterable<Map> maps = _json.decode(response);
 
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    return maps.map((map) => model.Commit.fromJson(map));
   }
 
   Future<String> changelog(int cid) {

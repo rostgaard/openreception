@@ -14,10 +14,10 @@
 part of ors.model;
 
 class CallList extends IterableBase<model.Call> {
+  CallList(this._pbxController, this._channelList);
+
   final controller.PBX _pbxController;
   final ChannelList _channelList;
-
-  CallList(this._pbxController, this._channelList);
 
   static final Logger log = new Logger('ors.model.CallList');
 
@@ -37,12 +37,10 @@ class CallList extends IterableBase<model.Call> {
     eventStream.listen(_handleEvent);
   }
 
-  /**
-   * WIP. The main idea of this was that call list was merely a reflection of
-   * the current channel list (which could be reloaded at arbitrary times).
-   * The gain of this would be that no pseudo-state would be present in the
-   * call-flow-control service.
-   */
+  /// WIP. The main idea of this was that call list was merely a reflection of
+  /// the current channel list (which could be reloaded at arbitrary times).
+  /// The gain of this would be that no pseudo-state would be present in the
+  /// call-flow-control service.
   void subscribeChannelEvents(Stream<ChannelEvent> eventStream) {
     //eventStream.listen(_handleChannelsEvent);
   }
@@ -57,9 +55,7 @@ class CallList extends IterableBase<model.Call> {
     _callEvent.fire(new event.CallStateReload());
   }
 
-  /**
-   * Reload the call list from an Iterable of channels.
-   */
+  /// Reload the call list from an Iterable of channels.
   void reloadFromChannels() {
     Map<String, model.Call> calls = {};
 
@@ -188,14 +184,10 @@ class CallList extends IterableBase<model.Call> {
     return call;
   }
 
-  /**
-   * Determine if a channel ID is a call-channel and not an agent channel.
-   */
+  /// Determine if a channel ID is a call-channel and not an agent channel.
   bool isCall(esl.Channel channel) => this.containsID(channel.uuid);
 
-  /**
-   * Handle CHANNEL_BRIDGE event packets.
-   */
+  /// Handle CHANNEL_BRIDGE event packets.
   void _handleBridge(esl.Event e) {
     final esl.Channel uuid = _channelList.get(e.fields['Unique-ID']);
     final esl.Channel otherLeg =
@@ -346,24 +338,22 @@ class CallList extends IterableBase<model.Call> {
     return get(e.uniqueID);
   }
 
-  /**
-   * Some notes on call creation;
-   *
-   * We are using the PBX to spawn (originate channels) to the user phones
-   * to establish a connection which we can then use to dial out or transfer
-   * uuid's to.
-   * These will, in their good right, spawn CHANNEL_ORIGINATE events which we
-   * manually need to filter :-\
-   * For now, the filter for origination is done by tagging the channels with a
-   * variable (`agentChan`) by the origination request.
-   * This is picked up by this function which then filters the channels from the
-   * call list.
-   * Upon call transfer, we also create a channel, but cannot (easily) tag the
-   * channels, so we merely filter based upon whether or not they have a
-   * [Other-Leg-Username] key in the map. This is probably over-simplifying things
-   * and may be troublesome when throwing around local calls. This has yet to be
-   * tested, however.
-   */
+  /// Some notes on call creation;
+  ///
+  /// We are using the PBX to spawn (originate channels) to the user phones
+  /// to establish a connection which we can then use to dial out or transfer
+  /// uuid's to.
+  /// These will, in their good right, spawn CHANNEL_ORIGINATE events which we
+  /// manually need to filter :-\
+  /// For now, the filter for origination is done by tagging the channels with a
+  /// variable (`agentChan`) by the origination request.
+  /// This is picked up by this function which then filters the channels from the
+  /// call list.
+  /// Upon call transfer, we also create a channel, but cannot (easily) tag the
+  /// channels, so we merely filter based upon whether or not they have a
+  /// [Other-Leg-Username] key in the map. This is probably over-simplifying things
+  /// and may be troublesome when throwing around local calls. This has yet to be
+  /// tested, however.
   void _createCall(esl.Event e) {
     /// Skip local channels
     if (e.fields.containsKey('variable_${ORPbxKey.agentChannel}')) {

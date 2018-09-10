@@ -15,7 +15,7 @@ part of orf.filestore;
 
 /// File-based storage backed for [model.Reception] objects.
 class Reception implements storage.Reception {
-  final Logger _log = new Logger('$_libraryName.Reception');
+  final Logger _log = Logger('$_libraryName.Reception');
 
   /// Directory path to where the serialized [model.Reception] objects
   /// are stored on disk.
@@ -26,15 +26,15 @@ class Reception implements storage.Reception {
   final bool logChanges;
   final Directory trashDir;
 
-  Bus<event.ReceptionChange> _changeBus = new Bus<event.ReceptionChange>();
+  Bus<event.ReceptionChange> _changeBus = Bus<event.ReceptionChange>();
 
   factory Reception(String path, [GitEngine _git, bool enableChangelog]) {
     if (path.isEmpty) {
-      throw new ArgumentError.value('', 'path', 'Path must not be empty');
+      throw ArgumentError.value('', 'path', 'Path must not be empty');
     }
 
-    if (!new Directory(path).existsSync()) {
-      new Directory(path).createSync();
+    if (!Directory(path).existsSync()) {
+      Directory(path).createSync();
     }
 
     if (_git != null) {
@@ -47,13 +47,13 @@ class Reception implements storage.Reception {
       enableChangelog = true;
     }
 
-    final Directory trashDir = new Directory(path + '/.trash');
+    final Directory trashDir = Directory(path + '/.trash');
     if (!trashDir.existsSync()) {
       trashDir.createSync();
     }
 
-    return new Reception._internal(path, new Calendar(path, _git),
-        new Sequencer(path), _git, enableChangelog, trashDir);
+    return Reception._internal(path, Calendar(path, _git),
+        Sequencer(path), _git, enableChangelog, trashDir);
   }
 
   Reception._internal(String this.path, this.calendarStore, this._sequencer,
@@ -90,17 +90,17 @@ class Reception implements storage.Reception {
   int get _nextId => _sequencer.nextInt();
 
   Future<Iterable<model.ReceptionReference>> _receptionsOfOrg(int oid) async {
-    final Iterable<FileSystemEntity> dirs = new Directory(path)
+    final Iterable<FileSystemEntity> dirs = Directory(path)
         .listSync()
         .where((FileSystemEntity fse) =>
             _isDirectory(fse) &&
-            new File(fse.path + '/reception.json').existsSync());
+            File(fse.path + '/reception.json').existsSync());
 
     return dirs
         .map((FileSystemEntity fse) {
-          final model.Reception reception = new model.Reception.fromJson(
-              JSON.decode(
-                  (new File(fse.path + '/reception.json')).readAsStringSync())
+          final model.Reception reception = model.Reception.fromJson(
+              _json.decode(
+                  (File(fse.path + '/reception.json')).readAsStringSync())
               as Map<String, dynamic>);
           return reception;
         })
@@ -117,15 +117,15 @@ class Reception implements storage.Reception {
         ? reception.id
         : _nextId;
 
-    final Directory dir = new Directory('$path/${reception.id}');
-    final File file = new File('${dir.path}/reception.json');
+    final Directory dir = Directory('$path/${reception.id}');
+    final File file = File('${dir.path}/reception.json');
 
     if (file.existsSync()) {
-      throw new ClientError(
+      throw ClientError(
           'File ${file.path} already exists, please update instead');
     }
 
-    _log.finest('Creating new reception file ${file.path}');
+    _log.finest('Creating reception file ${file.path}');
     dir.createSync();
     file.writeAsStringSync(_jsonpp.convert(reception));
 
@@ -138,28 +138,28 @@ class Reception implements storage.Reception {
     }
 
     if (logChanges) {
-      new ChangeLogger('$path/${reception.id}').add(
-          new model.ReceptionChangelogEntry.create(
+      ChangeLogger('$path/${reception.id}').add(
+          model.ReceptionChangelogEntry.create(
               modifier.reference, reception));
     }
 
     _changeBus
-        .fire(new event.ReceptionChange.create(reception.id, modifier.id));
+        .fire(event.ReceptionChange.create(reception.id, modifier.id));
 
     return reception.reference;
   }
 
   @override
   Future<model.Reception> get(int id) async {
-    final File file = new File('$path/$id/reception.json');
+    final File file = File('$path/$id/reception.json');
 
     if (!file.existsSync()) {
-      throw new NotFound('No file with name $id');
+      throw NotFound('No file with name $id');
     }
 
     try {
-      final model.Reception bc = new model.Reception.fromJson(
-          JSON.decode(file.readAsStringSync()) as Map<String, dynamic>);
+      final model.Reception bc = model.Reception.fromJson(
+          _json.decode(file.readAsStringSync()) as Map<String, dynamic>);
       return bc;
     } catch (e) {
       throw e;
@@ -168,16 +168,16 @@ class Reception implements storage.Reception {
 
   @override
   Future<Iterable<model.ReceptionReference>> list() async {
-    final Iterable<FileSystemEntity> dirs = new Directory(path)
+    final Iterable<FileSystemEntity> dirs = Directory(path)
         .listSync()
         .where((FileSystemEntity fse) =>
             _isDirectory(fse) &&
-            new File(fse.path + '/reception.json').existsSync());
+            File(fse.path + '/reception.json').existsSync());
 
     return dirs.map((FileSystemEntity fse) {
-      final model.Reception reception = new model.Reception.fromJson(
-          JSON.decode(
-              (new File(fse.path + '/reception.json')).readAsStringSync())
+      final model.Reception reception = model.Reception.fromJson(
+          _json.decode(
+              (File(fse.path + '/reception.json')).readAsStringSync())
           as Map<String, dynamic>);
       return reception.reference;
     });
@@ -185,10 +185,10 @@ class Reception implements storage.Reception {
 
   @override
   Future<Null> remove(int rid, model.User modifier) async {
-    final Directory receptionDir = new Directory('$path/$rid');
+    final Directory receptionDir = Directory('$path/$rid');
 
     if (!receptionDir.existsSync()) {
-      throw new NotFound();
+      throw NotFound();
     }
 
     _log.finest('Deleting file ${receptionDir.path}');
@@ -201,24 +201,24 @@ class Reception implements storage.Reception {
     }
 
     if (logChanges) {
-      new ChangeLogger('$path/$rid').add(
-          new model.ReceptionChangelogEntry.delete(modifier.reference, rid));
+      ChangeLogger('$path/$rid').add(
+          model.ReceptionChangelogEntry.delete(modifier.reference, rid));
     }
 
     await receptionDir.rename(trashDir.path + '/$rid');
 
-    _changeBus.fire(new event.ReceptionChange.delete(rid, modifier.id));
+    _changeBus.fire(event.ReceptionChange.delete(rid, modifier.id));
   }
 
   @override
   Future<model.ReceptionReference> update(
       model.Reception rec, model.User modifier) async {
     if (rec.id == model.Reception.noId) {
-      throw new ClientError('id may not be "noId"');
+      throw ClientError('id may not be "noId"');
     }
-    final File file = new File('$path/${rec.id}/reception.json');
+    final File file = File('$path/${rec.id}/reception.json');
     if (!file.existsSync()) {
-      throw new NotFound();
+      throw NotFound();
     }
 
     file.writeAsStringSync(_jsonpp.convert(rec));
@@ -232,11 +232,11 @@ class Reception implements storage.Reception {
     }
 
     if (logChanges) {
-      new ChangeLogger('$path/${rec.id}').add(
-          new model.ReceptionChangelogEntry.update(modifier.reference, rec));
+      ChangeLogger('$path/${rec.id}').add(
+          model.ReceptionChangelogEntry.update(modifier.reference, rec));
     }
 
-    _changeBus.fire(new event.ReceptionChange.update(rec.id, modifier.id));
+    _changeBus.fire(event.ReceptionChange.update(rec.id, modifier.id));
 
     return rec.reference;
   }
@@ -244,16 +244,16 @@ class Reception implements storage.Reception {
   @override
   Future<Iterable<model.Commit>> changes([int rid]) async {
     if (this._git == null) {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           'Filestore is instantiated without git support');
     }
 
     FileSystemEntity fse;
 
     if (rid == null) {
-      fse = new Directory(path);
+      fse = Directory(path);
     } else {
-      fse = new File('$path/$rid/reception.json');
+      fse = File('$path/$rid/reception.json');
     }
 
     Iterable<Change> gitChanges = await _git.changes(fse);
@@ -280,16 +280,16 @@ class Reception implements storage.Reception {
 
       final int id = int.parse(parts.first);
 
-      return new model.ReceptionChange(fc.changeType, id);
+      return model.ReceptionChange(fc.changeType, id);
     }
 
     Iterable<model.Commit> changes = gitChanges.map((Change change) =>
-        new model.Commit()
+        model.Commit()
           ..uid = extractUid(change.message)
           ..changedAt = change.changeTime
           ..commitHash = change.commitHash
           ..authorIdentity = change.author
-          ..changes = new List<model.ObjectChange>.from(
+          ..changes = List<model.ObjectChange>.from(
               change.fileChanges.map(convertFilechange)));
 
     _log.finest(changes.map((model.Commit c) => c.toJson()));
@@ -298,5 +298,5 @@ class Reception implements storage.Reception {
   }
 
   Future<String> changeLog(int rid) async =>
-      logChanges ? new ChangeLogger('$path/$rid').contents() : '';
+      logChanges ? ChangeLogger('$path/$rid').contents() : '';
 }

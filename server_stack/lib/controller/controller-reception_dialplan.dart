@@ -17,38 +17,23 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:esl/constants.dart' as esl;
 import 'package:esl/esl.dart' as esl;
 import 'package:esl/util.dart' as esl;
-import 'package:esl/constants.dart' as esl;
+import 'package:shelf/shelf.dart';
 import 'package:logging/logging.dart';
 import 'package:orf/dialplan_tools.dart' as dialplanTools;
 import 'package:orf/exceptions.dart';
 import 'package:orf/filestore.dart' as database;
-import 'package:orf/gzip_cache.dart' as gzip_cache;
-
 import 'package:orf/model.dart' as model;
 import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
 import 'package:ors/controller/controller-ivr.dart';
 import 'package:ors/response_utils.dart';
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
-/**
- * ReceptionDialplan controller class.
- */
+/// ReceptionDialplan controller class.
 class ReceptionDialplan {
-  final database.ReceptionDialplan _receptionDialplanStore;
-  final database.Reception _receptionStore;
-  final dialplanTools.DialplanCompiler compiler;
-  final String fsConfPath;
-  final Ivr _ivrController;
-  final service.Authentication _authService;
-  final gzip_cache.DialplanCache _cache;
 
-  final Logger _log = new Logger('server.controller.dialplan');
-  esl.Connection _eslClient;
-  final EslConfig eslConfig;
 
   /**
    *
@@ -60,19 +45,31 @@ class ReceptionDialplan {
       this.compiler,
       this._ivrController,
       this.fsConfPath,
-      this.eslConfig,
-      this._cache) {
+      this.eslConfig) {
     _connectESLClient();
   }
+
+  final Completer<void> _controllerReady = Completer<void>();
+  Future<void> get ready => _controllerReady.future;
+
+  final database.ReceptionDialplan _receptionDialplanStore;
+  final database.Reception _receptionStore;
+  final dialplanTools.DialplanCompiler compiler;
+  final String fsConfPath;
+  final Ivr _ivrController;
+  final service.Authentication _authService;
+
+  final Logger _log = Logger('server.controller.dialplan');
+  esl.Connection _eslClient;
+  final EslConfig eslConfig;
 
   /**
    *
    */
-  Future<shelf.Response> analyze(shelf.Request request) async {
-    final String extension = shelf_route.getPathParameter(request, 'extension');
+  Future<Response> analyze(Request request, final String extension) async {
 
     List<String> collectErrors(model.ReceptionDialplan rdp) =>
-        throw new UnimplementedError();
+        throw UnimplementedError();
 
     List<String> errors = [];
     try {
@@ -89,9 +86,9 @@ class ReceptionDialplan {
   /**
    *
    */
-  Future<shelf.Response> create(shelf.Request request) async {
+  Future<Response> create(Request request) async {
     final model.ReceptionDialplan rdp = new model.ReceptionDialplan.fromJson(
-        JSON.decode(await request.readAsString()) as Map<String, dynamic>);
+        json.decode(await request.readAsString()) as Map<String, dynamic>);
 
     model.User user;
     try {
@@ -104,7 +101,7 @@ class ReceptionDialplan {
     await _receptionDialplanStore.create(rdp, user);
 
     try {
-      return okGzip(new Stream.fromIterable([await _cache.get(rdp.extension)]));
+      return okJson(await _receptionDialplanStore.get(rdp.extension));
     } on NotFound catch (e) {
       return notFound(e.toString());
     }
@@ -113,15 +110,14 @@ class ReceptionDialplan {
   /**
    *
    */
-  Future<shelf.Response> deploy(shelf.Request request) async {
-    final String extension = shelf_route.getPathParameter(request, 'extension');
-    final int rid = int.parse(shelf_route.getPathParameter(request, 'rid'));
+  Future<Response> deploy(Request request, String extension, String rid) async {
 
     model.ReceptionDialplan rdp;
     model.Reception r;
     try {
       rdp = await _receptionDialplanStore.get(extension);
-      r = await _receptionStore.get(rid);
+      r = await _receptionStore.get(int.parse(rid));
+
     } on NotFound {
       return notFound('No dialplan with extension $extension');
     }
@@ -134,13 +130,13 @@ class ReceptionDialplan {
 
     /// Generate associated voicemail acccounts.
     final Iterable<model.Voicemail> voicemailAccounts =
-        rdp.allActions.where((a) => a is model.Voicemail);
+        rdp.allActions.whereType<model.Voicemail>();
 
     generatedFiles.addAll((await writeVoicemailfiles(
         voicemailAccounts, compiler, _log, fsConfPath)));
 
     // /// Generate associated IVR menus.
-    Iterable<model.Ivr> ivrMenus = rdp.allActions.where((a) => a is model.Ivr);
+    Iterable<model.Ivr> ivrMenus = rdp.allActions.whereType<model.Ivr>();
 
     generatedFiles.addAll(await _ivrController.writeIvrfiles(
         ivrMenus.map((menuAction) => menuAction.menuName), compiler, _log));
@@ -151,11 +147,10 @@ class ReceptionDialplan {
   /**
    *
    */
-  Future<shelf.Response> get(shelf.Request request) async {
-    final String extension = shelf_route.getPathParameter(request, 'extension');
+  Future<Response> get(Request request, final String extension) async {
 
     try {
-      return okGzip(new Stream.fromIterable([await _cache.get(extension)]));
+      return okJson(await _receptionDialplanStore.get(extension));
     } on NotFound catch (e) {
       return notFound(e.toString());
     }
@@ -164,10 +159,10 @@ class ReceptionDialplan {
   /**
    *
    */
-  Future<shelf.Response> list(shelf.Request request) async {
+  Future<Response> list(Request request) async {
     try {
-      return okGzip(new Stream.fromIterable(
-          [(await _cache.list()).toList(growable: false)]));
+      return okJson(
+          (await _receptionDialplanStore.list()).toList(growable: false));
     } on NotFound catch (e) {
       return notFound(e.toString());
     }
@@ -176,8 +171,8 @@ class ReceptionDialplan {
   /**
    *
    */
-  Future<shelf.Response> reloadConfig(shelf.Request request) async {
-    shelf.Response logAndReturn(esl.Response response) {
+  Future<Response> reloadConfig(Request request) async {
+    Response logAndReturn(esl.Response response) {
       final msg =
           'Failed to reload: PBX response: "${response.content}", status: ${response.status}';
       _log.shout(msg);
@@ -200,8 +195,7 @@ class ReceptionDialplan {
   /**
    *
    */
-  Future<shelf.Response> remove(shelf.Request request) async {
-    final String extension = shelf_route.getPathParameter(request, 'extension');
+  Future<Response> remove(Request request, final String extension) async {
     model.User user;
 
     try {
@@ -221,9 +215,9 @@ class ReceptionDialplan {
   /**
    *
    */
-  Future<shelf.Response> update(shelf.Request request) async {
+  Future<Response> update(Request request, final String extension) async {
     final model.ReceptionDialplan rdp = new model.ReceptionDialplan.fromJson(
-        JSON.decode(await request.readAsString()) as Map<String, dynamic>);
+        json.decode(await request.readAsString()) as Map<String, dynamic>);
 
     model.User user;
     try {
@@ -236,9 +230,7 @@ class ReceptionDialplan {
     return okJson(await _receptionDialplanStore.update(rdp, user));
   }
 
-/**
- * ESL client setup
- */
+  /// ESL client setup
   Future _connectESLClient() async {
     //Duration period = new Duration(seconds: 3);
     final String hostname = eslConfig.hostname;
@@ -252,19 +244,19 @@ class ReceptionDialplan {
     _log.info('Connecting to $hostname:$port');
 
     await _eslClient.event(['RELOADXML'], format: esl.EventFormat.json);
+    _controllerReady.complete();
   }
 
   /**
    *
    */
-  Future<shelf.Response> history(shelf.Request request) async =>
+  Future<Response> history(Request request) async =>
       okJson((await _receptionDialplanStore.changes()).toList(growable: false));
 
   /**
    *
    */
-  Future<shelf.Response> objectHistory(shelf.Request request) async {
-    final String extension = shelf_route.getPathParameter(request, 'extension');
+  Future<Response> objectHistory(Request request, final String extension) async {
 
     if (extension == null || extension.isEmpty) {
       return clientError('Bad extension: $extension');
@@ -277,8 +269,7 @@ class ReceptionDialplan {
   /**
    *
    */
-  Future<shelf.Response> changelog(shelf.Request request) async {
-    final String extension = shelf_route.getPathParameter(request, 'extension');
+  Future<Response> changelog(Request request, final String extension) async {
 
     if (extension == null || extension.isEmpty) {
       return clientError('Bad extension: $extension');

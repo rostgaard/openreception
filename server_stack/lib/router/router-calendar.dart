@@ -25,35 +25,34 @@ import 'package:ors/response_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
+import 'package:shelf_router/shelf_router.dart' as shelf_route;
 
 class Calendar {
-  final Logger _log = new Logger('server.router.calendar');
+  Calendar(this._authService, this._notification, this._calendarController);
+
+  final Logger _log = Logger('server.router.calendar');
 
   final service.Authentication _authService;
   final service.NotificationService _notification;
   final controller.Calendar _calendarController;
 
-  Calendar(this._authService, this._notification, this._calendarController);
 
-  /**
-   * Validate a token by looking it up on the authentication server.
-   */
+  /// Validate a token by looking it up on the authentication server.
   Future<shelf.Response> _lookupToken(shelf.Request request) async {
     var token = request.requestedUri.queryParameters['token'];
 
     try {
       await _authService.validate(token);
     } on NotFound {
-      return new shelf.Response.forbidden('Invalid token');
+      return shelf.Response.forbidden('Invalid token');
     } on io.SocketException {
-      return new shelf.Response.internalServerError(
+      return shelf.Response.internalServerError(
           body: 'Cannot reach authserver');
     } catch (error, stackTrace) {
       _log.severe(
           'Authentication validation lookup failed: $error:$stackTrace');
 
-      return new shelf.Response.internalServerError(body: error.toString());
+      return shelf.Response.internalServerError(body: error.toString());
     }
 
     /// Do not intercept the request, but let the next handler take care of it.
@@ -65,19 +64,19 @@ class Calendar {
    */
   void bindRoutes(dynamic router) {
     router
-      ..get('/calendar/cache', _calendarController.cacheStats)
-      ..post('/calendar/cache/prefill', _calendarController.cachePrefill)
-      ..delete('/calendar/cache', _calendarController.emptyCache)
-      ..get('/calendar/{type}:{oid}', _calendarController.list)
-      ..get('/calendar/{type}:{oid}/change', _calendarController.changes)
-      ..get('/calendar/{type}:{oid}/changelog', _calendarController.changelog)
-      ..get('/calendar/{type}:{oid}/{eid}', _calendarController.get)
-      ..get('/calendar/{type}:{oid}/{eid}/change', _calendarController.changes)
-      ..get('/calendar/{type}:{oid}/{eid}/deleted',
+      ..get('/calendar/<type>:<oid>', _calendarController.list)
+      ..get('/calendar/<type>:<oid>/change', _calendarController.changes)
+      ..get('/calendar/<type>:<oid>/changelog', _calendarController.changelog)
+      ..get('/calendar/<type>:<oid>/<eid>', _calendarController.get)
+      ..get('/calendar/<type>:<oid>/<eid>/change', _calendarController.changes)
+      ..get('/calendar/<type>:<oid>/<eid>/deleted',
           _calendarController.getDeleted)
-      ..put('/calendar/{type}:{oid}/{eid}', _calendarController.update)
-      ..post('/calendar/{type}:{oid}', _calendarController.create)
-      ..delete('/calendar/{type}:{oid}/{eid}', _calendarController.remove);
+      ..put('/calendar/<type>:<oid>/<eid>', _calendarController.update)
+      ..post('/calendar/<type>:<oid>', _calendarController.create)
+      ..delete('/calendar/<type>:<oid>/<eid>', _calendarController.remove)
+      ..all('/<catch-all|.*>', (shelf.Request request) {
+        return shelf.Response.notFound('Page not found');
+      });
   }
 
   /**
@@ -85,18 +84,17 @@ class Calendar {
    */
   Future<io.HttpServer> listen(
       {String hostname: '0.0.0.0', int port: 4110}) async {
-    /**
-     * Authentication middleware.
-     */
+
+    // Authentication middleware
     shelf.Middleware checkAuthentication = shelf.createMiddleware(
         requestHandler: _lookupToken, responseHandler: null);
 
-    var router = shelf_route.router();
+    var router = shelf_route.Router();
     bindRoutes(router);
 
     var handler = const shelf.Pipeline()
         .addMiddleware(
-            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(checkAuthentication)
         .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);
@@ -104,8 +102,6 @@ class Calendar {
     _log.fine('Using server on ${_authService.host} as authentication backend');
     _log.fine('Using server on ${_notification.host} as notification backend');
     _log.fine('Accepting incoming REST requests on http://$hostname:$port');
-    _log.fine('Serving routes:');
-    shelf_route.printRoutes(router, printer: (String item) => _log.fine(item));
 
     return await shelf_io.serve(handler, hostname, port);
   }

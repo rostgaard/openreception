@@ -18,33 +18,32 @@ part of orf.event;
 /// *Currently not in use*. Meant for a future  simplification of the
 /// event system.
 class CallAssign extends CallEvent {
-  @override
-  final String eventName = _Key._callAssign;
-
-  /// The id of user object of the agent that the call was assigned to.
-  final int uid;
-
   /// Default constructor. Subtypes the general [CallEvent] class.
   ///
   /// Takes the  [model.Call] being assigned and the [uid] of the user it being
   /// assigned to as arguments.
   CallAssign(model.Call call, this.uid) : super(call);
 
-  /// Create a new [CallAssign] object from serialized data stored in [map].
+  /// Create a [CallAssign] object from serialized data stored in [map].
   CallAssign.fromJson(Map<String, dynamic> map)
-      : uid = map[_Key._modifierUid],
+      : uid = map[_Key._modifierUid] as int,
         super.fromJson(map);
 
-  /// Returns an umodifiable map representation of the object, suitable for
+  /// Returns an unmodifiable map representation of the object, suitable for
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._modifierUid: uid,
         _Key._call: call.toJson()
       });
+  @override
+  final String eventName = _Key._callAssign;
+
+  /// The id of user object of the agent that the call was assigned to.
+  final int uid;
 
   /// Returns a brief string-represented summary of the event, suitable for
   /// logging or debugging purposes.

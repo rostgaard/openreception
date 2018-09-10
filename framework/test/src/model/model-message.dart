@@ -26,7 +26,7 @@ abstract class _ModelMessage {
   static void deserialization() {
     model.Message obj = buildObject();
     model.Message deserializedObj = new model.Message.fromJson(
-        JSON.decode(JSON.encode(obj)) as Map<String, dynamic>);
+        _json.decode(_json.encode(obj)) as Map<String, dynamic>);
 
     expect(obj.body, equals(deserializedObj.body));
     expect(
@@ -51,7 +51,7 @@ abstract class _ModelMessage {
 
   static void serialization() {
     model.Message builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);

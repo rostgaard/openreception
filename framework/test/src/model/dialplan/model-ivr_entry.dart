@@ -27,7 +27,7 @@ void _testModelIvrEntry() {
 abstract class _ModelIvrEntry {
   static void serialization() {
     model.IvrMenu builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -37,7 +37,7 @@ abstract class _ModelIvrEntry {
     model.IvrMenu builtObject = buildObject();
 
     model.IvrMenu deserializedObject = new model.IvrMenu.fromJson(
-        JSON.decode(JSON.encode(builtObject)) as Map<String, dynamic>);
+        _json.decode(_json.encode(builtObject)) as Map<String, dynamic>);
 
     expect(builtObject.toJson(), equals(deserializedObject.toJson()));
 
@@ -95,7 +95,7 @@ abstract class _ModelIvrEntry {
     model.IvrSubmenu builtObject = model.IvrEntry.parse('1: submenu $submenu');
 
     expect(builtObject.digits, equals('1'));
-    expect(builtObject, new isInstanceOf<model.IvrSubmenu>());
+    expect(builtObject, const TypeMatcher<model.IvrSubmenu>());
     expect(builtObject.name, equals(submenu));
   }
 
@@ -106,7 +106,7 @@ abstract class _ModelIvrEntry {
         model.IvrEntry.parse('2: transfer $extension');
 
     expect(builtObject.digits, equals('2'));
-    expect(builtObject, new isInstanceOf<model.IvrTransfer>());
+    expect(builtObject, const TypeMatcher<model.IvrTransfer>());
     expect(builtObject.transfer.extension, equals(extension));
   }
 
@@ -117,7 +117,7 @@ abstract class _ModelIvrEntry {
         model.IvrEntry.parse('2: reception $extension');
 
     expect(builtObject.digits, equals('2'));
-    expect(builtObject, new isInstanceOf<model.IvrReceptionTransfer>());
+    expect(builtObject, const TypeMatcher<model.IvrReceptionTransfer>());
     expect(builtObject.transfer.extension, equals(extension));
   }
 
@@ -130,7 +130,7 @@ abstract class _ModelIvrEntry {
         model.IvrEntry.parse('3: voicemail $vmBox $recipient ($note)');
 
     expect(builtObject.digits, equals('3'));
-    expect(builtObject, new isInstanceOf<model.IvrVoicemail>());
+    expect(builtObject, const TypeMatcher<model.IvrVoicemail>());
     expect(builtObject.voicemail.vmBox, equals(vmBox));
     expect(builtObject.voicemail.recipient, equals(recipient));
     expect(builtObject.voicemail.note, equals(note));
@@ -139,7 +139,7 @@ abstract class _ModelIvrEntry {
         model.IvrEntry.parse('3:   voicemail   $vmBox   $recipient   ($note)');
 
     expect(builtObject.digits, equals('3'));
-    expect(builtObject, new isInstanceOf<model.IvrVoicemail>());
+    expect(builtObject, const TypeMatcher<model.IvrVoicemail>());
     expect(builtObject.voicemail.vmBox, equals(vmBox));
     expect(builtObject.voicemail.recipient, equals(recipient));
     expect(builtObject.voicemail.note, equals(note));
@@ -147,7 +147,7 @@ abstract class _ModelIvrEntry {
     builtObject = model.IvrEntry.parse('3: voicemail $vmBox ($note)');
 
     expect(builtObject.digits, equals('3'));
-    expect(builtObject, new isInstanceOf<model.IvrVoicemail>());
+    expect(builtObject, const TypeMatcher<model.IvrVoicemail>());
     expect(builtObject.voicemail.vmBox, equals(vmBox));
     expect(builtObject.voicemail.recipient, isEmpty);
     expect(builtObject.voicemail.note, equals(note));
@@ -157,7 +157,7 @@ abstract class _ModelIvrEntry {
     model.IvrTopmenu builtObject = model.IvrEntry.parse('*: topmenu');
 
     expect(builtObject.digits, equals('*'));
-    expect(builtObject, new isInstanceOf<model.IvrEntry>());
+    expect(builtObject, const TypeMatcher<model.IvrEntry>());
   }
 
   static void parseUndefined() {
@@ -165,10 +165,10 @@ abstract class _ModelIvrEntry {
     //final String note = 'Just a test';
 
     expect(() => model.IvrEntry.parse('1: wrong-wrong-wrong '),
-        throwsA(new isInstanceOf<FormatException>()));
+        throwsA(const TypeMatcher<FormatException>()));
 
     ///Wrong digit length.
     expect(() => model.IvrEntry.parse('12: $filename'),
-        throwsA(new isInstanceOf<FormatException>()));
+        throwsA(const TypeMatcher<FormatException>()));
   }
 }

@@ -16,39 +16,37 @@ library ors.authentication.token_watcher;
 import 'dart:async';
 
 import 'package:logging/logging.dart';
-import 'package:ors/configuration.dart';
+
 import 'token_vault.dart';
 
-const String libraryName = 'AuthServer.tokenWatch';
+DateTime _jsonToDateTime(String timeString) => DateTime.parse(timeString);
 
-final Logger log = new Logger('$libraryName');
+class TokenWatcher {
+  TokenWatcher(this._vault) {
+    _setup();
+  }
 
-void setup() {
-  final Duration tickDuration = new Duration(seconds: 10);
-  new Timer.periodic(tickDuration, _timerTick);
-  log.info('Periodic timer started');
-}
+  final Logger _log = Logger('AuthServer.tokenWatch');
 
-void seen(String token) {
-  Map data = vault.getToken(token);
-  data['expiresAt'] =
-      dateTimeToJson(new DateTime.now().add(config.authServer.tokenLifetime));
-  vault.updateToken(token, data);
-}
+  final TokenVault _vault;
 
-void _timerTick(Timer timer) {
-  Iterable<String> tokens = vault.listUserTokens().toList();
-  for (String token in tokens) {
-    Map data = vault.getToken(token);
-    DateTime expiresAt = jsonToDateTime(data['expiresAt']);
+  void _setup() {
+    final Duration tickDuration = Duration(seconds: 10);
+    Timer.periodic(tickDuration, _timerTick);
+    _log.info('Periodic timer started');
+  }
 
-    int now = new DateTime.now().millisecondsSinceEpoch;
-    if (now > expiresAt.millisecondsSinceEpoch) {
-      log.info('This token $token expired $expiresAt - removing it');
-      vault.removeToken(token);
+  void _timerTick(Timer timer) {
+    Iterable<String> tokens = _vault.listUserTokens().toList(); // Copy list
+    for (String token in tokens) {
+      Map data = _vault.getToken(token);
+      DateTime expiresAt = _jsonToDateTime(data['expiresAt']);
+
+      int now = DateTime.now().millisecondsSinceEpoch;
+      if (now > expiresAt.millisecondsSinceEpoch) {
+        _log.info('This token $token expired $expiresAt - removing it');
+        _vault.removeToken(token);
+      }
     }
   }
 }
-
-DateTime jsonToDateTime(String timeString) => DateTime.parse(timeString);
-String dateTimeToJson(DateTime time) => time.toString();

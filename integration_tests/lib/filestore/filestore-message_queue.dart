@@ -6,7 +6,7 @@ _runMessageQueueTests() {
     TestEnvironment env;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       await env.messageStore.ready;
 
       sa = await env.createsServiceAgent();

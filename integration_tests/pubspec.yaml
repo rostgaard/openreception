@@ -5,21 +5,12 @@ dependencies:
   http: any
   logging: any
   esl:
-    git:
-      ref: devel
-      url: https://github.com/rostgaard/libesl-dart.git
+    path: ../../libesl-dart
   orf:
     path: ../framework
-    version: '>=0.0.30'
-  openreception.client_app_server:
-    path: ../tools/client_app_server
   phonio:
-    version: '>=0.0.91'
-    git: https://github.com/Bitstackers/Phonio.git
-  route: any
-  shelf: '>=0.6.0 <0.7.0'
-  shelf_static: any
-  shelf_cors: any
-  shelf_route: any
+    git:
+      ref: dart-2.0
+      url: https://github.com/rostgaard/Phonio.git
 dev_dependencies:
   test: any

@@ -5,13 +5,13 @@ class NoAvailable implements Exception {}
 class NotAquired implements Exception {}
 
 abstract class Pool<T> {
-  static final Logger log = new Logger('support.Pool');
+  static final Logger log = Logger('support.Pool');
 
-  Queue<T> available = new Queue();
-  Set<T> busy = new Set();
+  Queue<T> available = Queue();
+  Set<T> busy = Set();
 
   Iterable get elements =>
-      (new Set()..addAll(this.available.toSet())..addAll(this.busy.toSet()));
+      (Set()..addAll(this.available.toSet())..addAll(this.busy.toSet()));
 
   dynamic onAquire = (T element) => null;
   dynamic onRelease = (T element) => null;
@@ -23,7 +23,7 @@ abstract class Pool<T> {
   T aquire() {
     if (this.available.isEmpty) {
       log.shout('No objects available');
-      throw new NoAvailable();
+      throw NoAvailable();
     }
 
     T aquired = this.available.removeFirst();
@@ -38,7 +38,7 @@ abstract class Pool<T> {
   void release(T element) {
     if (!this.busy.contains(element)) {
       log.shout('Object is not aquired');
-      throw new NotAquired();
+      throw NotAquired();
     }
 
     log.finest('Released pool object $element');

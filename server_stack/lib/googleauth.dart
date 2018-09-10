@@ -13,8 +13,8 @@
 
 library ors.authentication.google_auth;
 
-import 'package:oauth2/oauth2.dart' as oauth2;
 import 'package:crypto/crypto.dart';
+import 'package:oauth2/oauth2.dart' as oauth2;
 
 final Uri authorizationEndpoint =
     Uri.parse("https://accounts.google.com/o/oauth2/auth");
@@ -27,7 +27,8 @@ Uri _authorizationUrl;
 Uri googleAuthUrl(String identifier, String secret, Uri redirectUrl) {
   if (_authorizationUrl == null) {
     oauth2.AuthorizationCodeGrant grant = new oauth2.AuthorizationCodeGrant(
-        identifier, secret, authorizationEndpoint, tokenEndpoint);
+        identifier, authorizationEndpoint, tokenEndpoint,
+        secret: secret);
     _authorizationUrl = grant.getAuthorizationUrl(redirectUrl, scopes: _scopes);
   }
 

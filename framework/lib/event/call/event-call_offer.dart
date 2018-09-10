@@ -15,21 +15,21 @@ part of orf.event;
 
 /// Event that notifies about a call being offered.
 class CallOffer extends CallEvent {
-  @override
-  final String eventName = _Key._callOffer;
-
   /// Default constructor. Subtypes the general [CallEvent] class and should
   /// be used to notify clients about a call being offered to agents.
   CallOffer(model.Call call) : super(call);
 
-  /// Create a new [CallOffer] object from serialized data stored in [map].
+  /// Create a [CallOffer] object from serialized data stored in [map].
   CallOffer.fromJson(Map<String, dynamic> map) : super.fromJson(map);
+
+  @override
+  final String eventName = _Key._callOffer;
 
   /// Returns an umodifiable map representation of the object, suitable for
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._call: call.toJson()

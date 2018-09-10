@@ -2,7 +2,7 @@ part of ort.service.call;
 
 abstract class Originate {
   ///Internal logger.
-  static Logger _log = new Logger('$_namespace.CallFlowControl.Originate');
+  static Logger _log = Logger('$_namespace.CallFlowControl.Originate');
 
   //TODO implement
   //static Future  originationToLookedUNumber()
@@ -17,12 +17,10 @@ abstract class Originate {
     expect(e.call.callerId, equals(receptionist.user.name));
   }
 
-  /**
-   * Tests the system behaviour whenever a channel being established to an
-   * agent that has disabled autoanswer and rejects the call.
-   * Expected behaviour is that the server should detect the reject and send
-   * a [storage.ClientError].
-   */
+  /// Tests the system behaviour whenever a channel being established to an
+  /// agent that has disabled autoanswer and rejects the call.
+  /// Expected behaviour is that the server should detect the reject and send
+  /// a [storage.ClientError].
   static Future originationOnAgentCallRejected(model.OriginationContext context,
       Receptionist receptionist, Customer customer) async {
     await receptionist.autoAnswer(false);
@@ -34,15 +32,13 @@ abstract class Originate {
     await receptionist.waitForInboundCall();
     _log.info('Receptionist $receptionist rejects the call');
     await receptionist.phoneHangupAll();
-    await expect(origination, throwsA(new isInstanceOf<ClientError>()));
+    await expect(origination, throwsA(const TypeMatcher<ClientError>()));
   }
 
-  /**
-   * Tests the system behaviour whenever a channel being established to an
-   * agent that has disabled autoanswer and never accepts the call.
-   * Expected behaviour is that the server should detect the reject and send
-   * a [storage.ClientError].
-   */
+  /// Tests the system behaviour whenever a channel being established to an
+  /// agent that has disabled autoanswer and never accepts the call.
+  /// Expected behaviour is that the server should detect the reject and send
+  /// a [storage.ClientError].
   static Future originationOnAgentAutoAnswerDisabled(
       model.OriginationContext context,
       Receptionist receptionist,
@@ -52,19 +48,17 @@ abstract class Originate {
     /// Asynchronous origination.
     Future origination = receptionist
         .originate(customer.extension, context)
-        .timeout(new Duration(seconds: 30));
+        .timeout(Duration(seconds: 30));
     await receptionist.waitForInboundCall();
     _log.info('Receptionist $receptionist ignores the incoming channel');
-    await expect(origination, throwsA(new isInstanceOf<ClientError>()));
+    await expect(origination, throwsA(const TypeMatcher<ClientError>()));
   }
 
-  /**
-     * Tests the system behaviour whenever a channel being established to an
-     * agent that has disabled autoanswer and never accepts the call _and_
-     * another agent tries to establish a channel to the PBX.
-     * Expected behaviour is that the second receptionist should be able
-     * to get the channel before the timeout.
-     */
+  /// Tests the system behaviour whenever a channel being established to an
+  /// agent that has disabled autoanswer and never accepts the call _and_
+  /// another agent tries to establish a channel to the PBX.
+  /// Expected behaviour is that the second receptionist should be able
+  /// to get the channel before the timeout.
   static Future agentAutoAnswerDisabledNonBlock(
       model.OriginationContext context,
       Receptionist receptionist,
@@ -75,7 +69,7 @@ abstract class Originate {
     /// Asynchronous origination.
     Future origination = receptionist
         .originate(customer.extension, context)
-        .timeout(new Duration(seconds: 30));
+        .timeout(Duration(seconds: 30));
 
     /// Ignore errors
     origination.catchError((_) => null);
@@ -85,24 +79,20 @@ abstract class Originate {
 
     Future secondOrigination = receptionist2
         .originate(customer.extension, context)
-        .timeout(new Duration(seconds: 10));
+        .timeout(Duration(seconds: 10));
 
     await secondOrigination;
   }
 
-  /**
-   * Origination to a number that is known (by the call-flow-control server) to
-   * be forbidden.
-   */
+  /// Origination to a number that is known (by the call-flow-control server) to
+  /// be forbidden.
   static void originationToForbiddenNumber(
       model.OriginationContext context, Receptionist receptionist) {
     return expect(receptionist.originate('X', context),
-        throwsA(new isInstanceOf<ClientError>()));
+        throwsA(const TypeMatcher<ClientError>()));
   }
 
-  /**
-   * Test if the system is able to originate to another peer.
-   */
+  /// Test if the system is able to originate to another peer.
   static Future originationToPeer(model.OriginationContext context,
       Receptionist receptionist, Customer customer) async {
     await receptionist.originate(customer.extension, context);
@@ -110,12 +100,10 @@ abstract class Originate {
     expect(call.callerId, equals(customer.phone.defaultAccount.username));
   }
 
-  /**
-   * Test if the system tags the callId to the channel.
-   */
+  /// Test if the system tags the callId to the channel.
   static Future originationWithCallContext(model.OriginationContext context,
       Receptionist receptionist, Customer customer) async {
-    final String callId = new DateTime.now().millisecondsSinceEpoch.toString();
+    final String callId = DateTime.now().millisecondsSinceEpoch.toString();
     context.callId = callId;
 
     await customer.autoAnswer(false);
@@ -124,16 +112,14 @@ abstract class Originate {
 
     await customer.waitForInboundCall();
     await customer.pickupCall();
-    await new Future.delayed(new Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 1));
     Map channel = await receptionist.callFlowControl.channelMap(call.channel);
 
     expect(channel['variables'][pbxKey.ORPbxKey.contextCallId], equals(callId));
   }
 
-  /**
-   * Check that only one call is present in the call list when performing an
-   * outbound dial.
-   */
+  /// Check that only one call is present in the call list when performing an
+  /// outbound dial.
   static Future originationToPeerCheckforduplicate(
       model.OriginationContext context,
       Receptionist receptionist,

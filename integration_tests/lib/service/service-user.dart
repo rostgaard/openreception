@@ -1,7 +1,7 @@
 part of ort.service;
 
 abstract class User {
-  static Logger _log = new Logger('$_namespace.User');
+  static Logger _log = Logger('$_namespace.User');
 
   static Future stateChange(
       ServiceAgent sa, service.RESTUserStore userService) async {
@@ -35,7 +35,7 @@ abstract class User {
 
     final event.UserState changeEvent = await expectedEvent;
 
-    expect(changeEvent.timestamp.difference(new DateTime.now()).inMilliseconds,
+    expect(changeEvent.timestamp.difference(DateTime.now()).inMilliseconds,
         lessThan(0));
   }
 
@@ -48,11 +48,11 @@ abstract class User {
     final createdUser = await sa.createsUser();
 
     final event.UserChange createEvent =
-        await nextUserCreateEvent.timeout(new Duration(seconds: 3));
+        await nextUserCreateEvent.timeout(Duration(seconds: 3));
 
     expect(createEvent.uid, equals(createdUser.id));
     expect(createEvent.modifierUid, equals(sa.user.id));
-    expect(createEvent.timestamp.difference(new DateTime.now()).inMilliseconds,
+    expect(createEvent.timestamp.difference(DateTime.now()).inMilliseconds,
         lessThan(0));
   }
 
@@ -66,11 +66,11 @@ abstract class User {
     await sa.updatesUser(createdUser);
 
     final event.UserChange updateEvent =
-        await nextUserUpdateEvent.timeout(new Duration(seconds: 3));
+        await nextUserUpdateEvent.timeout(Duration(seconds: 3));
 
     expect(updateEvent.uid, equals(createdUser.id));
     expect(updateEvent.modifierUid, equals(sa.user.id));
-    expect(updateEvent.timestamp.difference(new DateTime.now()).inMilliseconds,
+    expect(updateEvent.timestamp.difference(DateTime.now()).inMilliseconds,
         lessThan(0));
   }
 
@@ -84,11 +84,11 @@ abstract class User {
     await sa.removesUser(created);
 
     final event.UserChange deleteEvent =
-        await nextUserDeleteEvent.timeout(new Duration(seconds: 3));
+        await nextUserDeleteEvent.timeout(Duration(seconds: 3));
 
     expect(deleteEvent.uid, equals(created.id));
     expect(deleteEvent.modifierUid, equals(sa.user.id));
-    expect(deleteEvent.timestamp.difference(new DateTime.now()).inMilliseconds,
+    expect(deleteEvent.timestamp.difference(DateTime.now()).inMilliseconds,
         lessThan(0));
   }
 }

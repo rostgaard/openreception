@@ -6,7 +6,7 @@ void _runDialplanTests() {
     TestEnvironment env;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
       await env.dialplanStore.ready;
     });
@@ -38,7 +38,7 @@ void _runDialplanTests() {
     ServiceAgent sa;
     TestEnvironment env;
     setUp(() async {
-      env = new TestEnvironment(enableRevisions: true);
+      env = TestEnvironment(enableRevisions: true);
       sa = await env.createsServiceAgent();
       await env.dialplanStore.ready;
     });

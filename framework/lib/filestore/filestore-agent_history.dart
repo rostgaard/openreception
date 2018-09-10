@@ -14,7 +14,7 @@
 part of orf.filestore;
 
 /// RFC3339-style (yyyy-MM-dd) [DateFormat]
-final DateFormat _rfc3339 = new DateFormat('yyyy-MM-dd');
+final DateFormat _rfc3339 = DateFormat('yyyy-MM-dd');
 
 /// JSON-file based storage backed for agent call and message history.
 ///
@@ -24,7 +24,7 @@ final DateFormat _rfc3339 = new DateFormat('yyyy-MM-dd');
 /// Still work-in-progress.
 class AgentHistory {
   /// Internal logger
-  final Logger _log = new Logger('$_libraryName.AgentHistory');
+  final Logger _log = Logger('$_libraryName.AgentHistory');
 
   /// Directory path to where the serialized [model.BaseContact] objects
   /// are stored on disk.
@@ -46,9 +46,9 @@ class AgentHistory {
       <String, model.ActiveCall>{};
   final Map<String, model.DailyReport> _reports = <String, model.DailyReport>{};
 
-  Completer<Null> _initialized = new Completer<Null>();
+  Completer<Null> _initialized = Completer<Null>();
 
-  /// Create a new [AgentHistory] in directory [path].
+  /// Create a [AgentHistory] in directory [path].
   ///
   /// Requires a [userStore] to be able to map user ID's to names, and the
   /// stream of system [notifications].
@@ -58,14 +58,14 @@ class AgentHistory {
   factory AgentHistory(
       String path, storage.User userStore, Stream<event.Event> notifications) {
     if (path.isEmpty) {
-      throw new ArgumentError.value('', 'path', 'Path must not be empty');
+      throw ArgumentError.value('', 'path', 'Path must not be empty');
     }
 
-    return new AgentHistory._internal(
+    return AgentHistory._internal(
         path,
         userStore,
-        new File(path + '/uidmappings.json'),
-        new Directory(path + '/eventdumps'),
+        File(path + '/uidmappings.json'),
+        Directory(path + '/eventdumps'),
         notifications);
   }
 
@@ -73,9 +73,9 @@ class AgentHistory {
   /// fields.
   AgentHistory._internal(this.path, this._userStore, this._uidMapFile,
       this._eventDumpDir, Stream<event.Event> notifications) {
-    if (!new Directory(path).existsSync()) {
+    if (!Directory(path).existsSync()) {
       _log.info('Creating directory $path');
-      new Directory(path).createSync();
+      Directory(path).createSync();
     }
 
     if (!_eventDumpDir.existsSync()) {
@@ -83,9 +83,9 @@ class AgentHistory {
       _eventDumpDir.createSync();
     }
 
-    if (!new Directory(path + '/reports').existsSync()) {
+    if (!Directory(path + '/reports').existsSync()) {
       _log.info('Creating directory $path/reports');
-      new Directory(path + '/reports').createSync();
+      Directory(path + '/reports').createSync();
     }
 
     if (!_uidMapFile.existsSync()) {
@@ -96,7 +96,7 @@ class AgentHistory {
       _dispatchEvent(e, _reports);
     });
 
-    new Timer.periodic(new Duration(seconds: 10), (_) => _cleanup());
+    Timer.periodic(Duration(seconds: 10), (_) => _cleanup());
 
     _initialize();
   }
@@ -109,11 +109,11 @@ class AgentHistory {
 
   /// Loads a full report for a given [day] without deserializing it.
   Stream<List<int>> getRaw(DateTime day) {
-    final File f = new File('$path/reports/${_dateKey(day)}.json.gz');
+    final File f = File('$path/reports/${_dateKey(day)}.json.gz');
     if (f.existsSync()) {
       return f.readAsBytes().asStream();
     } else {
-      throw new NotFound('No report for day ${_dateKey(day)}');
+      throw NotFound('No report for day ${_dateKey(day)}');
     }
   }
 
@@ -149,7 +149,7 @@ class AgentHistory {
 
     if (e is event.CallEvent) {
       if (!_eventHistory.containsKey(e.call.id)) {
-        _eventHistory[e.call.id] = new model.ActiveCall.empty();
+        _eventHistory[e.call.id] = model.ActiveCall.empty();
       }
       _eventHistory[e.call.id].addEvent(e);
 
@@ -158,9 +158,9 @@ class AgentHistory {
       }
     } else if (e is event.MessageChange && e.isCreate) {
       reports[dateKey].addMessageHistory(
-          new model.MessageHistory(e.mid, e.modifierUid, e.timestamp));
+          model.MessageHistory(e.mid, e.modifierUid, e.timestamp));
     } else if (e is event.UserState) {
-      reports[dateKey].addUserStateChange(new model.UserStateHistory(
+      reports[dateKey].addUserStateChange(model.UserStateHistory(
           e.status.userId, e.timestamp, e.status.paused));
     } else {
       return;
@@ -173,17 +173,19 @@ class AgentHistory {
     final Map<String, model.DailyReport> _dateLog =
         <String, model.DailyReport>{};
 
-    final Iterable<File> files =
+    final Iterable<FileSystemEntity> files =
         _eventDumpDir.listSync().where((FileSystemEntity fse) => fse is File);
 
-    files.forEach((File file) {
+    files.forEach((FileSystemEntity f) {
+      final File file = f;
       _log.info('Reading event dump from ${file.path}');
       try {
         List<String> lines = file.readAsLinesSync();
 
         for (String line in lines) {
-          Map<String, dynamic> json = JSON.decode(line) as Map<String, dynamic>;
-          event.Event e = new event.Event.parse(json);
+          Map<String, dynamic> json =
+              _json.decode(line) as Map<String, dynamic>;
+          event.Event e = event.Event.parse(json);
           try {
             if (e != null) _dispatchEvent(e, _dateLog);
           } catch (e, s) {
@@ -207,15 +209,15 @@ class AgentHistory {
 
   /// Load a [model.DailyReport] for a given [day].
   model.DailyReport _loadReport(DateTime day) {
-    final File f = new File('$path/reports/${_dateKey(day)}.json.gz');
+    final File f = File('$path/reports/${_dateKey(day)}.json.gz');
     if (f.existsSync()) {
       _log.finest('Loading existing report for ${_dateKey(day)}');
-      return new model.DailyReport.fromJson(
+      return model.DailyReport.fromJson(
           unpackAndDeserializeObject(f.readAsBytesSync())
-          as Map<String, dynamic>);
+              as Map<String, dynamic>);
     } else {
-      _log.finest('Creating new daily report for ${_dateKey(day)}');
-      return new model.DailyReport.empty();
+      _log.finest('Creating daily report for ${_dateKey(day)}');
+      return model.DailyReport.empty();
     }
   }
 
@@ -228,7 +230,7 @@ class AgentHistory {
       return;
     }
 
-    final File f = new File('$path/reports/${_dateKey(report.day)}.json.gz');
+    final File f = File('$path/reports/${_dateKey(report.day)}.json.gz');
     _log.finest('Writing report for ${_dateKey(report.day)} to file ${f.path}');
     await f.writeAsBytes(serializeAndCompressObject(report));
   }
@@ -243,7 +245,7 @@ class AgentHistory {
       _log.info('Day changed. Rerolling stats');
 
       final List<String> keysToRemove = _reports.keys
-          .where((String key) => key != _dateKey(new DateTime.now()))
+          .where((String key) => key != _dateKey(DateTime.now()))
           .toList(growable: false);
 
       for (String key in keysToRemove) {
@@ -252,7 +254,7 @@ class AgentHistory {
       }
     } else {
       _log.finest('Updating daily report');
-      final DateTime day = new DateTime.now();
+      final DateTime day = DateTime.now();
       if (!_reports.containsKey(_dateKey(day))) {
         _reports[_dateKey(day)] = _loadReport(day);
       }
@@ -283,10 +285,10 @@ class AgentHistory {
 
   /// Load the persistent uid/username mappings from file.
   Future<Null> _loadUidCacheFile() async {
-    Map<String, String> deserialized;
+    Map<String, dynamic> deserialized;
     try {
       deserialized =
-          JSON.decode(await _uidMapFile.readAsString()) as Map<String, String>;
+          _json.decode(await _uidMapFile.readAsString());
     } on FormatException {
       _log.shout('Corrupt format for uid -> name mappings in '
           'file ${_uidMapFile.path}');
@@ -294,7 +296,7 @@ class AgentHistory {
     }
 
     _uidNameCache.clear();
-    deserialized.forEach((String uidString, String userName) {
+    deserialized.forEach((String uidString, dynamic userName) {
       try {
         final int uid = int.parse(uidString);
         _uidNameCache[uid] = userName;
@@ -315,7 +317,7 @@ class AgentHistory {
       serializable[uid.toString()] = username;
     });
 
-    await _uidMapFile.writeAsString(JSON.encode(serializable));
+    await _uidMapFile.writeAsString(_json.encode(serializable));
     _log.finest('Saved ${_uidNameCache.length} uid -> name mappings to '
         'file ${_uidMapFile.path}');
   }
@@ -325,5 +327,5 @@ class AgentHistory {
 
   /// Retrieve the [model.DailySummary] for [day].
   Future<model.DailySummary> agentSummay(DateTime day) async =>
-      new model.DailySummary(await get(day));
+      model.DailySummary(await get(day));
 }

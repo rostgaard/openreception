@@ -31,22 +31,22 @@ class OrganizationChange implements Event {
   /// The modification state. Must be one of the valid [Change] values.
   final String state;
 
-  /// Create a new creation event.
+  /// Create a creation event.
   OrganizationChange.create(this.oid, this.modifierUid)
       : this.state = Change.created,
-        this.timestamp = new DateTime.now();
+        this.timestamp = DateTime.now();
 
-  /// Create a new update event.
+  /// Create a update event.
   OrganizationChange.update(this.oid, this.modifierUid)
       : this.state = Change.updated,
-        this.timestamp = new DateTime.now();
+        this.timestamp = DateTime.now();
 
-  /// Create a new deletion event.
+  /// Create a deletion event.
   OrganizationChange.delete(this.oid, this.modifierUid)
       : this.state = Change.deleted,
-        this.timestamp = new DateTime.now();
+        this.timestamp = DateTime.now();
 
-  /// Create a new [OrganizationChange] object from serialized data stored
+  /// Create a [OrganizationChange] object from serialized data stored
   /// in [map].
   OrganizationChange.fromJson(Map<String, dynamic> map)
       : this.oid = map[_Key._organizationChange][_Key._oid],
@@ -67,7 +67,7 @@ class OrganizationChange implements Event {
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._modifierUid: modifierUid,

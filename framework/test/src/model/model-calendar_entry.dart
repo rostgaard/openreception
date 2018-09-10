@@ -25,7 +25,7 @@ abstract class _ModelCalendarEntry {
   static void deserialization() {
     model.CalendarEntry builtObject = buildObject();
     model.CalendarEntry deserialized = new model.CalendarEntry.fromJson(
-        JSON.decode(JSON.encode(builtObject)) as Map<String, dynamic>);
+        _json.decode(_json.encode(builtObject)) as Map<String, dynamic>);
 
     expect(builtObject.id, equals(deserialized.id));
     expect(builtObject.content, equals(deserialized.content));
@@ -38,8 +38,8 @@ abstract class _ModelCalendarEntry {
   }
 
   static void serialization() {
-    expect(JSON.encode(buildObject()), isNotNull);
-    expect(JSON.encode(buildObject()), isNotEmpty);
+    expect(_json.encode(buildObject()), isNotNull);
+    expect(_json.encode(buildObject()), isNotEmpty);
   }
 
   static model.CalendarEntry buildObject() {

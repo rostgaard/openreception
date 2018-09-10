@@ -2,14 +2,14 @@ part of ort.rest;
 
 void _runUserTests() {
   group('$_namespace.User', () {
-    Logger log = new Logger('$_namespace.User');
+    Logger log = Logger('$_namespace.User');
 
     ServiceAgent sa;
     TestEnvironment env;
     process.UserServer uProcess;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       uProcess = await env.requestUserserverProcess();
@@ -66,7 +66,7 @@ void _runUserTests() {
     TestEnvironment env;
     process.UserServer uProcess;
     setUp(() async {
-      env = new TestEnvironment(enableRevisions: true);
+      env = TestEnvironment(enableRevisions: true);
       sa = await env.createsServiceAgent();
 
       uProcess = await env.requestUserserverProcess();
@@ -96,7 +96,7 @@ void _runUserTests() {
     process.UserServer uProcess;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       uProcess = await env.requestUserserverProcess(withRevisioning: true);

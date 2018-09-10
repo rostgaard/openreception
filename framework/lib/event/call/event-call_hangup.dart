@@ -16,6 +16,17 @@ part of orf.event;
 /// Event that is spawned when the channel of a call destroyed. Must only occur
 /// once for every call.
 class CallHangup extends CallEvent {
+  /// Default constructor. Subtypes the general [CallEvent] class.
+  ///
+  /// Takes the [model.Call] being hung up as well as an optional [hangupCause].
+  /// The [hangupCause] should be copied from the PBX hangup reason text.
+  CallHangup(model.Call call, {this.hangupCause: ''}) : super(call);
+
+  /// Create a [CallHangup] object from serialized data stored in [map].
+  CallHangup.fromJson(Map<String, dynamic> map)
+      : hangupCause = map[_Key._hangupCause] as String,
+        super.fromJson(map);
+
   @override
   final String eventName = _Key._callHangup;
 
@@ -26,22 +37,11 @@ class CallHangup extends CallEvent {
   /// https://freeswitch.org/confluence/display/FREESWITCH/Hangup+Cause+Code+Table
   final String hangupCause;
 
-  /// Default constructor. Subtypes the general [CallEvent] class.
-  ///
-  /// Takes the [model.Call] being hung up as well as an optional [hangupCause].
-  /// The [hangupCause] should be copied from the PBX hangup reason text.
-  CallHangup(model.Call call, {this.hangupCause: ''}) : super(call);
-
-  /// Create a new [CallHangup] object from serialized data stored in [map].
-  CallHangup.fromJson(Map<String, dynamic> map)
-      : hangupCause = map[_Key._hangupCause],
-        super.fromJson(map);
-
-  /// Returns an umodifiable map representation of the object, suitable for
+  /// Returns an unmodifiable map representation of the object, suitable for
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._hangupCause: this.hangupCause,

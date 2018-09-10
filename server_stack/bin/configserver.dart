@@ -22,9 +22,7 @@ import 'package:ors/configuration.dart';
 import 'package:ors/controller/controller-config.dart' as controller;
 import 'package:ors/router/router-config.dart' as router;
 
-/**
- * The OR-Stack configuration server. Provides a REST configuration interface.
- */
+/// The OR-Stack configuration server. Provides a REST configuration interface.
 Future main(List<String> args) async {
   ///Init logging.
   Logger.root.level = config.configserver.log.level;

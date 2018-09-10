@@ -21,11 +21,11 @@ class StorageException implements Exception {}
 
 /// Storage-class exception that indicate that a resource is not found.
 class NotFound implements StorageException {
-  /// The carried exception message.
-  final String message;
-
   /// Create a new [NotFound] exception with [message].
   const NotFound([this.message = ""]);
+
+  /// The carried exception message.
+  final String message;
 
   @override
   String toString() => "NotFound: $message";

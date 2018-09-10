@@ -105,7 +105,7 @@ class UIContactSelector extends UIModel {
         ..dataset['departments'] = departments.toSet().join('-|-').toLowerCase()
         ..dataset['tags'] = tags.toSet().join('-|-').toLowerCase()
         ..dataset['titles'] = titles.toSet().join('-|-').toLowerCase()
-        ..dataset['object'] = JSON.encode(item)
+        ..dataset['object'] = json.encode(item)
         ..classes.addAll(item.contact.enabled ? [] : ['disabled'])
         ..classes.addAll(item.contact.type == 'function' ? ['function'] : [])
         ..text = item.contact.name);
@@ -116,11 +116,11 @@ class UIContactSelector extends UIModel {
 
   /**
    * Fire a [ContactWithFilterContext] on [_bus]. The wrapped [Contact] is
-   * constructed from JSON found in the data-object attribute of [li].
+   * constructed from json found in the data-object attribute of [li].
    */
   void _contactSelectCallback(LIElement li) {
     model.ReceptionContact rc = new model.ReceptionContact.fromJson(
-        JSON.decode(li.dataset['object']) as Map<String, dynamic>);
+        json.decode(li.dataset['object']) as Map<String, dynamic>);
     _bus.fire(new ContactWithFilterContext(
         rc.contact, rc.attr, state, filterInputValue));
   }
@@ -334,7 +334,7 @@ class UIContactSelector extends UIModel {
 
     if (li != null) {
       return new model.ReceptionContact.fromJson(
-          JSON.decode(li.dataset['object']) as Map<String, dynamic>);
+          json.decode(li.dataset['object']) as Map<String, dynamic>);
     } else {
       return new model.ReceptionContact.empty();
     }

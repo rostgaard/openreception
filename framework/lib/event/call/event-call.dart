@@ -16,17 +16,17 @@ part of orf.event;
 /// Convenience class/interface that provides a mean for grouping all
 /// call-related events and providing a common shared interface for them.
 abstract class CallEvent implements Event {
+  /// Generative constructor for use
+  CallEvent(this.call) : timestamp = DateTime.now();
+
+  /// Generative constructor needed by specializations of the [CallEvent] class.
+  CallEvent.fromJson(Map<String, dynamic> map)
+      : call = model.Call.fromJson(map[_Key._call] as Map<String, dynamic>),
+        timestamp = util.unixTimestampToDateTime((map[_Key._timestamp] as int));
+
   @override
   final DateTime timestamp;
 
   /// The [model.Call] object of the event.
   final model.Call call;
-
-  /// Generative constructor for use
-  CallEvent(this.call) : timestamp = new DateTime.now();
-
-  /// Generative constructor needed by specializations of the [CallEvent] class.
-  CallEvent.fromJson(Map<String, dynamic> map)
-      : call = new model.Call.fromJson(map[_Key._call] as Map<String, dynamic>),
-        timestamp = util.unixTimestampToDateTime(map[_Key._timestamp]);
 }

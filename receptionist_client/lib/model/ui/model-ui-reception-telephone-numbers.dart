@@ -85,7 +85,7 @@ class UIReceptionTelephoneNumbers extends UIModel {
 
       list.add(new LIElement()
         ..children.addAll([spanNumber, spanLabel])
-        ..dataset['object'] = JSON.encode(item));
+        ..dataset['object'] = json.encode(item));
     });
 
     _list.children = list;

@@ -13,30 +13,24 @@
 
 part of orc.model;
 
-/**
- * Provides methods for manipulating the visibility of the loading view.
- */
+/// Provides methods for manipulating the visibility of the loading view.
 class UIORCLoading {
-  DivElement _myRoot;
 
-  /**
-   * Constructor.
-   */
+  /// Constructor.
   UIORCLoading(String id) {
     _myRoot = querySelector('#$id');
   }
-
+  DivElement _myRoot;
+  
   DivElement get _loadingProgressMessages =>
       _myRoot.querySelector('div.loading-progress');
 
-  /**
-   * Set visibility according to [value].
-   */
+  /// Set visibility according to [value].
   set visible(bool value) {
     _myRoot.style.display = value ? 'flex' : 'none';
   }
 
   void addLoadingMessage(String message) {
-    _loadingProgressMessages.children.add(new SpanElement()..text = message);
+    _loadingProgressMessages.children.add(SpanElement()..text = message);
   }
 }

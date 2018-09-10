@@ -16,11 +16,11 @@ part of orf.service.io;
 /// HTTP Client for use with dart:io.
 class Client extends service.WebService {
   static final io.ContentType _contentTypeJson =
-      new io.ContentType("application", "json", charset: "utf-8");
+      io.ContentType("application", "json", charset: "utf-8");
   static final io.ContentType _contentTypeApplicationForm =
-      new io.ContentType("application", "x-www-form-urlencoded");
+      io.ContentType("application", "x-www-form-urlencoded");
 
-  final io.HttpClient client = new io.HttpClient();
+  final io.HttpClient client = io.HttpClient();
 
   /// Retrives [resource] using HTTP GET.
   ///

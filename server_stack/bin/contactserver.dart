@@ -18,29 +18,24 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
-import 'package:orf/filestore.dart' as filestore;
-import 'package:orf/gzip_cache.dart' as gzip_cache;
+import 'package:orf/filestore.dart' as fileStore;
 import 'package:orf/service-io.dart' as service;
 import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
 import 'package:ors/controller/controller-contact.dart' as controller;
 import 'package:ors/router/router-contact.dart' as router;
 
-Logger _log = new Logger('ContactServer');
-ArgResults _parsedArgs;
-ArgParser _parser = new ArgParser();
+Logger _log = Logger('ContactServer');
 
-/**
- * The OR-Stack contact server. Provides a REST interface for retrieving and
- * manipulating contacts.
- */
+/// The OR-Stack contact server. Provides a REST interface for retrieving and
+/// manipulating contacts.
 Future main(List<String> args) async {
   ///Init logging.
   Logger.root.level = config.contactServer.log.level;
   Logger.root.onRecord.listen(config.contactServer.log.onRecord);
 
   ///Handle argument parsing.
-  final ArgParser parser = new ArgParser()
+  final ArgParser parser = ArgParser()
     ..addFlag('help', help: 'Output this help', negatable: false)
     ..addOption('filestore', abbr: 'f', help: 'Path to the filestore backend')
     ..addOption('httpport',
@@ -80,7 +75,7 @@ Future main(List<String> args) async {
   try {
     port = int.parse(parsedArgs['httpport']);
     if (port < 1 || port > 65535) {
-      throw new FormatException();
+      throw FormatException();
     }
   } on FormatException {
     stderr.writeln('Bad port argument: ${parsedArgs['httpport']}');
@@ -92,62 +87,33 @@ Future main(List<String> args) async {
   final bool revisioning = parsedArgs['experimental-revisioning'];
 
   final revisionEngine = revisioning
-      ? new filestore.GitEngine(parsedArgs['filestore'] + '/contact')
+      ? fileStore.GitEngine(parsedArgs['filestore'] + '/contact')
       : null;
 
-  final service.Authentication _authentication = new service.Authentication(
+  final service.Authentication _authentication = service.Authentication(
       Uri.parse(parsedArgs['auth-uri']),
       config.userServer.serverToken,
-      new service.Client());
+      service.Client());
 
-  final service.NotificationService _notification =
-      new service.NotificationService(Uri.parse(parsedArgs['notification-uri']),
-          config.userServer.serverToken, new service.Client());
+  final service.NotificationService _notification = service.NotificationService(
+      Uri.parse(parsedArgs['notification-uri']),
+      config.userServer.serverToken,
+      service.Client());
 
-  final Uri notificationUri =
-      Uri.parse('ws://${_notification.host.host}:${_notification.host.port}'
-          '/notifications?token=${config.contactServer.serverToken}');
+  final fileStore.Reception rStore =
+      fileStore.Reception(filepath + '/reception');
 
-  final service.WebSocket wsClient =
-      await (new service.WebSocketClient()).connect(notificationUri);
-
-  final service.NotificationSocket _notificationSocket =
-      new service.NotificationSocket(wsClient);
-
-  final filestore.Reception rStore =
-      new filestore.Reception(filepath + '/reception');
-
-  final filestore.Contact cStore =
-      new filestore.Contact(rStore, filepath + '/contact', revisionEngine);
-
-  final _cache = new gzip_cache.ContactCache(
-      cStore,
-      cStore.onContactChange,
-      cStore.onReceptionDataChange,
-      _notificationSocket.onReceptionChange,
-      _notificationSocket.onOrganizationChange);
-
-  await _prefillCache(_cache);
+  final fileStore.Contact cStore =
+      fileStore.Contact(rStore, filepath + '/contact', revisionEngine);
 
   controller.Contact contactController =
-      new controller.Contact(cStore, _notification, _authentication, _cache);
+      controller.Contact(cStore, _notification, _authentication);
 
   final router.Contact contactRouter =
-      new router.Contact(_authentication, _notification, contactController);
+      router.Contact(_authentication, _notification, contactController);
 
   await contactRouter.listen(port: port, hostname: parsedArgs['host']);
 
   _log.info('Ready to handle requests');
-}
-
-Future<Null> _prefillCache(gzip_cache.ContactCache _cache) async {
-  Stopwatch timer = new Stopwatch()..start();
-  _log.info('Prefilling cache');
-  await _cache.prefill();
-
-  int byteCount =
-      _cache.stats['contactSize'] + _cache.stats['receptionContactSize'];
-  timer.stop();
-  _log.info('Prefilled cache with ${byteCount~/1024}kB gzipped data '
-      'in ${timer.elapsedMilliseconds}ms.');
+  _log.info('Ready to handle requests');
 }

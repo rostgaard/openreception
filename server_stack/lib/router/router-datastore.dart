@@ -17,48 +17,119 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:logging/logging.dart';
+import 'package:orf/exceptions.dart';
 import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
+import 'package:ors'
+    '/controller/controller-ivr.dart' as controller;
+import 'package:ors'
+    '/controller/controller-peer_account.dart' as controller;
+import 'package:ors'
+    '/controller/controller-reception_dialplan.dart' as controller;
 import 'package:ors/response_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
+import 'package:shelf_router/shelf_router.dart' as shelf_route;
 
+/**
+ *
+ */
 class Datastore {
-  final Logger _log = new Logger('server.router.datastore');
-
-  final service.Authentication _authService;
-  final service.NotificationService _notification;
-
-  factory Datastore(_authService, _notification) {
-    return new Datastore._internal(_authService, _notification);
-  }
-
-  Datastore._internal(this._authService, this._notification);
-
   /**
-   * Start the router.
+   *
    */
-  Future<io.HttpServer> listen(Iterable routers,
-      {String hostname: '0.0.0.0', int port: 4030}) {
-    var router = shelf_route.router();
-    for (var r in routers) {
-      r.bindRoutes(router);
+  Datastore(this._authService, this._ivrController, this._paController,
+      this._rdpController);
+
+  final Logger _log = Logger('server.router.datastore');
+  final controller.Ivr _ivrController;
+  final controller.PeerAccount _paController;
+  final controller.ReceptionDialplan _rdpController;
+  final service.Authentication _authService;
+
+
+  /// Validate a token by looking it up on the authentication server.
+  Future<shelf.Response> _lookupToken(shelf.Request request) async {
+    var token = request.requestedUri.queryParameters['token'];
+
+    try {
+      await _authService.validate(token);
+    } on NotFound {
+      return shelf.Response.forbidden('Invalid token');
+    } on io.SocketException {
+      return shelf.Response.internalServerError(
+          body: 'Cannot reach authserver');
+    } catch (error, stackTrace) {
+      _log.severe(
+          'Authentication validation lookup failed: $error:$stackTrace');
+
+      return shelf.Response.internalServerError(body: error.toString());
     }
 
-    var handler = const shelf.Pipeline()
+    /// Do not intercept the request, but let the next handler take care of it.
+    return null;
+  }
+
+  /**
+   *
+   */
+  void bindRoutes(dynamic router) {
+    router
+      ..post('/peeraccount/user/{uid}/deploy', _paController.deploy)
+      ..get('/peeraccount', _paController.list)
+      ..get('/peeraccount/{aid}', _paController.get)
+      ..delete('/peeraccount/{aid}', _paController.remove)
+      ..get('/ivr', _ivrController.list)
+      ..get('/ivr/{name}', _ivrController.get)
+      ..put('/ivr/{name}', _ivrController.update)
+      ..post('/ivr/{name}/deploy', _ivrController.deploy)
+      ..delete('/ivr/{name}', _ivrController.remove)
+      ..get('/ivr/{name}/history', _ivrController.objectHistory)
+      ..get('/ivr/{name}/changelog', _ivrController.changelog)
+      ..post('/ivr', _ivrController.create)
+      ..get('/ivr/history', _ivrController.history)
+      ..get('/receptiondialplan', _rdpController.list)
+      ..get('/receptiondialplan/{extension}', _rdpController.get)
+      ..put('/receptiondialplan/{extension}', _rdpController.update)
+      ..post('/receptiondialplan/reloadConfig', _rdpController.reloadConfig)
+      ..get('/receptiondialplan/{extension}/history',
+          _rdpController.objectHistory)
+      ..get(
+          '/receptiondialplan/{extension}/changelog', _rdpController.changelog)
+      ..delete('/receptiondialplan/{extension}', _rdpController.remove)
+      ..post('/receptiondialplan', _rdpController.create)
+      ..get('/receptiondialplan/history', _rdpController.history)
+      ..post('/receptiondialplan/{extension}/analyze', _rdpController.analyze)
+      ..post(
+          '/receptiondialplan/{extension}/deploy/{rid}', _rdpController.deploy)
+      ..all('/<catch-all|.*>', (shelf.Request request) {
+        return shelf.Response.notFound('Page not found');
+      });
+  }
+
+  /**
+   *
+   */
+  Future<io.HttpServer> listen(
+      {String hostname: '0.0.0.0', int port: 4060}) async {
+
+     // Authentication middleware.
+    shelf.Middleware checkAuthentication = shelf.createMiddleware(
+        requestHandler: _lookupToken, responseHandler: null);
+
+    final router = shelf_route.Router();
+    bindRoutes(router);
+
+    final handler = const shelf.Pipeline()
         .addMiddleware(
-            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+        .addMiddleware(checkAuthentication)
         .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);
 
+    _log.fine('Accepting incoming requests on $hostname:$port:');
     _log.fine('Using server on ${_authService.host} as authentication backend');
-    _log.fine('Using server on ${_notification.host} as notification backend');
-    _log.fine('Accepting incoming REST requests on http://$hostname:$port');
-    _log.fine('Serving routes:');
-    shelf_route.printRoutes(router, printer: (String item) => _log.fine(item));
-
-    return shelf_io.serve(handler, hostname, port);
+    return await shelf_io.serve(handler, hostname, port);
   }
 }

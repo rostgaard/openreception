@@ -1,26 +1,22 @@
 part of ort.storage;
 
 abstract class User {
-  static final Logger _log = new Logger('$_libraryName.User');
+  static final Logger _log = Logger('$_libraryName.User');
 
-  /**
-   * Test server behaviour when trying to aquire a user object that does
-   * not exist.
-   *
-   * The expected behaviour is that the server should return a Not Found error.
-   */
+  /// Test server behaviour when trying to aquire a user object that does
+  /// not exist.
+  ///
+  /// The expected behaviour is that the server should return a Not Found error.
   static void nonExisting(ServiceAgent sa) {
     _log.info('Checking server behaviour on a non-existing user.');
 
     expect(sa.userStore.get(-1), throwsA(notFoundError));
   }
 
-  /**
-   * Test server behaviour when trying to aquire a user object that exists.
-   *
-   * The expected behaviour is that the server should return the
-   * User object.
-   */
+  /// Test server behaviour when trying to aquire a user object that exists.
+  ///
+  /// The expected behaviour is that the server should return the
+  /// User object.
   static Future existing(ServiceAgent sa) async {
     _log.info('Checking server behaviour on an existing user.');
 
@@ -37,9 +33,6 @@ abstract class User {
     expect(created.identities, equals(fetched.identities));
   }
 
-  /**
-   *
-   */
   static Future create(ServiceAgent sa) async {
     _log.info('Checking server behaviour on an user creation.');
 
@@ -59,9 +52,6 @@ abstract class User {
     expect(created.identities, equals(newUser.identities));
   }
 
-  /**
-   *
-   */
   static Future createAfterLastRemove(ServiceAgent sa) async {
     final model.User user = await sa.createsUser();
 
@@ -69,9 +59,6 @@ abstract class User {
     await await sa.createsUser();
   }
 
-  /**
-   *
-   */
   static Future update(ServiceAgent sa) async {
     _log.info('Checking server behaviour on an user updating.');
 
@@ -90,9 +77,6 @@ abstract class User {
     expect(changed.identities, equals(fetched.identities));
   }
 
-  /**
-   *
-   */
   static Future remove(ServiceAgent sa) async {
     _log.info('Checking server behaviour on an user removal.');
 
@@ -102,15 +86,13 @@ abstract class User {
     await sa.userStore.remove(created.id, sa.user);
 
     return expect(
-        sa.userStore.get(created.id), throwsA(new isInstanceOf<NotFound>()));
+        sa.userStore.get(created.id), throwsA(TypeMatcher<NotFound>()));
   }
 
-  /**
-   * Test server behaviour when trying to aquire a list of user objects
-   *
-   * The expected behaviour is that the server should return a list of
-   * User objects.
-   */
+  /// Test server behaviour when trying to aquire a list of user objects
+  ///
+  /// The expected behaviour is that the server should return a list of
+  /// User objects.
   static Future list(ServiceAgent sa) async {
     _log.info('Checking server behaviour on list of users.');
 
@@ -151,12 +133,10 @@ abstract class User {
     }
   }
 
-  /**
-   * Test server behaviour when trying to list all available groups
-   *
-   * The expected behaviour is that the server should return a list of
-   * UserGroup objects.
-   */
+  /// Test server behaviour when trying to list all available groups
+  ///
+  /// The expected behaviour is that the server should return a list of
+  /// UserGroup objects.
   static Future listAllGroups(ServiceAgent sa) async {
     _log.info('Looking up group list.');
 
@@ -168,12 +148,10 @@ abstract class User {
     expect(groups, contains(model.UserGroups.serviceAgent));
   }
 
-  /**
-   * Test server behaviour when trying to list all available groups
-   *
-   * The expected behaviour is that the server should return a list of
-   * UserGroup objects.
-   */
+  /// Test server behaviour when trying to list all available groups
+  ///
+  /// The expected behaviour is that the server should return a list of
+  /// UserGroup objects.
   static Future userGroups(ServiceAgent sa) async {
     final model.User user = await sa.createsUser();
     if (user.groups.isNotEmpty) {
@@ -187,10 +165,7 @@ abstract class User {
     }
   }
 
-  /**
-   * Add a user to a group.
-   */
-
+  /// Add a user to a group.
   static Future joinGroup(ServiceAgent sa) async {
     final model.User user = await sa.createsUser();
     _log.info('Clearing user groups');
@@ -238,10 +213,7 @@ abstract class User {
     }
   }
 
-  /**
-   * Remove a user from a group.
-   */
-
+  /// Remove a user from a group.
   static Future leaveGroup(ServiceAgent sa) async {
     final model.User user = await sa.createsUser();
     _log.info('Clearing user groups');
@@ -288,9 +260,7 @@ abstract class User {
     }
   }
 
-  /**
-   * Add an identity to a user.
-   */
+  /// Add an identity to a user.
   static Future getUserByIdentity(ServiceAgent sa) async {
     final model.User created = await sa.createsUser();
     _log.info('Clearing user identities');
@@ -325,9 +295,7 @@ abstract class User {
     expect(created.identities, equals(fetched.identities));
   }
 
-  /**
-   * Add an identity to a user.
-   */
+  /// Add an identity to a user.
   static Future addUserIdentity(ServiceAgent sa) async {
     final model.User user = await sa.createsUser();
     _log.info('Clearing user identities');
@@ -375,9 +343,7 @@ abstract class User {
     }
   }
 
-  /**
-   * Remove an identity from a user.
-   */
+  /// Remove an identity from a user.
   static Future removeUserIdentity(ServiceAgent sa) async {
     final model.User user = await sa.createsUser();
     _log.info('Clearing user identities');
@@ -437,12 +403,12 @@ abstract class User {
 
     expect(commits.length, equals(1));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
-    final change = commits.first.changes.first;
+    final model.UserChange change = commits.first.changes.first;
 
     expect(change.changeType, model.ChangeType.add);
     expect(change.uid, created.id);
@@ -461,23 +427,23 @@ abstract class User {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.UserChange latestChange = commits.first.changes.first;
+    final model.UserChange oldestChange = commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.modify);
     expect(latestChange.uid, created.id);
@@ -501,23 +467,23 @@ abstract class User {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.UserChange latestChange = commits.first.changes.first;
+    final model.UserChange oldestChange = commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.delete);
     expect(latestChange.uid, created.id);

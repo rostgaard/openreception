@@ -3,6 +3,8 @@
 *~
 .#*#
 
+*/.dart_tool/
+*/.idea/
 # Do not track makefile.setup and config.dart
 config.dart
 makefile.setup

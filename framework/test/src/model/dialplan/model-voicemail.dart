@@ -25,7 +25,7 @@ void _testModelVoicemail() {
 abstract class _ModelVoicemail {
   static void serialization() {
     model.Voicemail builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -35,7 +35,7 @@ abstract class _ModelVoicemail {
     model.Voicemail builtObject = buildObject();
 
     model.Voicemail deserializedObject =
-        model.Voicemail.parse(JSON.decode(JSON.encode(builtObject)));
+        model.Voicemail.parse(_json.decode(_json.encode(builtObject)) as String);
 
     expect(builtObject.toJson(), equals(deserializedObject.toJson()));
 

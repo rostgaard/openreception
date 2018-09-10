@@ -37,32 +37,32 @@ class MessageChange implements Event {
   /// The state of the [model.Message].
   final model.MessageState messageState;
 
-  /// Create a new creation event.
+  /// Create a creation event.
   factory MessageChange.create(int mid, int modifierUid,
           model.MessageState messageState, DateTime createdAt) =>
-      new MessageChange._internal(
+      MessageChange._internal(
           mid, modifierUid, Change.created, messageState, createdAt);
 
-  /// Create a new update event.
+  /// Create a update event.
   factory MessageChange.update(int mid, int modifierUid,
           model.MessageState messageState, DateTime createdAt) =>
-      new MessageChange._internal(
+      MessageChange._internal(
           mid, modifierUid, Change.updated, messageState, createdAt);
 
-  /// Create a new deletion event.
+  /// Create a deletion event.
   factory MessageChange.delete(int mid, int modifierUid,
           model.MessageState messageState, DateTime createdAt) =>
-      new MessageChange._internal(
+      MessageChange._internal(
           mid, modifierUid, Change.deleted, messageState, createdAt);
 
   MessageChange._internal(
       this.mid, this.modifierUid, this.state, this.messageState, this.createdAt)
-      : timestamp = new DateTime.now();
+      : timestamp = DateTime.now();
 
-  /// Create a new [MessageChange] object from serialized data stored in [map].
+  /// Create a [MessageChange] object from serialized data stored in [map].
   factory MessageChange.fromJson(Map<String, dynamic> map) {
     if (map.containsKey('messageChange')) {
-      return new MessageChange._oldformat(map);
+      return MessageChange._oldformat(map);
     }
 
     final int modifierUid = map[_Key._modifierUid];
@@ -77,11 +77,11 @@ class MessageChange implements Event {
         ? util.unixTimestampToDateTime(map[_Key._createdAt])
         : util.never;
 
-    return new MessageChange._internalDecoder(
+    return MessageChange._internalDecoder(
         timestamp, mid, modifierUid, state, messageState, createdAt);
   }
 
-  /// Create a new [MessageChange] object from version 1-serialized data
+  /// Create a [MessageChange] object from version 1-serialized data
   /// stored in [map].
   factory MessageChange._oldformat(Map<String, dynamic> map) {
     final int modifierUid = map['messageChange']['userID'];
@@ -95,7 +95,7 @@ class MessageChange implements Event {
         ? util.unixTimestampToDateTime(map[_Key._createdAt])
         : util.never;
 
-    return new MessageChange._internalDecoder(timestamp, mid, modifierUid,
+    return MessageChange._internalDecoder(timestamp, mid, modifierUid,
         state, model.MessageState.unknown, createdAt);
   }
 
@@ -115,7 +115,7 @@ class MessageChange implements Event {
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._modifierUid: this.modifierUid,

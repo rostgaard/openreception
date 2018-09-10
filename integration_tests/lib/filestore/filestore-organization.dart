@@ -6,7 +6,7 @@ void _runOrganizationTests() {
     TestEnvironment env;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
       await env.organizationStore.ready;
     });
@@ -54,7 +54,7 @@ void _runOrganizationTests() {
     ServiceAgent sa;
     TestEnvironment env;
     setUp(() async {
-      env = new TestEnvironment(enableRevisions: true);
+      env = TestEnvironment(enableRevisions: true);
       sa = await env.createsServiceAgent();
       await env.organizationStore.ready;
     });

@@ -15,18 +15,17 @@ part of orf.model;
 
 /// Object change specialization for [User] object changes
 class UserChange implements ObjectChange {
+  UserChange(this.changeType, this.uid);
+
+  UserChange.fromJson(Map<String, dynamic> map)
+      : changeType = changeTypeFromString(map[key.change]),
+        uid = map[key.uid];
   @override
   final ChangeType changeType;
 
   @override
   final ObjectType objectType = ObjectType.user;
   final int uid;
-
-  UserChange(this.changeType, this.uid);
-
-  UserChange.fromJson(Map<String, dynamic> map)
-      : changeType = changeTypeFromString(map[key.change]),
-        uid = map[key.uid];
 
   @deprecated
   static UserChange decode(Map<String, dynamic> map) =>
@@ -42,17 +41,6 @@ class UserChange implements ObjectChange {
 }
 
 class CalendarChangelogEntry implements ChangelogEntry {
-  @override
-  final DateTime timestamp;
-
-  @override
-  final ChangeType changeType;
-
-  @override
-  final UserReference modifier;
-
-  final CalendarEntry entry;
-
   CalendarChangelogEntry.create(this.modifier, this.entry)
       : changeType = ChangeType.add,
         timestamp = new DateTime.now();
@@ -73,6 +61,16 @@ class CalendarChangelogEntry implements ChangelogEntry {
             new CalendarEntry.fromJson(map['entry'] as Map<String, dynamic>),
         changeType = changeTypeFromString(map['change']),
         timestamp = util.unixTimestampToDateTime(map['timestamp']);
+  @override
+  final DateTime timestamp;
+
+  @override
+  final ChangeType changeType;
+
+  @override
+  final UserReference modifier;
+
+  final CalendarEntry entry;
 
   /// Serialization function.
   @override
@@ -85,17 +83,6 @@ class CalendarChangelogEntry implements ChangelogEntry {
 }
 
 class ContactChangelogEntry implements ChangelogEntry {
-  @override
-  final DateTime timestamp;
-
-  @override
-  final ChangeType changeType;
-
-  @override
-  final UserReference modifier;
-
-  final BaseContact contact;
-
   ContactChangelogEntry.create(this.modifier, this.contact)
       : changeType = ChangeType.add,
         timestamp = new DateTime.now();
@@ -116,6 +103,16 @@ class ContactChangelogEntry implements ChangelogEntry {
             new BaseContact.fromJson(map['contact'] as Map<String, dynamic>),
         changeType = changeTypeFromString(map['change']),
         timestamp = util.unixTimestampToDateTime(map['timestamp']);
+  @override
+  final DateTime timestamp;
+
+  @override
+  final ChangeType changeType;
+
+  @override
+  final UserReference modifier;
+
+  final BaseContact contact;
 
   /// Serialization function.
   @override
@@ -128,17 +125,6 @@ class ContactChangelogEntry implements ChangelogEntry {
 }
 
 class ReceptionDataChangelogEntry implements ChangelogEntry {
-  @override
-  final DateTime timestamp;
-
-  @override
-  final ChangeType changeType;
-
-  @override
-  final UserReference modifier;
-
-  final ReceptionAttributes attributes;
-
   ReceptionDataChangelogEntry.create(this.modifier, this.attributes)
       : changeType = ChangeType.add,
         timestamp = new DateTime.now();
@@ -161,6 +147,16 @@ class ReceptionDataChangelogEntry implements ChangelogEntry {
             map['attributes'] as Map<String, dynamic>),
         changeType = changeTypeFromString(map['change']),
         timestamp = util.unixTimestampToDateTime(map['timestamp']);
+  @override
+  final DateTime timestamp;
+
+  @override
+  final ChangeType changeType;
+
+  @override
+  final UserReference modifier;
+
+  final ReceptionAttributes attributes;
 
   /// Serialization function.
   @override
@@ -173,17 +169,6 @@ class ReceptionDataChangelogEntry implements ChangelogEntry {
 }
 
 class IvrChangelogEntry implements ChangelogEntry {
-  @override
-  final DateTime timestamp;
-
-  @override
-  final ChangeType changeType;
-
-  @override
-  final UserReference modifier;
-
-  final IvrMenu menu;
-
   IvrChangelogEntry.create(this.modifier, this.menu)
       : changeType = ChangeType.add,
         timestamp = new DateTime.now();
@@ -204,6 +189,17 @@ class IvrChangelogEntry implements ChangelogEntry {
         changeType = changeTypeFromString(map['change']),
         timestamp = util.unixTimestampToDateTime(map['timestamp']);
 
+  @override
+  final DateTime timestamp;
+
+  @override
+  final ChangeType changeType;
+
+  @override
+  final UserReference modifier;
+
+  final IvrMenu menu;
+
   /// Serialization function.
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -215,17 +211,6 @@ class IvrChangelogEntry implements ChangelogEntry {
 }
 
 class DialplanChangelogEntry implements ChangelogEntry {
-  @override
-  final DateTime timestamp;
-
-  @override
-  final ChangeType changeType;
-
-  @override
-  final UserReference modifier;
-
-  final ReceptionDialplan dialplan;
-
   DialplanChangelogEntry.create(this.modifier, this.dialplan)
       : changeType = ChangeType.add,
         timestamp = new DateTime.now();
@@ -246,6 +231,16 @@ class DialplanChangelogEntry implements ChangelogEntry {
             map['dialplan'] as Map<String, dynamic>),
         changeType = changeTypeFromString(map['change']),
         timestamp = util.unixTimestampToDateTime(map['timestamp']);
+  @override
+  final DateTime timestamp;
+
+  @override
+  final ChangeType changeType;
+
+  @override
+  final UserReference modifier;
+
+  final ReceptionDialplan dialplan;
 
   /// Serialization function.
   @override
@@ -258,17 +253,6 @@ class DialplanChangelogEntry implements ChangelogEntry {
 }
 
 class ReceptionChangelogEntry implements ChangelogEntry {
-  @override
-  final DateTime timestamp;
-
-  @override
-  final ChangeType changeType;
-
-  @override
-  final UserReference modifier;
-
-  final Reception reception;
-
   ReceptionChangelogEntry.create(this.modifier, this.reception)
       : changeType = ChangeType.add,
         timestamp = new DateTime.now();
@@ -289,6 +273,16 @@ class ReceptionChangelogEntry implements ChangelogEntry {
             new Reception.fromJson(map['reception'] as Map<String, dynamic>),
         changeType = changeTypeFromString(map['change']),
         timestamp = util.unixTimestampToDateTime(map['timestamp']);
+  @override
+  final DateTime timestamp;
+
+  @override
+  final ChangeType changeType;
+
+  @override
+  final UserReference modifier;
+
+  final Reception reception;
 
   /// Serialization function.
   @override
@@ -301,17 +295,6 @@ class ReceptionChangelogEntry implements ChangelogEntry {
 }
 
 class OrganizationChangelogEntry implements ChangelogEntry {
-  @override
-  final DateTime timestamp;
-
-  @override
-  final ChangeType changeType;
-
-  @override
-  final UserReference modifier;
-
-  final Organization organization;
-
   OrganizationChangelogEntry.create(this.modifier, this.organization)
       : changeType = ChangeType.add,
         timestamp = new DateTime.now();
@@ -333,6 +316,17 @@ class OrganizationChangelogEntry implements ChangelogEntry {
         changeType = changeTypeFromString(map['change']),
         timestamp = util.unixTimestampToDateTime(map['timestamp']);
 
+  @override
+  final DateTime timestamp;
+
+  @override
+  final ChangeType changeType;
+
+  @override
+  final UserReference modifier;
+
+  final Organization organization;
+
   /// Serialization function.
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -344,17 +338,6 @@ class OrganizationChangelogEntry implements ChangelogEntry {
 }
 
 class UserChangelogEntry implements ChangelogEntry {
-  @override
-  final DateTime timestamp;
-
-  @override
-  final ChangeType changeType;
-
-  @override
-  final UserReference modifier;
-
-  final User user;
-
   UserChangelogEntry.create(this.modifier, this.user)
       : changeType = ChangeType.add,
         timestamp = new DateTime.now();
@@ -374,6 +357,17 @@ class UserChangelogEntry implements ChangelogEntry {
         user = new User.fromJson(map['user'] as Map<String, dynamic>),
         changeType = changeTypeFromString(map['change']),
         timestamp = util.unixTimestampToDateTime(map['timestamp']);
+
+  @override
+  final DateTime timestamp;
+
+  @override
+  final ChangeType changeType;
+
+  @override
+  final UserReference modifier;
+
+  final User user;
 
   /// Serialization function.
   @override
@@ -504,24 +498,23 @@ abstract class ObjectChange {
 
 /// Class representing a historic change, by a [User].
 class Commit {
-  DateTime changedAt;
-  String authorIdentity;
-  String commitHash;
-  int uid = User.noId;
-  List<ObjectChange> changes = <ObjectChange>[];
-
   /// Default constructor.
   Commit();
 
   /// Deserializing constructor.
   Commit.fromJson(Map<String, dynamic> map)
-      : changes = new List<ObjectChange>.from((map[key.changes]
-                as Iterable<Map<String, dynamic>>)
-            .map((Map<String, dynamic> map) => new ObjectChange.fromJson(map))),
+      : changes = new List<ObjectChange>.from(
+            (map[key.changes] as Iterable<dynamic>)
+                .map((dynamic map) => ObjectChange.fromJson(map))),
         authorIdentity = map[key.identity],
         changedAt = util.unixTimestampToDateTime(map[key.updatedAt]),
         commitHash = map[key.commitHash],
         uid = map[key.uid];
+  DateTime changedAt;
+  String authorIdentity;
+  String commitHash;
+  int uid = User.noId;
+  List<ObjectChange> changes = <ObjectChange>[];
 
   /// Decoding factory.
   @deprecated
@@ -541,17 +534,16 @@ class Commit {
 }
 
 class IvrChange implements ObjectChange {
-  @override
-  final ChangeType changeType;
-  @override
-  final ObjectType objectType = ObjectType.ivrMenu;
-  final String menuName;
-
   IvrChange(this.changeType, this.menuName);
 
   IvrChange.fromJson(Map<String, dynamic> map)
       : changeType = changeTypeFromString(map[key.change]),
         menuName = map[key.name];
+  @override
+  final ChangeType changeType;
+  @override
+  final ObjectType objectType = ObjectType.ivrMenu;
+  final String menuName;
 
   @deprecated
   static IvrChange decode(Map<String, dynamic> map) =>
@@ -569,17 +561,16 @@ class IvrChange implements ObjectChange {
 }
 
 class ReceptionDialplanChange implements ObjectChange {
-  @override
-  final ChangeType changeType;
-  @override
-  final ObjectType objectType = ObjectType.dialplan;
-  final String extension;
-
   ReceptionDialplanChange(this.changeType, this.extension);
 
   ReceptionDialplanChange.fromJson(Map<String, dynamic> map)
       : changeType = changeTypeFromString(map[key.change]),
         extension = map[key.name];
+  @override
+  final ChangeType changeType;
+  @override
+  final ObjectType objectType = ObjectType.dialplan;
+  final String extension;
 
   @deprecated
   static ReceptionDialplanChange decode(Map<String, dynamic> map) =>
@@ -598,18 +589,17 @@ class ReceptionDialplanChange implements ObjectChange {
 }
 
 class MessageChange implements ObjectChange {
+  MessageChange(this.changeType, this.mid);
+
+  MessageChange.fromJson(Map<String, dynamic> map)
+      : changeType = changeTypeFromString(map[key.change]),
+        mid = map[key.mid];
   @override
   final ChangeType changeType;
 
   @override
   final ObjectType objectType = ObjectType.message;
   final int mid;
-
-  MessageChange(this.changeType, this.mid);
-
-  MessageChange.fromJson(Map<String, dynamic> map)
-      : changeType = changeTypeFromString(map[key.change]),
-        mid = map[key.mid];
 
   @deprecated
   static MessageChange decode(Map<String, dynamic> map) =>
@@ -627,17 +617,16 @@ class MessageChange implements ObjectChange {
 }
 
 class OrganizationChange implements ObjectChange {
-  @override
-  final ChangeType changeType;
-  @override
-  final ObjectType objectType = ObjectType.organization;
-  final int oid;
-
   OrganizationChange(this.changeType, this.oid);
 
   OrganizationChange.fromJson(Map<String, dynamic> map)
       : changeType = changeTypeFromString(map[key.change]),
         oid = map[key.mid];
+  @override
+  final ChangeType changeType;
+  @override
+  final ObjectType objectType = ObjectType.organization;
+  final int oid;
 
   @deprecated
   static OrganizationChange decode(Map<String, dynamic> map) =>
@@ -655,18 +644,17 @@ class OrganizationChange implements ObjectChange {
 }
 
 class ReceptionChange implements ObjectChange {
-  @override
-  final ChangeType changeType;
-  @override
-  final ObjectType objectType = ObjectType.reception;
-  final int rid;
-
   ReceptionChange(this.changeType, this.rid);
 
   ReceptionChange.fromJson(Map<String, dynamic> map)
       : changeType = changeTypeFromString(map[key.change]),
         rid = map[key.mid];
 
+  @override
+  final ChangeType changeType;
+  @override
+  final ObjectType objectType = ObjectType.reception;
+  final int rid;
   @deprecated
   static ReceptionChange decode(Map<String, dynamic> map) =>
       new ReceptionChange.fromJson(map);

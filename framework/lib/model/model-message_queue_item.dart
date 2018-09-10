@@ -31,16 +31,13 @@ class MessageQueueEntry {
   MessageQueueEntry.fromJson(Map<String, dynamic> map)
       : createdAt = util.unixTimestampToDateTime(map[key.createdAt]),
         id = map[key.id],
-        message =
-            new Message.fromJson(map[key.message] as Map<String, dynamic>),
-        _handledRecipients = (map[key.handledRecipients]
-                as Iterable<Map<String, dynamic>>)
-            .map(
-                (Map<String, dynamic> map) => new MessageEndpoint.fromJson(map))
-            .toSet(),
-        _unhandledRecipients = new Set<MessageEndpoint>.from(
-            map[key.unhandledRecipients].map((Map<String, dynamic> map) =>
-                new MessageEndpoint.fromJson(map))),
+        message = Message.fromJson(map[key.message]),
+        _handledRecipients = List<dynamic>.from(map[key.handledRecipients])
+            .fold(Set<MessageEndpoint>(),
+                (s, map) => s..add(new MessageEndpoint.fromJson(map))),
+        _unhandledRecipients = List<dynamic>.from(map[key.unhandledRecipients])
+            .fold(Set<MessageEndpoint>(),
+                (s, map) => s..add(new MessageEndpoint.fromJson(map))),
         tries = map[key.tries];
 
   /// Decoding factory.

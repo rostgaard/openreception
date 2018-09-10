@@ -16,7 +16,7 @@ part of orf.filestore;
 /// File-based storage backed for [model.MessageQueueEntry] objects.
 class MessageQueue implements storage.MessageQueue {
   /// Internal logger
-  final Logger _log = new Logger('$_libraryName.MessageQueue');
+  final Logger _log = Logger('$_libraryName.MessageQueue');
 
   /// Directory path to where the serialized [model.MessageQueueEntry]
   /// objects are stored.
@@ -24,17 +24,17 @@ class MessageQueue implements storage.MessageQueue {
 
   Sequencer _sequencer;
 
-  /// Create a new [MessageQueue] store in [path].
+  /// Create a [MessageQueue] store in [path].
   MessageQueue(String this.path) {
     if (path.isEmpty) {
-      throw new ArgumentError.value('', 'path', 'Path must not be empty');
+      throw ArgumentError.value('', 'path', 'Path must not be empty');
     }
 
-    if (!new Directory(path).existsSync()) {
-      new Directory(path).createSync();
+    if (!Directory(path).existsSync()) {
+      Directory(path).createSync();
     }
 
-    _sequencer = new Sequencer(path);
+    _sequencer = Sequencer(path);
   }
 
   /// Returns the next available ID from the sequencer. Notice that every
@@ -47,15 +47,15 @@ class MessageQueue implements storage.MessageQueue {
     final int mqId = _nextId;
 
     final model.MessageQueueEntry queueEntry =
-        new model.MessageQueueEntry.empty()
+        model.MessageQueueEntry.empty()
           ..id = mqId
           ..unhandledRecipients = message.recipients
           ..message = message;
 
-    final File file = new File('$path/$mqId.json');
+    final File file = File('$path/$mqId.json');
 
     if (file.existsSync()) {
-      throw new ClientError('File already exists, please update instead');
+      throw ClientError('File already exists, please update instead');
     }
 
     file.writeAsStringSync(_jsonpp.convert(queueEntry));
@@ -65,10 +65,10 @@ class MessageQueue implements storage.MessageQueue {
 
   @override
   Future<Null> update(model.MessageQueueEntry queueEntry) async {
-    final File file = new File('$path/${queueEntry.id}.json');
+    final File file = File('$path/${queueEntry.id}.json');
 
     if (!file.existsSync()) {
-      throw new NotFound();
+      throw NotFound();
     }
 
     file.writeAsStringSync(_jsonpp.convert(queueEntry));
@@ -76,20 +76,20 @@ class MessageQueue implements storage.MessageQueue {
 
   @override
   Future<Null> remove(int mqid) async {
-    final File file = new File('$path/$mqid.json');
+    final File file = File('$path/$mqid.json');
 
     if (!file.existsSync()) {
-      throw new NotFound();
+      throw NotFound();
     }
 
     await file.delete();
   }
 
   @override
-  Future<Iterable<model.MessageQueueEntry>> list() async => new Directory(path)
+  Future<Iterable<model.MessageQueueEntry>> list() async => Directory(path)
       .listSync()
       .where(
           (FileSystemEntity fse) => fse is File && fse.path.endsWith('.json'))
-      .map((FileSystemEntity fse) => new model.MessageQueueEntry.fromJson(JSON
+      .map((FileSystemEntity fse) => model.MessageQueueEntry.fromJson(_json
           .decode((fse as File).readAsStringSync()) as Map<String, dynamic>));
 }

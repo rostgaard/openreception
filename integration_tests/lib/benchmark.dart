@@ -19,11 +19,11 @@ const String _namespace = 'test.benchmark';
 
 void allTests() {
   group(_namespace + '.Call', () {
-    Logger _log = new Logger(_namespace + '.Call');
+    Logger _log = Logger(_namespace + '.Call');
     ServiceAgent sa;
     TestEnvironment env;
-    Set<Receptionist> receptionists = new Set<Receptionist>();
-    Set<Customer> customers = new Set<Customer>();
+    Set<Receptionist> receptionists = Set<Receptionist>();
+    Set<Customer> customers = Set<Customer>();
 
     /// Transient object
     model.ReceptionDialplan rdp1;
@@ -32,7 +32,7 @@ void allTests() {
     model.ReceptionDialplan rdp4;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       final org = await sa.createsOrganization();
@@ -48,11 +48,11 @@ void allTests() {
 
       _log.info('Generating receptionists');
 
-      await Future.forEach(new List.generate(5, (i) => i),
+      await Future.forEach(List.generate(5, (i) => i),
           (_) async => receptionists.add(await sa.createsReceptionist()));
 
       _log.info('Generating customers');
-      await Future.forEach(new List.generate(6, (i) => i),
+      await Future.forEach(List.generate(6, (i) => i),
           (_) async => customers.add(await sa.spawnCustomer()));
     });
 

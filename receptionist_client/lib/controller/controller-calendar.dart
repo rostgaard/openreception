@@ -13,55 +13,39 @@
 
 part of orc.controller;
 
-/**
- * Exposes methods for calendar CRUD operations.
- */
+/// Exposes methods for calendar CRUD operations.
 class Calendar {
-  final service.RESTCalendarStore _calendarStore;
-  final model.User _user;
-
-  /**
-   * Constructor.
-   */
+  /// Constructor.
   Calendar(this._calendarStore, this._user);
 
-  /**
-   * Return the latest entry change information for the [entry] calendar entry.
-   */
+  final model.User _user;
+  final service.RESTCalendarStore _calendarStore;
+
+  /// Return the latest entry change information for the [entry] calendar entry.
   Future<Iterable<model.Commit>> calendarEntryChanges(
           model.CalendarEntry entry, model.Owner owner) =>
       _calendarStore.changes(owner, entry.id);
 
-  /**
-   * Return the latest entry change information for the [entry] calendar entry.
-   */
+  /// Return the latest entry change information for the [entry] calendar entry.
   Future<model.Commit> calendarEntryLatestChange(
           model.CalendarEntry entry, model.Owner owner) async =>
       (await _calendarStore.changes(owner, entry.id)).first;
 
-  /**
-   * Return all the [contact] [model.CalendarEntry]s.
-   */
+  /// Return all the [contact] [model.CalendarEntry]s.
   Future<Iterable<model.CalendarEntry>> contactCalendar(
           model.BaseContact contact) =>
       _calendarStore.list(new model.OwningContact(contact.id));
 
-  /**
-   * Delete [entry] from the database.
-   */
+  /// Delete [entry] from the database.
   Future deleteCalendarEvent(model.CalendarEntry entry, model.Owner owner) =>
       _calendarStore.remove(entry.id, owner, _user);
 
-  /**
-   * Return all the [model.CalendarEntry]s of a [reception].
-   */
+  /// Return all the [model.CalendarEntry]s of a [reception].
   Future<Iterable<model.CalendarEntry>> receptionCalendar(
           model.ReceptionReference reception) =>
       _calendarStore.list(new model.OwningReception(reception.id));
 
-  /**
-   * Save [entry] to the database.
-   */
+  /// Save [entry] to the database.
   Future saveCalendarEvent(model.CalendarEntry entry, model.Owner owner) =>
       entry.id == model.CalendarEntry.noId
           ? _calendarStore.create(entry, owner, _user)

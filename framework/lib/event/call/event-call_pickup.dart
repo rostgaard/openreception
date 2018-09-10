@@ -22,14 +22,14 @@ class CallPickup extends CallEvent {
   /// be used to notify clients about a call being picked up.
   CallPickup(model.Call call) : super(call);
 
-  /// Create a new [CallPickup] object from serialized data stored in [map].
+  /// Create a [CallPickup] object from serialized data stored in [map].
   CallPickup.fromJson(Map<String, dynamic> map) : super.fromJson(map);
 
   /// Returns an umodifiable map representation of the object, suitable for
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._call: call.toJson()

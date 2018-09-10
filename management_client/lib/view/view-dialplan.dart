@@ -1,6 +1,21 @@
 part of orm.view;
 
 class Dialplan {
+  Dialplan(this._dialplanController) {
+    _changelog = new Changelog();
+
+    element.children = [
+      _foldJson,
+      _unfoldJson,
+      _deleteButton,
+      _saveButton,
+      _inputErrorList,
+      _dialplanInput,
+      _changelog.element
+    ];
+    _observers();
+  }
+  
   bool create = false;
   final ButtonElement _deleteButton = new ButtonElement()
     ..classes.add('delete')
@@ -34,33 +49,18 @@ class Dialplan {
   Function onDelete = (String extension) => null;
   Function onChange = () => null;
 
-  Dialplan(this._dialplanController) {
-    _changelog = new Changelog();
-
-    element.children = [
-      _foldJson,
-      _unfoldJson,
-      _deleteButton,
-      _saveButton,
-      _inputErrorList,
-      _dialplanInput,
-      _changelog.element
-    ];
-    _observers();
-  }
-
   void _checkInput() {
     LIElement errorNode(String text) => new LIElement()..text = text;
 
     model.ReceptionDialplan rdp;
-    Map<String, dynamic> json;
+    Map<String, dynamic> map;
     _inputErrorList.children.clear();
     _dialplanInput.classes.toggle('error', false);
     try {
-      json = JSON.decode(_dialplanInput.value) as Map<String, dynamic>;
+      map = json.decode(_dialplanInput.value);
 
       try {
-        rdp = new model.ReceptionDialplan.fromJson(json);
+        rdp = new model.ReceptionDialplan.fromJson(map);
         final validationErrors = validateReceptionDialplan(rdp);
 
         _inputErrorList.children.addAll(
@@ -107,12 +107,12 @@ class Dialplan {
   }
 
   model.ReceptionDialplan get dialplan => new model.ReceptionDialplan.fromJson(
-      JSON.decode(_dialplanInput.value) as Map<String, dynamic>);
+      json.decode(_dialplanInput.value) as Map<String, dynamic>);
 
   set dialplan(model.ReceptionDialplan rdp) {
     _dialplanInput.hidden = false;
     _dialplanInput.style.height = '';
-    _dialplanInput.value = JSON.encode(rdp);
+    _dialplanInput.value = json.encode(rdp);
     _deleteButton.hidden = false;
     _foldJson.hidden = true;
     _saveButton.hidden = false;
@@ -178,7 +178,7 @@ class Dialplan {
       _foldJson.hidden = true;
       _unfoldJson.hidden = false;
       _dialplanInput.style.height = '';
-      _dialplanInput.value = JSON.encode(dialplan);
+      _dialplanInput.value = json.encode(dialplan);
       _resizeInput();
     });
   }

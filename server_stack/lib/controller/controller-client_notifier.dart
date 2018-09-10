@@ -20,8 +20,8 @@ import 'package:orf/event.dart' as event;
 import 'package:orf/service.dart' as service;
 
 /**
-* Controller class that is responsible for broadcasting an event to all
-* connected clients.
+ * Controller class that is responsible for broadcasting an event to all
+ * connected clients.
  */
 class ClientNotifier {
   final StreamSubscription subscription;

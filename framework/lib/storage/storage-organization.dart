@@ -60,5 +60,5 @@ abstract class Organization {
   ///
   /// Example:
   /// {"42": {'organization': "orgName", "reception": "recName"}
-  Future<Map<String, Map<String, String>>> receptionMap();
+  Future<Map<String, dynamic>> receptionMap();
 }

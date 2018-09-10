@@ -6,7 +6,7 @@ void _runContactTests() {
     TestEnvironment env;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       await env.contactStore.ready;
       await env.receptionStore.ready;
 
@@ -66,7 +66,7 @@ void _runContactTests() {
     ServiceAgent sa;
     TestEnvironment env;
     setUp(() async {
-      env = new TestEnvironment(enableRevisions: true);
+      env = TestEnvironment(enableRevisions: true);
       await env.contactStore.ready;
       await env.receptionStore.ready;
 

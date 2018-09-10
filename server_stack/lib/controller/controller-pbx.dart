@@ -20,12 +20,13 @@ import 'package:esl/esl.dart' as esl;
 import 'package:logging/logging.dart';
 import 'package:orf/model.dart' as model;
 import 'package:orf/pbx-keys.dart';
-import 'package:ors/model.dart' as _model;
 import 'package:ors/configuration.dart';
+import 'package:ors/model.dart' as _model;
 
 class PBXException implements Exception {
-  final String message;
   const PBXException([this.message = ""]);
+
+  final String message;
 
   @override
   String toString() => "PBXException: $message";
@@ -46,13 +47,14 @@ class CallRejected extends PBXException {
 }
 
 class PBX {
-  final Logger _log = new Logger('ors.controller.pbx');
+  PBX(this.eslClient, this._channelList);
+
+  final Logger _log = Logger('ors.controller.pbx');
   final String _dialplan = 'xml receptions';
 
   final esl.Connection eslClient;
   final _model.ChannelList _channelList;
 
-  PBX(this.eslClient, this._channelList);
 
   Future<esl.Response> api(String command) async {
     final esl.Response response = await eslClient.api(command);
@@ -72,13 +74,11 @@ class PBX {
     return reply;
   }
 
-  /**
-   * Starts an origination in the PBX.
-   *
-   * By first dialing the agent and then the outbound extension.
-   *
-   * Returns the UUID of the call.
-   */
+  /// Starts an origination in the PBX.
+  ///
+  /// By first dialing the agent and then the outbound extension.
+  ///
+  /// Returns the UUID of the call.
   Future<String> originate(
       String extension, int contactID, int receptionID, model.User user) async {
     /// Tag the A-leg as a primitive origination channel.
@@ -100,7 +100,7 @@ class PBX {
         '$_dialplan $callerIdName $callerIdNumber $timeout');
 
     if (!response.isOk) {
-      throw new StateError('ESL returned ${response.content}');
+      throw StateError('ESL returned ${response.content}');
     }
 
     return response.channelUUID;
@@ -110,16 +110,14 @@ class PBX {
       killChannel(uuid).catchError((error, stackTrace) =>
           _log.finest('Failed to close agent channel', error, stackTrace));
 
-  /**
-   * Spawns a channel to an agent.
-   *
-   * By first dialing the agent, and parking him/her.
-   *
-   * Returns the UUID of the new channel.
-   */
+  /// Spawns a channel to an agent.
+  ///
+  /// By first dialing the agent, and parking him/her.
+  ///
+  /// Returns the UUID of the new channel.
   Future<String> createAgentChannel(model.User user,
       {Map<String, String> extravars: const {}}) async {
-    final int msecs = new DateTime.now().millisecondsSinceEpoch;
+    final int msecs = DateTime.now().millisecondsSinceEpoch;
     final String newCallUuid = 'agent-${user.id}-$msecs';
     final String destination = 'user/${user.extension}';
 
@@ -128,7 +126,7 @@ class PBX {
 
     final String callerIdNumber = config.callFlowControl.callerIdNumber;
 
-    Map variables = {
+    Map<String, dynamic> variables = {
       'ignore_early_media': true,
       ORPbxKey.agentChannel: true,
       'park_timeout': config.callFlowControl.agentChantimeOut,
@@ -147,16 +145,15 @@ class PBX {
         event.eventName == _model.PBXEvent.backgroundJob &&
         event.fields['Job-UUID'] == newCallUuid;
 
-    final Future<esl.Event>
-        subscription =
-        eslClient.eventStream.firstWhere(jobUuidMatches).timeout(
-            new Duration(seconds: config.callFlowControl.agentChantimeOut + 1))
-        as Future<esl.Event>;
+    final Future<esl.Event> subscription = eslClient.eventStream
+        .firstWhere(jobUuidMatches)
+        .timeout(
+            Duration(seconds: config.callFlowControl.agentChantimeOut + 1));
 
     await bgapi('originate {$variableString}$destination &park()',
         jobUuid: newCallUuid);
 
-    final esl.Response response = new esl.Response.fromPacketBody(
+    final esl.Response response = esl.Response.fromPacketBody(
         (await subscription).fields['_body'].trim());
 
     if (response.isOk) {
@@ -166,15 +163,15 @@ class PBX {
 
       /// Call is rejected by peer
       if (response.content.contains('CALL_REJECTED')) {
-        throw new CallRejected('destination: $destination');
+        throw CallRejected('destination: $destination');
 
         /// Call is not answered by peer.
       } else if (response.content.contains('NO_ANSWER')) {
-        throw new NoAnswer('destination: $destination');
+        throw NoAnswer('destination: $destination');
 
         /// Call did not succeed for reasons beyond our comprehension.
       } else {
-        throw new PBXException('Creation of agent channel for '
+        throw PBXException('Creation of agent channel for '
             'uid:${user.id} failed. Destination:$destination. '
             'PBX responded: ${response.content}');
       }
@@ -186,10 +183,10 @@ class PBX {
    *
    * By first dialing the agent, and parking him/her.
    *
-   * Returns the UUID of the new channel.
+   * Returns the UUID of the channel.
    */
   Future<String> createAgentChannelBg(model.User user) async {
-    final int msecs = new DateTime.now().millisecondsSinceEpoch;
+    final int msecs = DateTime.now().millisecondsSinceEpoch;
     final String newCallUuid = 'agent-${user.id}-$msecs';
     final String destination = 'user/${user.extension}';
 
@@ -198,7 +195,7 @@ class PBX {
 
     final String callerIdNumber = config.callFlowControl.callerIdNumber;
 
-    Map variables = {
+    Map<String, dynamic> variables = {
       'ignore_early_media': true,
       ORPbxKey.agentChannel: true,
       'park_timeout': config.callFlowControl.agentChantimeOut,
@@ -217,7 +214,7 @@ class PBX {
         jobUuid: newCallUuid);
 
     if (!reply.isOk) {
-      throw new PBXException('Creation of agent channel for '
+      throw PBXException('Creation of agent channel for '
           'uid:${user.id} failed. Destination:$destination. '
           'PBX responded: ${reply.replyRaw}');
     }
@@ -228,7 +225,7 @@ class PBX {
         event.channel.fields['Unique-ID'] == newCallUuid;
 
     await eslClient.eventStream
-        .firstWhere(outboundCallWithUuid, defaultValue: () => null);
+        .firstWhere(outboundCallWithUuid, orElse: () => null);
 
     bool inviteClosed(esl.Event event) =>
         event.channel.fields['Unique-ID'] == newCallUuid &&
@@ -238,21 +235,21 @@ class PBX {
     esl.Event event;
     try {
       event = await eslClient.eventStream
-          .firstWhere(inviteClosed, defaultValue: () => null)
+          .firstWhere(inviteClosed, orElse: () => null)
           .timeout(
-              new Duration(seconds: config.callFlowControl.agentChantimeOut));
+              Duration(seconds: config.callFlowControl.agentChantimeOut));
     } on TimeoutException {
       await _cleanupChannel(ORPbxKey.agentChannel);
 
-      throw new NoAnswer('destination: $destination');
+      throw NoAnswer('destination: $destination');
     }
 
     if (event.eventName == 'CHANNEL_HANGUP') {
-      throw new CallRejected('destination: $destination');
+      throw CallRejected('destination: $destination');
     } else if (event.eventName == 'CHANNEL_ANSWER') {
       return newCallUuid;
     } else {
-      throw new PBXException('Creation of agent channel for '
+      throw PBXException('Creation of agent channel for '
           'uid:${user.id} failed. Destination:$destination. '
           'Got event type: ${event.eventName}');
     }
@@ -266,25 +263,21 @@ class PBX {
         'uuid_transfer $uuid external_transfer_$extension xml reception-$context');
 
     if (!reply.isOk) {
-      throw new PBXException(reply.replyRaw);
+      throw PBXException(reply.replyRaw);
     }
   }
 
-  /**
-   * Starts an origination in the PBX.
-   *
-   * By first dialing the agent and then the recordingsmenu.
-   */
+  /// Starts an origination in the PBX.
+  ///
+  /// By first dialing the agent and then the recordingsmenu.
   Future recordChannel(String uuid, String filename) {
     final String command = 'uuid_record $uuid start $filename';
     return _runAndCheck(command).then((esl.Response response) => filename);
   }
 
-  /**
-   * Starts an origination in the PBX.
-   *
-   * By first dialing the agent and then the recordingsmenu.
-   */
+  /// Starts an origination in the PBX.
+  ///
+  /// By first dialing the agent and then the recordingsmenu.
   Future originateRecording(int receptionID, String recordExtension,
       String soundFilePath, model.User user) {
     List<String> variables = [
@@ -300,40 +293,34 @@ class PBX {
         'originate {${variables.join(',')}}user/${user.extension} $recordExtension $_dialplan $callerIdName $callerIdNumber $timeout';
     return api(command).then((esl.Response response) {
       if (!response.isOk) {
-        throw new StateError('ESL returned ${response.content}');
+        throw StateError('ESL returned ${response.content}');
       }
 
       return response.channelUUID;
     });
   }
 
-  /**
-   * Bridges two active calls.
-   */
+  /// Bridges two active calls.
   Future bridge(model.Call source, model.Call destination) {
     return api('uuid_bridge ${source.id} ${destination.id}')
         .then((esl.Response response) {
       if (!response.isOk) {
-        throw new StateError('ESL returned ${response.content}');
+        throw StateError('ESL returned ${response.content}');
       }
 
       return response;
     });
   }
 
-  /**
-   * Writes [msg] to log and throws a [PBXException].
-   */
+  /// Writes [msg] to log and throws a [PBXException].
   void _logAndFail(String msg) {
     _log.severe(msg);
-    throw new PBXException(msg);
+    throw PBXException(msg);
   }
 
-  /**
-   * Run a [command] checked. This implies that the return values is checked
-   * for errors and throw a [PBXException] if that is the case. The command
-   * failure will be logged prior.
-   */
+  /// Run a [command] checked. This implies that the return values is checked
+  /// for errors and throw a [PBXException] if that is the case. The command
+  /// failure will be logged prior.
   Future<esl.Response> _runAndCheck(String command) async {
     esl.Response response;
     try {
@@ -354,9 +341,7 @@ class PBX {
   Future pickupCall(String agentChannel, String uuid) =>
       api('uuid_transfer $agentChannel pickup-call-$uuid $_dialplan');
 
-  /**
-   * Bridges two active calls.
-   */
+  /// Bridges two active calls.
   Future bridgeChannel(String uuid, model.Call destination) async {
     await _runAndCheck('uuid_answer ${destination.channel}');
 
@@ -366,7 +351,7 @@ class PBX {
       final String msg = 'Failed to set variable on channel';
       _log.severe(msg);
 
-      throw new PBXException(msg);
+      throw PBXException(msg);
     }
 
     final bridgeUuid =
@@ -378,9 +363,7 @@ class PBX {
     return response;
   }
 
-  /**
-   * Transfers an active call to a user.
-   */
+  /// Transfers an active call to a user.
   Future transfer(model.Call source, String extension) async {
     final command = 'uuid_transfer ${source.channel} $extension';
 
@@ -392,56 +375,46 @@ class PBX {
       final String msg =
           '"$command" failed with reponse ${xfrResponse.content}';
       _log.severe(msg);
-      throw new PBXException(msg);
+      throw PBXException(msg);
     }
 
     return xfrResponse;
   }
 
-  /**
-   * Check if the agent channel is still active and if it is, kill it.
-   */
+  /// Check if the agent channel is still active and if it is, kill it.
   Future _checkAgentChannel(String uuid) =>
-      new Future.delayed(new Duration(milliseconds: 100)).then((_) =>
+      Future.delayed(Duration(milliseconds: 100)).then((_) =>
           _channelList.containsChannel(uuid) ? _cleanupChannel(uuid) : null);
 
-  /**
-   * Kills the active channel for a call.
-   */
+  /// Kills the active channel for a call.
   Future hangup(model.Call call) =>
       killChannel(call.channel).then((_) => _checkAgentChannel(call.bLeg));
 
-  /**
-   * Kills the active channel for a call.
-   */
+  /// Kills the active channel for a call.
   Future killChannel(String uuid) =>
       api('uuid_kill $uuid').then((esl.Response response) {
         if (!response.isOk) {
-          throw new StateError('ESL returned ${response.content}');
+          throw StateError('ESL returned ${response.content}');
         }
       });
 
-  /**
-   * Parks a call in the parking lot for the user.
-   */
+  /// Parks a call in the parking lot for the user.
   Future park(model.Call call, model.User user) {
     return transfer(call, 'park XML receptions');
   }
 
-  /**
-   * Loads the peer list from an [esl.Response].
-   */
+  /// Loads the peer list from an [esl.Response].
   void _loadPeerListFromPacket(
       esl.Response response, _model.PeerList peerList) {
     final esl.PeerList loadedList =
-        new esl.PeerList.fromMultilineBuffer(response.content);
+        esl.PeerList.fromMultilineBuffer(response.content);
 
     peerList.clear();
 
     final acceptedPeers = loadedList.where(_model.peerIsInAcceptedContext);
 
     for (esl.Peer eslPeer in acceptedPeers) {
-      final model.Peer peer = new model.Peer(eslPeer.id)
+      final model.Peer peer = model.Peer(eslPeer.id)
         ..registered = eslPeer.registered;
       peerList.add(peer);
     }
@@ -450,36 +423,30 @@ class PBX {
         'peers from FreeSWITCH');
   }
 
-  /**
-   * Request a reload of peers.
-   */
+  /// Request a reload of peers.
   Future loadPeers(_model.PeerList peerList) async {
     esl.Response response = await api('list_users');
 
     _loadPeerListFromPacket(response, peerList);
   }
 
-  /**
-   * Request a reload of channels
-   */
+  /// Request a reload of 'channels
   Future loadChannels() =>
       api('show channels as json').then(_loadChannelListFromPacket);
 
-  /**
-   * Loads the channel list from an [esl.Response].
-   */
+  /// Loads the channel list from an [esl.Response].
   Future _loadChannelListFromPacket(esl.Response response) {
-    Map responseBody = JSON.decode(response.content);
+    Map responseBody = json.decode(response.content);
     Iterable<String> channelUUIDs = responseBody.containsKey('rows')
-        ? new List.from(
-            JSON.decode(response.content)['rows'].map((Map m) => m['uuid']))
+        ? List.from(
+            json.decode(response.content)['rows'].map((Map m) => m['uuid']))
         : [];
 
     return Future.forEach(channelUUIDs, (String channelUUID) {
       return api('uuid_dump $channelUUID json').then((esl.Response response) {
         if (!response.isError) {
           Map<String, dynamic> value =
-              JSON.decode(response.content) as Map<String, dynamic>;
+              json.decode(response.content) as Map<String, dynamic>;
 
           Map<String, String> fields = {};
           Map<String, dynamic> variables = {};
@@ -492,7 +459,7 @@ class PBX {
             fields[key] = value[key];
           });
 
-          _channelList.update(new esl.Channel.assemble(fields, variables));
+          _channelList.update(esl.Channel.assemble(fields, variables));
         } else {
           _log.info('Skipping channel loading. Reason: ${response.content}');
         }
@@ -503,9 +470,7 @@ class PBX {
     });
   }
 
-  /**
-   * Attach a variable to a channel.
-   */
+  /// Attach a variable to a channel.
   Future setVariable(String uuid, String identifier, String value) =>
       api('uuid_setvar $uuid $identifier $value');
 }

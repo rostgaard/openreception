@@ -4,8 +4,8 @@ class ServiceAgent {
   final Directory runpath;
   final TestEnvironment env;
   final model.User user;
-  final Logger _log = new Logger('ServiceAgent');
-  AuthToken get authToken => new AuthToken(user);
+  final Logger _log = Logger('ServiceAgent');
+  AuthToken get authToken => AuthToken(user);
   Transport.WebSocketClient _ws;
   Service.CallFlowControl callflow;
   Service.RESTConfiguration configService;
@@ -241,20 +241,20 @@ class ServiceAgent {
     }
 
     final model.PeerAccount account =
-        new model.PeerAccount(_nextExternalPeerName, '', 'public');
+        model.PeerAccount(_nextExternalPeerName, '', 'public');
 
     _log.fine('Deploying account ${account.toJson()}');
     await paService.deployAccount(account, user.id);
     _log.fine('Reloading config');
     await dialplanService.reloadConfig();
 
-    Phonio.SIPAccount sipAccount = new Phonio.SIPAccount(
+    Phonio.SIPAccount sipAccount = Phonio.SIPAccount(
         account.username, account.password, env.envConfig.externalIp);
 
     Phonio.SIPPhone sipPhone = await env.phonePool.requestNext();
     sipPhone.addAccount(sipAccount);
 
-    final Customer c = new Customer(sipPhone);
+    final Customer c = Customer(sipPhone);
 
     await c.initialize();
     env.allocatedCustomers.add(c);
@@ -282,14 +282,14 @@ class ServiceAgent {
 
     final rUser = Randomizer.randomUser()
       ..extension = _nextInternalPeerName
-      ..groups = new Set<String>.from([model.UserGroups.receptionist]);
+      ..groups = Set<String>.from([model.UserGroups.receptionist]);
     await userStore.create(rUser, user);
 
-    final AuthToken userToken = new AuthToken(rUser);
+    final AuthToken userToken = AuthToken(rUser);
     _log.finest('Deploying receptionist token to ${authProcess.uri}');
     await authProcess.addTokens([userToken]);
 
-    final model.PeerAccount account = new model.PeerAccount(
+    final model.PeerAccount account = model.PeerAccount(
         rUser.extension, rUser.name.hashCode.toString(), 'receptions');
 
     _log.fine('Deploying account ${account.toJson()}');
@@ -298,13 +298,12 @@ class ServiceAgent {
     _log.fine('Reloading config');
     await dialplanService.reloadConfig();
 
-    Phonio.SIPAccount sipAccount = new Phonio.SIPAccount(
+    Phonio.SIPAccount sipAccount = Phonio.SIPAccount(
         account.username, account.password, env.envConfig.externalIp);
 
     Phonio.SIPPhone sipPhone = await env.phonePool.requestNext();
     sipPhone.addAccount(sipAccount);
-    final Receptionist r =
-        new Receptionist(sipPhone, userToken.tokenName, rUser);
+    final Receptionist r = Receptionist(sipPhone, userToken.tokenName, rUser);
 
     final reloadEvent = (await notificationSocket)
         .onEvent
@@ -348,7 +347,7 @@ class ServiceAgent {
   }
 
   /**
-   * Creates a new dialplan with opening hours right now  (based on
+   * Creates a dialplan with opening hours right now  (based on
    * current time and until one hour in the future). If [mustBeValid] flag
    * is set, then a FreeSWITCH process is spawned in order to aquire the
    * current sound directory path. If all that is needed is a mock dialplan
@@ -356,9 +355,9 @@ class ServiceAgent {
    * dialable, then set [mustBeValid] to true.
    */
   Future<model.ReceptionDialplan> createsDialplan({mustBeValid: true}) async {
-    final DateTime now = new DateTime.now();
+    final DateTime now = DateTime.now();
 
-    model.OpeningHour justNow = new model.OpeningHour.empty()
+    model.OpeningHour justNow = model.OpeningHour.empty()
       ..fromDay = model.toWeekDay(now.weekday)
       ..toDay = model.toWeekDay(now.weekday)
       ..fromHour = now.hour
@@ -366,24 +365,24 @@ class ServiceAgent {
       ..fromMinute = now.minute
       ..toMinute = now.minute;
 
-    model.ReceptionDialplan rdp = new model.ReceptionDialplan()
+    model.ReceptionDialplan rdp = model.ReceptionDialplan()
       ..open = [
-        new model.HourAction()
+        model.HourAction()
           ..hours = [justNow]
           ..actions = [
-            new model.Notify('call-offer'),
-            new model.Ringtone(1),
+            model.Notify('call-offer'),
+            model.Ringtone(1),
             mustBeValid
-                ? new model.Playback(
+                ? model.Playback(
                     (await env.requestFreeswitchProcess()).soundsPath +
                         '/test.wav')
-                : new model.Playback('non-existing-file.wav'),
-            new model.Enqueue('waitqueue')
+                : model.Playback('non-existing-file.wav'),
+            model.Enqueue('waitqueue')
           ]
       ]
       ..extension = 'test-${Randomizer.randomPhoneNumber()}'
-          '-${new DateTime.now().millisecondsSinceEpoch}'
-      ..defaultActions = [new model.Playback('sorry-dude-were-closed')];
+          '-${DateTime.now().millisecondsSinceEpoch}'
+      ..defaultActions = [model.Playback('sorry-dude-were-closed')];
 
     _log.fine('Creating dialplan ${rdp.toJson()}');
     await dialplanStore.create(rdp, user);
@@ -396,9 +395,9 @@ class ServiceAgent {
    */
   Future<model.ReceptionDialplan> updatesDialplan(model.ReceptionDialplan rdp,
       {mustBeValid: true}) async {
-    final DateTime now = new DateTime.now();
+    final DateTime now = DateTime.now();
 
-    model.OpeningHour justNow = new model.OpeningHour.empty()
+    model.OpeningHour justNow = model.OpeningHour.empty()
       ..fromDay = model.toWeekDay(now.weekday)
       ..toDay = model.toWeekDay(now.weekday)
       ..fromHour = now.hour
@@ -406,24 +405,24 @@ class ServiceAgent {
       ..fromMinute = now.minute
       ..toMinute = now.minute;
 
-    rdp = new model.ReceptionDialplan()
+    rdp = model.ReceptionDialplan()
       ..open = [
-        new model.HourAction()
+        model.HourAction()
           ..hours = [justNow]
           ..actions = [
-            new model.Notify('call-offer'),
-            new model.Ringtone(1),
+            model.Notify('call-offer'),
+            model.Ringtone(1),
             mustBeValid
-                ? new model.Playback(
+                ? model.Playback(
                     (await env.requestFreeswitchProcess()).soundsPath +
                         '/test.wav')
-                : new model.Playback('non-existing-file.wav'),
-            new model.Enqueue('waitqueue')
+                : model.Playback('non-existing-file.wav'),
+            model.Enqueue('waitqueue')
           ]
       ]
       ..note = rdp.note + ' (updated)'
       ..extension = rdp.extension
-      ..defaultActions = [new model.Playback('sorry-dude-were-closed')];
+      ..defaultActions = [model.Playback('sorry-dude-were-closed')];
 
     _log.info('Updating dialplan ${rdp.toJson()}');
     await dialplanStore.update(rdp, user);

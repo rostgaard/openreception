@@ -17,8 +17,7 @@ class PhonePool {
   final List<Phonio.SIPPhone> allocated = [];
 
   Phonio.SIPPhone requestNext() {
-    final phone =
-        new Phonio.PJSUAProcess(pjsuaWrapperBinPath, portCounter.nextInt);
+    final phone = Phonio.PJSUAProcess(pjsuaWrapperBinPath, portCounter.nextInt);
 
     allocated.add(phone);
     return phone;
@@ -29,7 +28,7 @@ class PhonePool {
       if (phone is Phonio.PJSUAProcess) {
         await phone.finalize();
       } else {
-        throw new UnimplementedError(
+        throw UnimplementedError(
             'Phone type ${phone.runtimeType} is not supported '
             'by $runtimeType class.');
       }

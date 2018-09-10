@@ -25,16 +25,16 @@ class UserState implements Event {
   final String eventName = _Key._userState;
 
   /// The [model.UserStatus] that was changed. The [status] object contains
-  /// information about the new state and uid of agent.
+  /// information about the state and uid of agent.
   final model.UserStatus status;
 
-  /// Create a new [UserState] event object. The payload of the object is
+  /// Create a [UserState] event object. The payload of the object is
   /// passed in the [status] parameter.
-  UserState(this.status) : this.timestamp = new DateTime.now();
+  UserState(this.status) : this.timestamp = DateTime.now();
 
-  /// Create a new [UserState] object from serialized data stored in [map].
+  /// Create a [UserState] object from serialized data stored in [map].
   UserState.fromJson(Map<String, dynamic> map)
-      : this.status = new model.UserStatus(map[_Key._paused],
+      : this.status = model.UserStatus(map[_Key._paused],
             map.containsKey(_Key._uid) ? map[_Key._uid] : map[_Key._id]),
         this.timestamp = util.unixTimestampToDateTime(map[_Key._timestamp]);
 
@@ -42,7 +42,7 @@ class UserState implements Event {
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._uid: status.userId,

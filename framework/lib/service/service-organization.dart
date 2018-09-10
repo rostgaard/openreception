@@ -30,13 +30,15 @@ class RESTOrganizationStore implements storage.Organization {
   RESTOrganizationStore(Uri this.host, String this.token, this._backend);
 
   @override
-  Future<Iterable<model.BaseContact>> contacts(int oid) {
+  Future<Iterable<model.BaseContact>> contacts(int oid) async {
     Uri url = resource.Organization.contacts(this.host, oid);
     url = _appendToken(url, this.token);
 
-    return this._backend.get(url).then((String response) =>
-        (JSON.decode(response) as Iterable<Map<String, dynamic>>).map(
-            (Map<String, dynamic> map) => new model.BaseContact.fromJson(map)));
+    final List<dynamic> maps =
+        _json.decode(await _backend.get(url)) as List<dynamic>;
+
+    return maps.map((dynamic map) =>
+        model.BaseContact.fromJson(map as Map<String, dynamic>));
   }
 
   @override
@@ -44,52 +46,56 @@ class RESTOrganizationStore implements storage.Organization {
     Uri url = resource.Organization.receptions(host, oid);
     url = _appendToken(url, this.token);
 
-    return (JSON.decode(await _backend.get(url))
-            as Iterable<Map<String, dynamic>>)
-        .map((Map<String, dynamic> map) =>
-            new model.ReceptionReference.fromJson(map));
+    final List<dynamic> maps =
+        _json.decode(await _backend.get(url)) as List<dynamic>;
+
+    return maps.map((dynamic map) =>
+        model.ReceptionReference.fromJson(map as Map<String, dynamic>));
   }
 
   @override
-  Future<Map<String, Map<String, String>>> receptionMap() async {
+  Future<Map<String, dynamic>> receptionMap() async {
     Uri url = resource.Organization.receptionMap(host);
     url = _appendToken(url, this.token);
 
-    return (JSON.decode(await _backend.get(url)));
+    return (await _json.decode(await _backend.get(url)))
+        as Map<String, dynamic>;
   }
 
   @override
-  Future<model.Organization> get(int oid) {
+  Future<model.Organization> get(int oid) async {
     Uri url = resource.Organization.single(this.host, oid);
     url = _appendToken(url, this.token);
 
-    return this._backend.get(url).then((String response) =>
-        new model.Organization.fromJson(
-            JSON.decode(response) as Map<String, dynamic>));
+    final String response = await _backend.get(url);
+
+    return model.Organization.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
   }
 
   @override
   Future<model.OrganizationReference> create(
-      model.Organization organization, model.User modifier) {
+      model.Organization organization, model.User modifier) async {
     Uri url = resource.Organization.root(this.host);
     url = _appendToken(url, this.token);
 
-    String data = JSON.encode(organization);
-    return this._backend.post(url, data).then(JSON.decode).then(
-        (Map<String, dynamic> map) =>
-            new model.OrganizationReference.fromJson(map));
+    final String response =
+        await _backend.post(url, _json.encode(organization));
+
+    return model.OrganizationReference.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
   }
 
   @override
   Future<model.OrganizationReference> update(
-      model.Organization organization, model.User modifier) {
+      model.Organization organization, model.User modifier) async {
     Uri url = resource.Organization.single(this.host, organization.id);
     url = _appendToken(url, this.token);
 
-    String data = JSON.encode(organization);
-    return this._backend.put(url, data).then(JSON.decode).then(
-        (Map<String, dynamic> map) =>
-            new model.OrganizationReference.fromJson(map));
+    final String response = await _backend.put(url, _json.encode(organization));
+
+    return model.OrganizationReference.fromJson(
+        _json.decode(response) as Map<String, dynamic>);
   }
 
   @override
@@ -101,25 +107,27 @@ class RESTOrganizationStore implements storage.Organization {
   }
 
   @override
-  Future<Iterable<model.OrganizationReference>> list() {
+  Future<Iterable<model.OrganizationReference>> list() async {
     Uri url = resource.Organization.list(this.host, token: this.token);
     url = _appendToken(url, this.token);
 
-    return _backend.get(url).then((String response) =>
-        (JSON.decode(response) as Iterable<Map<String, dynamic>>).map(
-            (Map<String, dynamic> map) =>
-                new model.OrganizationReference.fromJson(map)));
+    final List<dynamic> maps =
+        _json.decode(await _backend.get(url)) as List<dynamic>;
+
+    return maps.map((dynamic map) =>
+        model.OrganizationReference.fromJson(map as Map<String, dynamic>));
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([int oid]) {
+  Future<Iterable<model.Commit>> changes([int oid]) async {
     Uri url = resource.Organization.changeList(host, oid);
     url = _appendToken(url, this.token);
 
-    Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
-        maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
+    final List<dynamic> maps =
+        _json.decode(await _backend.get(url)) as List<dynamic>;
 
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    return maps.map(
+        (dynamic map) => model.Commit.fromJson(map as Map<String, dynamic>));
   }
 
   Future<String> changelog(int oid) {

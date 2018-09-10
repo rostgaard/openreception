@@ -24,9 +24,9 @@ void _testModelClientConnection() {
 abstract class _ModelClientConnection {
   static void deserialization() {
     model.ClientConnection builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
     model.ClientConnection decodedCall = new model.ClientConnection.fromJson(
-        JSON.decode(serializedObject) as Map<String, dynamic>);
+        _json.decode(serializedObject) as Map<String, dynamic>);
 
     expect(builtObject.connectionCount, equals(decodedCall.connectionCount));
     expect(builtObject.userID, equals(decodedCall.userID));
@@ -38,7 +38,7 @@ abstract class _ModelClientConnection {
   static void serialization() {
     model.ClientConnection builtObject = buildObject();
 
-    expect(() => JSON.encode(builtObject), returnsNormally);
+    expect(() => _json.encode(builtObject), returnsNormally);
   }
 
   static model.ClientConnection buildObject() {

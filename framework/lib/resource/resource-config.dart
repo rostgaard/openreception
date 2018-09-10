@@ -22,7 +22,4 @@ abstract class Config {
 
   static Uri root(Uri host) =>
       Uri.parse('${util.removeTailingSlashes(host)}/$_ns');
-
-  static Uri register(Uri host) =>
-      Uri.parse('${util.removeTailingSlashes(host)}/$_ns/register');
 }

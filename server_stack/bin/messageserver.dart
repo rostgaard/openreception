@@ -19,7 +19,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 import 'package:orf/filestore.dart' as filestore;
-import 'package:orf/gzip_cache.dart' as gzip_cache;
 import 'package:orf/service-io.dart' as service;
 import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
@@ -30,9 +29,9 @@ Future main(List<String> args) async {
   ///Init logging. Inherit standard values.
   Logger.root.level = config.messageServer.log.level;
   Logger.root.onRecord.listen(config.messageServer.log.onRecord);
-  Logger log = new Logger('MessageServer');
+  Logger log = Logger('MessageServer');
 
-  final ArgParser parser = new ArgParser()
+  final ArgParser parser = ArgParser()
     ..addFlag('help', help: 'Output this help', negatable: false)
     ..addOption('filestore', abbr: 'f', help: 'Path to the filestore backend')
     ..addOption('httpport',
@@ -54,6 +53,7 @@ Future main(List<String> args) async {
         help: 'Enable or disable experimental Git revisioning on this server');
 
   final ArgResults parsedArgs = parser.parse(args);
+  final Map<String, dynamic> appContext = {};
 
   if (parsedArgs['help']) {
     print(parser.usage);
@@ -71,33 +71,34 @@ Future main(List<String> args) async {
   final bool revisioning = parsedArgs['experimental-revisioning'];
 
   final revisionEngine = revisioning
-      ? new filestore.GitEngine(parsedArgs['filestore'] + '/message')
+      ? filestore.GitEngine(parsedArgs['filestore'] + '/message')
       : null;
 
-  final service.Authentication _authService = new service.Authentication(
+  final service.Authentication _authService = service.Authentication(
       Uri.parse(parsedArgs['auth-uri']),
       config.userServer.serverToken,
-      new service.Client());
+      service.Client());
 
   final service.NotificationService _notification =
-      new service.NotificationService(Uri.parse(parsedArgs['notification-uri']),
-          config.userServer.serverToken, new service.Client());
+      service.NotificationService(Uri.parse(parsedArgs['notification-uri']),
+          config.userServer.serverToken, service.Client());
 
   final filestore.Message _messageStore =
-      new filestore.Message(filepath + '/message', revisionEngine);
-
-  final gzip_cache.MessageCache _cache =
-      new gzip_cache.MessageCache(_messageStore, _messageStore.changeStream);
-
-  await _messageStore.rebuildSecondaryIndexes();
+      filestore.Message(filepath + '/message', revisionEngine);
 
   final filestore.MessageQueue _messageQueue =
-      new filestore.MessageQueue(filepath + '/message_queue');
+      filestore.MessageQueue(filepath + '/message_queue');
 
-  final controller.Message msgController = new controller.Message(
-      _messageStore, _messageQueue, _authService, _notification, _cache);
+  final controller.Message msgController = controller.Message(
+      _messageStore, _messageQueue, _authService, _notification);
 
-  await (new router.Message(_authService, _notification, msgController)).listen(
+  appContext['filestore'] = parsedArgs['filestore'];
+  appContext['auth-uri'] = parsedArgs['auth-uri'];
+  appContext['notification-uri'] = parsedArgs['notification-uri'];
+  appContext['experimental-revisioning'] =
+      parsedArgs['experimental-revisioning'];
+
+  await router.Message(_authService, _notification, msgController).listen(
       hostname: parsedArgs['host'], port: int.parse(parsedArgs['httpport']));
   log.info('Ready to handle requests');
 }

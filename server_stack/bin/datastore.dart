@@ -11,9 +11,7 @@
   this program; see the file COPYING3. If not, see http://www.gnu.org/licenses.
 */
 
-/**
- * The OR-Stack calendar server. Provides a REST calendar interface.
- */
+/// The OR-Stack datastore server. Provides a REST calendar interface.
 library ors.datastore;
 
 import 'dart:async';
@@ -22,8 +20,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 import 'package:orf/dialplan_tools.dart' as dialplanTools;
-import 'package:orf/filestore.dart' as filestore;
-import 'package:orf/gzip_cache.dart' as gzip_cache;
+import 'package:orf/filestore.dart' as fileStore;
 import 'package:orf/service-io.dart' as service;
 import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
@@ -43,9 +40,6 @@ import 'package:ors/router/router-contact.dart' as router;
 import 'package:ors/router/router-datastore.dart' as router;
 import 'package:ors/router/router-dialplan.dart' as router;
 import 'package:ors/router/router-reception.dart' as router;
-
-ArgResults _parsedArgs;
-ArgParser _parser = new ArgParser();
 
 Future main(List<String> args) async {
   ///Init logging.
@@ -130,11 +124,11 @@ Future main(List<String> args) async {
       password: parsedArgs['esl-password'],
       port: int.parse(parsedArgs['esl-port']));
 
-  final filestore.GitEngine revisionEngine =
-      revisioning ? new filestore.GitEngine(filepath) : null;
+  final fileStore.GitEngine revisionEngine =
+      revisioning ? new fileStore.GitEngine(filepath) : null;
 
-  final filestore.DataStore dataStore =
-      new filestore.DataStore(filepath, revisionEngine);
+  final fileStore.DataStore dataStore =
+      new fileStore.DataStore(filepath, revisionEngine);
 
   /// Setup dialplan tools.
   final dialplanTools.DialplanCompiler compiler =
@@ -165,47 +159,29 @@ Future main(List<String> args) async {
       dataStore.contactStore,
       dataStore.receptionStore,
       authService,
-      notificationService,
-      new gzip_cache.CalendarCache(dataStore.contactStore.calendarStore,
-          dataStore.receptionStore.calendarStore, [
-        dataStore.contactStore.calendarStore.changeStream,
-        dataStore.receptionStore.calendarStore.changeStream,
-      ]));
+      notificationService
+      );
 
   controller.Contact contactController = new controller.Contact(
       dataStore.contactStore,
       notificationService,
-      authService,
-      new gzip_cache.ContactCache(
-          dataStore.contactStore,
-          dataStore.contactStore.onContactChange,
-          dataStore.contactStore.onReceptionDataChange,
-          dataStore.receptionStore.onReceptionChange,
-          dataStore.organizationStore.onOrganizationChange));
+      authService);
 
   final controller.Organization organization = new controller.Organization(
       dataStore.organizationStore,
       notificationService,
-      authService,
-      new gzip_cache.OrganizationCache(dataStore.organizationStore,
-          dataStore.organizationStore.onOrganizationChange));
+      authService);
 
   controller.Reception reception = new controller.Reception(
       dataStore.receptionStore,
       notificationService,
-      authService,
-      new gzip_cache.ReceptionCache(dataStore.receptionStore,
-          dataStore.receptionStore.onReceptionChange));
+      authService);
 
   // Model classes.
   final model.UserStatusList userStatus = new model.UserStatusList();
 
   /// Create an anonymous client notifier.
   new controller.ClientNotifier(notificationService, userStatus.onChange);
-
-  gzip_cache.DialplanCache _cache = new gzip_cache.DialplanCache(
-      dataStore.receptionDialplanStore,
-      dataStore.receptionDialplanStore.onChange);
 
   final controller.Ivr ivrHandler =
       new controller.Ivr(dataStore.ivrStore, compiler, authService, fsConfPath);
@@ -217,27 +193,24 @@ Future main(List<String> args) async {
           compiler,
           ivrHandler,
           fsConfPath,
-          eslConfig,
-          _cache);
+          eslConfig);
 
   final controller.PeerAccount peerAccountHandler =
       new controller.PeerAccount(dataStore.userStore, compiler, fsConfPath);
 
   /// Routers
   final router.Calendar calendarRouter =
-      new router.Calendar(authService, notificationService, calendarController);
+      new router.Calendar (authService, notificationService, calendarController);
 
   final router.Contact contactRouter =
       new router.Contact(authService, notificationService, contactController);
 
-  final router.Reception receptionRouter = new router.Reception(
-      authService, notificationService, reception, organization);
+  final receptionRouter = router.ReceptionChannel();
 
-  final router.Dialplan dialplanRouter = new router.Dialplan(
+  final dialplanRouter = new router.Dialplan(
       authService, ivrHandler, peerAccountHandler, receptionDialplanHandler);
 
-  await (new router.Datastore(authService, notificationService)).listen(
-      [calendarRouter, contactRouter, receptionRouter, dialplanRouter],
+  await router.Datastore().start(null,
       hostname: parsedArgs['host'], port: port);
 
   _log.info('Ready to handle requests');

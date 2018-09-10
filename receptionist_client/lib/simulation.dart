@@ -27,12 +27,10 @@ _Simulation simulation = new _Simulation();
 controller.SimulationHotKeys key =
     new controller.SimulationHotKeys(new controller.HotKeys());
 
-///Important. Fill out this one with actual PSTN numbers.
+/// Important. Fill out this one with actual PSTN numbers.
 List<String> calleeNumbers = [];
 
-/**
- * Automated simulation of the UI.
- */
+/// Automated simulation of the UI.
 class _Simulation {
   final Random _rand = new Random(new DateTime.now().millisecondsSinceEpoch);
   ui_model.AppClientState _appState;
@@ -79,9 +77,6 @@ class _Simulation {
     _stateBox.text = 'call:$activeCall';
   }
 
-  /**
-   *
-   */
   Future _checkState() async {
     await _sleep(_oneSecond);
 
@@ -179,9 +174,6 @@ class _Simulation {
     }
   }
 
-  /**
-   *
-   */
   void _observers() {
     _log.onRecord.listen((LogRecord rec) {
       if (_infoBox.children.length > 29) {
@@ -198,9 +190,6 @@ class _Simulation {
 
   Future _sleep(Duration duration) => new Future.delayed(duration);
 
-  /**
-   *
-   */
   Future _continouslyPickup() async {
     Future tryPickup() async {
       Future response =
@@ -238,9 +227,6 @@ class _Simulation {
     await _handleActiveCall();
   }
 
-  /**
-   *
-   */
   void start(controller.Call cc, final ui_model.AppClientState as) {
     _callController = cc;
     _appState = as;
@@ -250,9 +236,6 @@ class _Simulation {
     _log.info('Started simulation mode. DO NOT USE the interface manually!');
   }
 
-  /**
-   *
-   */
   Future _hangupCall() async {
     Future sendHangup() async {
       Future response =
@@ -292,12 +275,8 @@ class _Simulation {
   Future<controller.CallCommand> _nextOfAny(
           List<controller.CallCommand> callCommands,
           {Duration timeout: const Duration(seconds: 10)}) =>
-      _callController.commandStream.firstWhere(callCommands.contains)
-      as Future<controller.CallCommand>;
+      _callController.commandStream.firstWhere(callCommands.contains);
 
-  /**
-   *
-   */
   Future _performOrigination() async {
     await new Future.delayed(new Duration(seconds: 1));
     _showPstnBox.click();
@@ -341,9 +320,7 @@ class _Simulation {
     _showPstnBox.click();
   }
 
-  /**
-   * Poll and wait for the call to be picked up, hung up or just timed out.
-   */
+  /// Poll and wait for the call to be picked up, hung up or just timed out.
   Future _outboundCallOK() async {
     final DateTime deadline = new DateTime.now().add(new Duration(seconds: 6));
     final Duration period = new Duration(milliseconds: 500);
@@ -380,9 +357,6 @@ class _Simulation {
     }
   }
 
-  /**
-   *
-   */
   Future _tryTransfer() async {
     await _performOrigination();
 
@@ -435,9 +409,6 @@ class _Simulation {
     _log.info('Transferred call!');
   }
 
-  /**
-   *
-   */
   void setup() {
     hierarchicalLoggingEnabled = true;
     _callController.commandStream.listen((controller.CallCommand command) {

@@ -11,9 +11,11 @@
   this program; see the file COPYING3. If not, see http://www.gnu.org/licenses.
 */
 
-library ors.router.response_utils;
+library ors.router.response_utils_shelf;
 
+import 'dart:async';
 import 'dart:convert';
+
 import 'package:shelf/shelf.dart' as shelf;
 
 const Map<String, String> corsHeaders = const {
@@ -24,52 +26,44 @@ const Map<String, String> corsHeaders = const {
 /**
  *
  */
-shelf.Response okJson(dynamic body) => ok(JSON.encode(body));
+Future<shelf.Response> okJson(dynamic body) async =>
+    shelf.Response.ok(json.encode(body),
+        headers: {'Content-Type': 'application/json'});
 
 /**
  *
  */
-shelf.Response ok(dynamic body) => new shelf.Response.ok(body);
-
-/**
- *
- */
-shelf.Response okGzip(dynamic body) => new shelf.Response.ok(body, headers: {
-      'content-encoding': 'gzip',
-      'content-type': 'application/json; charset=utf-8'
-    });
+shelf.Response ok(dynamic body) => shelf.Response.ok(body);
 
 /**
  *
  */
 shelf.Response notFoundJson(dynamic body) =>
-    new shelf.Response.notFound(JSON.encode(body));
+    shelf.Response.notFound(json.encode(body));
 
 /**
      *
      */
-shelf.Response notFound(dynamic body) => new shelf.Response.notFound(body);
+shelf.Response notFound(dynamic body) => shelf.Response.notFound(body);
 
 /**
  *
  */
-shelf.Response clientError(String reason) =>
-    new shelf.Response(400, body: reason);
+shelf.Response clientError(String reason) => shelf.Response(400, body: reason);
 
 /**
  *
  */
 shelf.Response clientErrorJson(dynamic reason) =>
-    new shelf.Response(400, body: JSON.encode(reason));
+    shelf.Response(400, body: json.encode(reason));
 
 /**
  *
  */
 shelf.Response serverError(String reason) =>
-    new shelf.Response(500, body: reason);
+    shelf.Response.internalServerError(body: reason);
 
 shelf.Response authServerDown() =>
-    new shelf.Response(502, body: 'Authentication server is not reachable');
+    shelf.Response(502, body: 'Authentication server is not reachable');
 
-String tokenFrom(shelf.Request request) =>
-    request.requestedUri.queryParameters['token'];
+String tokenFrom(shelf.Request request) => request.url.queryParameters['token'];

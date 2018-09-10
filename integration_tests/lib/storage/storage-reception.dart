@@ -1,27 +1,23 @@
 part of ort.storage;
 
 class Reception {
-  static Logger _log = new Logger('$_libraryName.Reception');
+  static Logger _log = Logger('$_libraryName.Reception');
 
-  /**
-   * Test server behaviour when trying to aquire a reception event object that
-   * does not exist.
-   *
-   * The expected behaviour is that the server should return a Not Found error.
-   */
+  /// Test server behaviour when trying to aquire a reception event object that
+  /// does not exist.
+  ///
+  /// The expected behaviour is that the server should return a Not Found error.
   static Future nonExistingReception(ServiceAgent sa) async {
     _log.info('Checking server behaviour on a non-existing reception.');
 
-    expect(sa.receptionStore.get(-1), throwsA(new isInstanceOf<NotFound>()));
+    expect(sa.receptionStore.get(-1), throwsA(TypeMatcher<NotFound>()));
   }
 
-  /**
-   * Test server behaviour when trying to aquire a reception event object that
-   * exists.
-   *
-   * The expected behaviour is that the server should return the
-   * Reception object.
-   */
+  /// Test server behaviour when trying to aquire a reception event object that
+  /// exists.
+  ///
+  /// The expected behaviour is that the server should return the
+  /// Reception object.
   static Future existingReception(ServiceAgent sa) async {
     final org = await sa.createsOrganization();
     final rec = Randomizer.randomReception()..oid = org.id;
@@ -49,12 +45,10 @@ class Reception {
     expect(rec.name, equals(created.name));
   }
 
-  /**
-   * Test server behaviour when trying to aquire a list of reception objects
-   *
-   * The expected behaviour is that the server should return a list of
-   * Reception objects.
-   */
+  /// Test server behaviour when trying to aquire a list of reception objects
+  ///
+  /// The expected behaviour is that the server should return a list of
+  /// Reception objects.
   static Future listReceptions(ServiceAgent sa) async {
     _log.info('Checking server behaviour on list of receptions.');
     final org1 = await sa.createsOrganization();
@@ -99,12 +93,10 @@ class Reception {
     }
   }
 
-  /**
-   * Test server behaviour when trying to create a new reception.
-   *
-   * The expected behaviour is that the server should return the created
-   * Reception object.
-   */
+  /// Test server behaviour when trying to create a reception.
+  ///
+  /// The expected behaviour is that the server should return the created
+  /// Reception object.
   static Future create(ServiceAgent sa) async {
     final org = await sa.createsOrganization();
     final rec = Randomizer.randomReception()..oid = org.id;
@@ -122,37 +114,31 @@ class Reception {
     await sa.createsReception(org);
   }
 
-  /**
-   * Test server behaviour when trying to update a reception object that
-   * do not exists.
-   *
-   * The expected behaviour is that the server should return Not Found error
-   */
+  /// Test server behaviour when trying to update a reception object that
+  /// do not exists.
+  ///
+  /// The expected behaviour is that the server should return Not Found error
   static Future updateNonExisting(ServiceAgent sa) async {
     final rec = Randomizer.randomReception()..id = -1;
     expect(sa.receptionStore.update(rec, sa.user),
-        throwsA(new isInstanceOf<NotFound>()));
+        throwsA(TypeMatcher<NotFound>()));
   }
 
-  /**
-   * Test server behaviour when trying to update a reception object that
-   * exists but with invalid data.
-   *
-   * The expected behaviour is that the server should return Server Error
-   */
+  /// Test server behaviour when trying to update a reception object that
+  /// exists but with invalid data.
+  ///
+  /// The expected behaviour is that the server should return Server Error
   static Future updateInvalid(ServiceAgent sa) async {
     final rec = Randomizer.randomReception()..id = model.Reception.noId;
     expect(sa.receptionStore.update(rec, sa.user),
-        throwsA(new isInstanceOf<ClientError>()));
+        throwsA(TypeMatcher<ClientError>()));
   }
 
-  /**
-   * Test server behaviour when trying to update a reception event object that
-   * exists.
-   *
-   * The expected behaviour is that the server should return the updated
-   * Reception object.
-   */
+  /// Test server behaviour when trying to update a reception event object that
+  /// exists.
+  ///
+  /// The expected behaviour is that the server should return the updated
+  /// Reception object.
   static Future update(ServiceAgent sa) async {
     final org = await sa.createsOrganization();
     final created = await sa.createsReception(org);
@@ -186,11 +172,9 @@ class Reception {
     expect(updated.name, equals(fetched.name));
   }
 
-  /**
-   * Test server behaviour when trying to delete an reception that exists.
-   *
-   * The expected behaviour is that the server should succeed.
-   */
+  /// Test server behaviour when trying to delete an reception that exists.
+  ///
+  /// The expected behaviour is that the server should succeed.
   static Future remove(ServiceAgent sa) async {
     final org = await sa.createsOrganization();
     final rec = await sa.createsReception(org);
@@ -198,8 +182,7 @@ class Reception {
     await sa.receptionStore.get(rec.id);
     await sa.removesReception(rec);
 
-    expect(
-        sa.receptionStore.get(rec.id), throwsA(new isInstanceOf<NotFound>()));
+    expect(sa.receptionStore.get(rec.id), throwsA(TypeMatcher<NotFound>()));
   }
 
   /**
@@ -216,12 +199,12 @@ class Reception {
 
     expect(commits.length, equals(1));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
-    final change = commits.first.changes.first;
+    final model.ReceptionChange change = commits.first.changes.first;
 
     expect(change.changeType, model.ChangeType.add);
     expect(change.rid, created.id);
@@ -241,23 +224,23 @@ class Reception {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.ReceptionChange latestChange = commits.first.changes.first;
+    final model.ReceptionChange oldestChange = commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.modify);
     expect(latestChange.rid, created.id);
@@ -282,23 +265,23 @@ class Reception {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.ReceptionChange latestChange = commits.first.changes.first;
+    final model.ReceptionChange oldestChange = commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.delete);
     expect(latestChange.rid, created.id);

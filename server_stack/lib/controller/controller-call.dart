@@ -16,6 +16,7 @@ library ors.controller.call;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:shelf/shelf.dart' as shelf;
 import 'package:esl/esl.dart' as esl;
 import 'package:logging/logging.dart';
 import 'package:orf/event.dart' as event;
@@ -25,39 +26,34 @@ import 'package:orf/pbx-keys.dart';
 import 'package:orf/service-io.dart' as service;
 import 'package:orf/service.dart' as service;
 import 'package:orf/validation.dart';
-import 'package:ors/configuration.dart';
-import 'package:ors/controller/controller-pbx.dart' as controller;
-import 'package:ors/model.dart' as _model;
-import 'package:ors/response_utils.dart';
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
+
+import '../configuration.dart';
+import '../controller/controller-pbx.dart' as controller;
+import '../model.dart' as _model;
+import '../response_utils.dart';
 
 class Call {
+  Call(this._callList, this._channelList, this._peerlist, this._pbxController,
+      this.authService);
+
   final _model.CallList _callList;
   final _model.PeerList _peerlist;
   final _model.ChannelList _channelList;
   final controller.PBX _pbxController;
   final service.Authentication authService;
-  final Logger _log = new Logger('ors.controller.call_flow_control');
-
-  Call(this._callList, this._channelList, this._peerlist, this._pbxController,
-      this.authService);
+  final Logger _log = Logger('ors.controller.call_flow_control');
 
   String _peerInfo(model.Peer peer) => '${peer.name}: '
       'channels: ${_channelList.activeChannelCount(peer.name)},'
       'inTransition: ${peer.inTransition}';
 
-  /**
-   * Retrieves a single call from the call list.
-   */
-  shelf.Response get(shelf.Request request) {
-    String callID = shelf_route.getPathParameter(request, 'callid');
-
+  /// Retrieves a single call from the call list.
+  Future<shelf.Response> get(shelf.Request request, final String callID)  async {
     try {
       model.Call call = _callList.get(callID);
-      return new shelf.Response.ok(JSON.encode(call));
+      return okJson(call);
     } on NotFound {
-      return new shelf.Response.notFound('{}');
+      return notFoundJson(const {});
     } catch (error, stackTrace) {
       final String msg = 'Could not retrive call list';
       _log.severe(msg, error, stackTrace);
@@ -66,9 +62,7 @@ class Call {
     }
   }
 
-  /**
-   * Hangup the current call of the agent.
-   */
+  /// Hangup the current call of the agent.
   Future<shelf.Response> hangup(shelf.Request request) async {
     model.User user;
 
@@ -91,7 +85,7 @@ class Call {
 
     /// The agent currently has no call assigned.
     if (call == model.Call.noCall) {
-      return new shelf.Response.notFound('{}');
+      return shelf.Response.notFound({});
     }
 
     ///There is an active call, update the peer state.
@@ -102,7 +96,7 @@ class Call {
       await _pbxController.killChannel(call.channel);
       _peerlist.get(user.extension).inTransition = false;
 
-      return new shelf.Response.ok('{}');
+      return shelf.Response.ok('{}');
     } catch (error, stackTrace) {
       final String msg = 'Failed kill the channel: (${call.channel})';
       _log.severe(msg, error, stackTrace);
@@ -114,11 +108,8 @@ class Call {
     }
   }
 
-  /**
-   * Hangup a specific call identified by the supplied call id.
-   */
-  Future<shelf.Response> hangupSpecific(shelf.Request request) async {
-    final String callID = shelf_route.getPathParameter(request, 'callid');
+  /// Hangup a specific call identified by the supplied call id.
+  Future<shelf.Response> hangupSpecific(shelf.Request request, final String callID) async {
 
     model.User user;
 
@@ -130,7 +121,7 @@ class Call {
         _callList.get(callID).assignedTo == user.id;
 
     if (callID == null || callID == "") {
-      return new shelf.Response(400, body: 'Empty call_id in path.');
+      return clientError( 'Empty call_id in path.');
     }
 
     /// User object fetching.
@@ -145,7 +136,7 @@ class Call {
 
     /// The agent is not allowed to terminate the call.
     if (!aclCheck(user)) {
-      return new shelf.Response.forbidden('Insufficient privileges.');
+      return shelf.Response.forbidden('Insufficient privileges.');
     }
 
     /// Verify existence of call targeted for hangup.
@@ -153,7 +144,7 @@ class Call {
     try {
       targetCall = _callList.get(callID);
     } on NotFound catch (_) {
-      return new shelf.Response.notFound(JSON.encode({'call_id': callID}));
+      return notFoundJson({'call_id': callID});
     }
 
     model.Peer peer = _peerlist.get(user.extension);
@@ -162,51 +153,44 @@ class Call {
     peer.inTransition = true;
 
     ///Completer
-    //Completer<model.Call> completer = new Completer<model.Call>();
+    //Completer<model.Call> completer = Completer<model.Call>();
 
-    Future<model.Call> callHangup = _callList.onEvent
-        .firstWhere(
-            (event.Event e) => e is event.CallHangup && e.call.id == callID)
-        .then((event.CallHangup hangupEvent) => hangupEvent.call);
+    Future<event.Event> callHangupEvent = _callList.onEvent.firstWhere(
+        (event.Event e) => e is event.CallHangup && e.call.id == callID);
 
-    return await _pbxController.hangup(targetCall).then((_) {
-      return callHangup.then((model.Call hungupCall) {
-        /// Update peer state.
-        peer.inTransition = false;
-        return new shelf.Response.ok(JSON.encode(hungupCall));
-      }).timeout(new Duration(seconds: 3));
-    }).catchError((error, stackTrace) {
-      /// Update peer state.
-      peer.inTransition = false;
+    return await _pbxController
+        .hangup(targetCall)
+        .then((_) async {
+          final hungupCall = ((await callHangupEvent) as event.CallHangup).call;
+          peer.inTransition = false;
+          return shelf.Response.ok(json.encode(hungupCall));
+        })
+        .timeout(Duration(seconds: 3))
+        .catchError((error, stackTrace) {
+          /// Update peer state.
+          peer.inTransition = false;
 
-      _log.severe(error, stackTrace);
-      return new shelf.Response.internalServerError();
-    });
+          _log.severe(error, stackTrace);
+          return shelf.Response.internalServerError();
+        });
   }
 
-  /**
-   * Lists every active call in system.
-   */
+  /// Lists every active call in system.
   shelf.Response list(shelf.Request request) =>
-      new shelf.Response.ok(JSON.encode(_callList));
+      shelf.Response.ok(json.encode(_callList));
 
-  /**
-   * Originate a new call by first creating a parked phone channel to the
-   * agent and then perform the orgination in the background.
-   */
-  Future<shelf.Response> originate(shelf.Request request) async {
-    final String callId =
-        shelf_route.getPathParameters(request).containsKey('callId')
-            ? shelf_route.getPathParameter(request, 'callId')
-            : '';
-    final int receptionID =
-        int.parse(shelf_route.getPathParameter(request, 'rid'));
-    final int contactID =
-        int.parse(shelf_route.getPathParameter(request, 'cid'));
-    String extension = shelf_route.getPathParameter(request, 'extension');
-    final String dialplan = shelf_route.getPathParameter(request, 'dialplan');
-    final String host = shelf_route.getPathParameter(request, 'host');
-    final String port = shelf_route.getPathParameter(request, 'port');
+  /// Originate
+  /// a call by first creating a parked phone channel to the
+  /// agent and then perform the origination in the background.
+  Future<shelf.Response> originate(final shelf.Request request,  String extension,
+      final String dialplan, final String rid, final String cid, [String callId = '']) async {
+
+    final int receptionID = int.parse(rid);
+    final int contactID = int.parse(cid);
+
+    // TODO: Find a better solution for this.
+    final String host = request.url.queryParameters['host'];
+    final String port = request.url.queryParameters['port'];
 
     if (dialplan.isEmpty) {
       return clientError('Dialplan must not be empty');
@@ -223,7 +207,7 @@ class Call {
     _log.finest('Originating to $extension in context '
         '$contactID@$receptionID');
 
-    /// Any authenticated user is allowed to originate new calls.
+    /// Any authenticated user is allowed to originate calls.
     bool aclCheck(model.User user) => true;
 
     bool validExtension(String extension) =>
@@ -240,11 +224,12 @@ class Call {
     }
 
     if (!aclCheck(user)) {
-      return new shelf.Response.forbidden('Insufficient privileges.');
+      return shelf.Response.forbidden('Insufficient privileges.');
     }
 
     if (!validExtension(extension)) {
-      return new shelf.Response(400, body: 'Invalid extension: $extension');
+      return clientError(
+          'Invalid extension: $extension');
     }
 
     /// Retrieve peer information.
@@ -308,7 +293,7 @@ class Call {
         e.channel.fields['Other-Leg-Unique-ID'] == agentChannel;
 
     Future<model.Call> outboundCall = _pbxController.eslClient.eventStream
-        .firstWhere(outboundCallWithUuid, defaultValue: () => null)
+        .firstWhere(outboundCallWithUuid, orElse: () => null)
         .then((esl.Event e) => _callList.createCall(e));
 
     /// At this point, we have an active agent channel and may perform
@@ -318,7 +303,7 @@ class Call {
     try {
       await _pbxController.transferUUIDToExtension(
           agentChannel, extension, user, dialplan);
-      call = await outboundCall.timeout(new Duration(seconds: 1));
+      call = await outboundCall.timeout(Duration(seconds: 1));
     } catch (error, stackTrace) {
       final String msg = 'Failed to get call channel';
       _log.severe(msg, error, stackTrace);
@@ -362,14 +347,11 @@ class Call {
     }
 
     peer.inTransition = false;
-    return new shelf.Response.ok(JSON.encode(call));
+    return shelf.Response.ok(json.encode(call));
   }
 
-  /**
-   * Park a specific call.
-   */
-  Future<shelf.Response> park(shelf.Request request) async {
-    final String callID = shelf_route.getPathParameter(request, "callid");
+  /// Park a specific call.
+  Future<shelf.Response> park(shelf.Request request, final String callID) async {
 
     List<String> parkGroups = [
       'Administrator',
@@ -405,7 +387,7 @@ class Call {
     }
 
     if (!aclCheck(user)) {
-      return new shelf.Response.forbidden('Insufficient privileges.');
+      return shelf.Response.forbidden( 'Insufficient privileges.');
     }
 
     try {
@@ -415,21 +397,17 @@ class Call {
       return okJson(call);
     } catch (error, stackTrace) {
       _log.severe(error, stackTrace);
-      return new shelf.Response.internalServerError();
+      return shelf.Response.internalServerError();
     }
   }
 
-  /**
-   *
-   */
+
+  /// Determine if a peer is currently unreachable and will park the call locally.
   bool _phoneUnreachable(model.Peer peer) =>
       peer.inTransition || _channelList.hasActiveChannels(peer.name);
 
-  /**
-   * Pickup a specific call.
-   */
-  Future<shelf.Response> pickup(shelf.Request request) async {
-    final String callID = shelf_route.getPathParameter(request, 'callid');
+  /// Pickup a specific call.
+  Future<shelf.Response> pickup(shelf.Request request, final String callID) async {
     model.User user;
     model.Peer peer;
     model.Call assignedCall;
@@ -469,14 +447,14 @@ class Call {
       /// Request the specified call.
       assignedCall = _callList.requestSpecificCall(callID, user);
     } on Conflict {
-      return new shelf.Response(409,
-          body: JSON.encode({'error': 'Call not currently available.'}));
+      return shelf.Response(409,
+          body: json.encode({'error': 'Call not currently available.'}));
     } on NotFound {
-      return new shelf.Response.notFound(
-          JSON.encode({'error': 'No calls available.'}));
+      return notFoundJson(
+          {'error': 'No calls available.'});
     } on Forbidden {
-      return new shelf.Response.forbidden(
-          JSON.encode({'error': 'Call already assigned.'}));
+      return shelf.Response.forbidden(
+          json.encode({'error': 'Call already assigned.'}));
     } catch (error, stackTrace) {
       final String msg = 'Failed retrieve call from call list';
       _log.severe(msg, error, stackTrace);
@@ -504,14 +482,14 @@ class Call {
       assignedCall.assignedTo = originallyAssignedTo;
 
       /// Make sure the agent channel is closed before returning a response.
-      return await new Future.delayed(new Duration(seconds: 3)).then((_) =>
-          _pbxController
-              .killChannel(agentChannel)
-              .then((_) => serverError(msg))
-              .catchError((error, stackTrace) {
-            _log.severe('Failed to close agent channel', error, stackTrace);
-            return serverError(msg);
-          }));
+      await Future.delayed(Duration(seconds: 3));
+      try {
+        final msg = await _pbxController.killChannel(agentChannel);
+        return serverError(msg);
+      } catch (error, stackTrace) {
+        _log.severe('Failed to close agent channel', error, stackTrace);
+        return serverError(msg);
+      }
     }
 
     /// Channel bridging
@@ -548,38 +526,35 @@ class Call {
     /// Update the user state. At this point, all is well.
     peer.inTransition = false;
     assignedCall.locked = false;
-    return new shelf.Response.ok(JSON.encode(assignedCall));
+    return shelf.Response.ok(json.encode(assignedCall));
   }
 
-  /**
-   * Transfer (bridge) two calls in the PBX.
-   */
-  Future<shelf.Response> transfer(shelf.Request request) async {
-    String sourceCallID = shelf_route.getPathParameter(request, "aleg");
-    String destinationCallID = shelf_route.getPathParameter(request, 'bleg');
+  /// Transfer (bridge) two calls in the PBX.
+  Future<shelf.Response> transfer(shelf.Request request, String sourceCallID, String destinationCallID) async {
+
     model.Call sourceCall;
     model.Call destinationCall;
     model.User user;
 
-    if (sourceCallID == null || sourceCallID == "") {
-      return new shelf.Response(400, body: 'Empty call_id in path.');
+    if (sourceCallID == null || sourceCallID == '') {
+      return clientError( 'Empty call_id in path.');
     }
 
     ///Check valitity of the call. (Will raise exception on invalid).
     try {
       [sourceCallID, destinationCallID].forEach(validateCallId);
     } on FormatException catch (_) {
-      return new shelf.Response(400,
-          body: 'Error in call id format (empty, null, nullID)');
+      return clientError(
+           'Error in call id format (empty, null, nullID)');
     }
 
     try {
       sourceCall = _callList.get(sourceCallID);
       destinationCall = _callList.get(destinationCallID);
     } on NotFound catch (_) {
-      return new shelf.Response.notFound(JSON.encode({
+      return shelf.Response.notFound({
         'description': 'At least one of the calls are ' 'no longer available'
-      }));
+      });
     }
 
     _log.finest('Transferring $sourceCall -> $destinationCall');
@@ -610,19 +585,16 @@ class Call {
     peer.inTransition = true;
 
     return await _pbxController.bridge(sourceCall, destinationCall).then((_) {
-      return new shelf.Response.ok('{"status" : "ok"}');
+      return shelf.Response.ok('{"status" : "ok"}');
     }).catchError((error, stackTrace) {
       _log.severe(error, stackTrace);
-      return new shelf.Response.internalServerError();
+      return shelf.Response.internalServerError();
     }).whenComplete(() => peer.inTransition = false);
   }
 
-  /**
-   * Remove a specific call identified by the supplied call id.
-   */
-  Future<shelf.Response> remove(shelf.Request request) async {
-    final String callID = shelf_route.getPathParameter(request, 'callid');
-
+  /// Remove a specific call identified by the supplied call id.
+  Future<shelf.Response> remove(
+      shelf.Request request, final String callID) async {
     model.User user;
 
     /// Groups able to remove any call.
@@ -633,7 +605,7 @@ class Call {
         _callList.get(callID).assignedTo == user.id;
 
     if (callID == null || callID == "") {
-      return new shelf.Response(400, body: 'Empty call_id in path.');
+      return clientError('Empty call_id in path.');
     }
 
     /// User object fetching.
@@ -648,7 +620,7 @@ class Call {
 
     /// The agent is not allowed to terminate the call.
     if (!aclCheck(user)) {
-      return new shelf.Response.forbidden('Insufficient privileges.');
+      return shelf.Response.forbidden( 'Insufficient privileges.');
     }
 
     /// Verify existence of call targeted for update.
@@ -660,18 +632,16 @@ class Call {
     }
   }
 
-  /**
-   * Update a specific call identified by the supplied call id.
-   */
-  Future<shelf.Response> update(shelf.Request request) async {
-    final String callID = shelf_route.getPathParameter(request, 'callid');
-
+  /// Update a specific call identified by the supplied call id.
+  Future<shelf.Response> update(
+      shelf.Request request, final String callID) async {
     model.User user;
 
     model.Call updatedCall;
     try {
-      updatedCall = await request.readAsString().then(JSON.decode).then(
-          (Map map) => new model.Call.fromJson(map as Map<String, dynamic>));
+      updatedCall = await request.readAsString()
+          .then(json.decode)
+          .then((map) => model.Call.fromJson(map as Map<String, dynamic>));
     } catch (error, stackTrace) {
       _log.warning(
           'Bad parameters from user '
@@ -681,7 +651,7 @@ class Call {
       return clientError(error.toString());
     }
 
-    /// Groups able to update a call.
+    // Groups able to update a call.
     List<String> updateGroups = ['Administrator'];
 
     bool aclCheck(model.User user) =>
@@ -689,10 +659,10 @@ class Call {
         _callList.get(callID).assignedTo == user.id;
 
     if (callID == null || callID == "") {
-      return new shelf.Response(400, body: 'Empty call_id in path.');
+      return clientError( 'Empty call_id in path.');
     }
 
-    /// User object fetching.
+    // User object fetching.
     try {
       user = await authService.userOf(tokenFrom(request));
     } catch (error, stackTrace) {
@@ -704,7 +674,7 @@ class Call {
 
     /// The agent is not allowed to terminate the call.
     if (!aclCheck(user)) {
-      return new shelf.Response.forbidden('Insufficient privileges.');
+      return shelf.Response.forbidden('Insufficient privileges.');
     }
 
     /// Verify existence of call targeted for update.

@@ -25,27 +25,32 @@ import 'package:ors/token_vault.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
+import 'package:shelf_router/shelf_router.dart' as shelf_route;
 
 class Authentication {
-  final Logger _log = new Logger('server.router.authentication');
+  Authentication(this._tokenVault, this._userStore);
+
+  final Logger _log = Logger('server.router.authentication');
+
+  final TokenVault _tokenVault;
+  final filestore.User _userStore;
 
   Future<io.HttpServer> start(
-      {String hostname: '0.0.0.0',
-      int port: 4050,
-      String filepath: 'json-data'}) async {
-    final filestore.User _userStore = new filestore.User(filepath + '/user');
-    final controller.Authentication authController =
-        new controller.Authentication(config.authServer, _userStore, vault);
+      {String hostname: '0.0.0.0', int port: 4050}) async {
+    final authController =
+        controller.Authentication(config.authServer, _userStore, _tokenVault);
 
-    var router = shelf_route.router()
+    var router = shelf_route.Router()
       ..get('/token/create', authController.login)
       ..get('/token/oauth2callback', authController.oauthCallback)
-      ..get('/token/{token}', authController.userinfo)
+      ..get('/token/<token>', authController.userinfo)
       ..get('/token/portraits', authController.userportraits)
-      ..get('/token/{token}/validate', authController.validateToken)
-      ..post('/token/{token}/invalidate', authController.invalidateToken)
-      ..get('/token/{token}/refresh', authController.login);
+      ..get('/token/<token>/validate', authController.validateToken)
+      ..post('/token/<token>/invalidate', authController.invalidateToken)
+      ..get('/token/<token>/refresh', authController.refresher)
+      ..all('/<catch-all|.*>', (shelf.Request request) {
+        return shelf.Response.notFound('Page not found');
+      });
 
     var handler = const shelf.Pipeline()
         .addMiddleware(
@@ -54,7 +59,6 @@ class Authentication {
         .addHandler(router.handler);
 
     _log.fine('Accepting incoming requests on $hostname:$port:');
-    shelf_route.printRoutes(router, printer: (String item) => _log.fine(item));
 
     return await shelf_io.serve(handler, hostname, port);
   }

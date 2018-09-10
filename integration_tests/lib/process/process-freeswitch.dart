@@ -21,10 +21,11 @@ class FreeSwitch implements ServiceProcess {
   String get testCallersPath => userDirectoryPath + '/test-callers';
   String get voicemailPath => userDirectoryPath + '/voicemail';
 
-  final Logger _log = new Logger('$_namespace.FreeSwitch');
+  final Logger _log = Logger('$_namespace.FreeSwitch');
   Process _process;
+  int _childPid;
 
-  final Completer _ready = new Completer();
+  final Completer _ready = Completer();
   bool get ready => _ready.isCompleted;
   Future get whenReady => _ready.future;
 
@@ -51,7 +52,7 @@ class FreeSwitch implements ServiceProcess {
       testCallersPath,
       voicemailPath
     ].forEach((path) {
-      Directory dir = new Directory(path);
+      Directory dir = Directory(path);
       if (!dir.existsSync()) {
         _log.fine('Creating directory ${dir.absolute.path}');
         dir.createSync();
@@ -63,7 +64,7 @@ class FreeSwitch implements ServiceProcess {
    *
    */
   Future cleanConfig() async {
-    Directory confDir = new Directory(confPath);
+    Directory confDir = Directory(confPath);
     confDir.deleteSync(recursive: true);
     confDir.createSync();
     await _createDirs();
@@ -89,7 +90,8 @@ class FreeSwitch implements ServiceProcess {
 
     final files = exampleSoundsDir.listSync().where((fse) => fse is File);
 
-    Future.wait(files.map((File f) async {
+    Future.wait(files.map((FileSystemEntity fse) async {
+      final File f = fse;
       final String newPath = soundsPath + '/' + basename(f.path);
 
       _log.finest('Copying "${f.path}" -> "${newPath}"');
@@ -102,7 +104,7 @@ class FreeSwitch implements ServiceProcess {
    */
   void reRollLog() {
     _log.info('Rerolling log');
-    _process.kill(ProcessSignal.SIGHUP);
+    _process.kill(ProcessSignal.sighup);
   }
 
   /**
@@ -116,7 +118,7 @@ class FreeSwitch implements ServiceProcess {
    *
    */
   Future _init() async {
-    final Stopwatch initTimer = new Stopwatch()..start();
+    final Stopwatch initTimer = Stopwatch()..start();
     whenReady.whenComplete(() {
       initTimer.stop();
       _log.info('Process initialization time was: '
@@ -128,7 +130,7 @@ class FreeSwitch implements ServiceProcess {
     final arguments = [
       '-nonat',
       '-nonatmap',
-      '-c',
+      '-ncwait',
       '-log',
       logPath,
       '-conf',
@@ -139,58 +141,49 @@ class FreeSwitch implements ServiceProcess {
       dbPath
     ];
     _log.fine(
-        'Starting new process $binPath in path ${basePath} arguments: ${arguments.join(' ')}');
-    _process = await Process.start('/usr/bin/freeswitch', arguments)
+        'Starting process $binPath in path ${basePath} arguments: ${arguments.join(' ')}');
+    _process = await Process.start(binPath, arguments)
       ..stdout
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
           .listen((String line) {
-        if (!ready && line.contains('FreeSWITCH Started')) {
+        if (!ready && line.contains('System Ready')) {
+          _childPid = int.parse(line.split(':')[1]);
           _log.info('Ready');
           _ready.complete();
         }
       })
       ..stderr
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
           .listen(_log.warning);
     _log.finest('Started process');
 
-    await new Future.delayed(new Duration(seconds: 1));
-    new Timer.periodic(new Duration(milliseconds: 100), (Timer t) {
-      if (!ready) {
-        _process.kill(ProcessSignal.SIGHUP);
-        _log.finest('Waiting for freeswitch to become ready');
-      } else {
-        _log.info('Cancelling timer');
-        t.cancel();
-      }
-    });
-
     _log.finest('Started freeswitch process (pid: ${_process.pid})');
     _launchedProcesses.add(_process);
-
-    /// Protect from hangs caused by process crashes.
-    _process.exitCode.then((int exitCode) {
-      if (exitCode != 0 && !ready) {
-        _ready.completeError(new StateError('Failed to launch process. '
-            'Exit code: $exitCode'));
-      }
-    });
   }
 
   /**
    *
    */
-  File get latestLog => new File('$logPath/freeswitch.log');
+  File get latestLog => File('$logPath/freeswitch.log');
 
   /**
    *
    */
   Future terminate() async {
     _log.info('terminating freeswitch');
-    _process.kill();
-    await _process.exitCode;
+    await Process.start('/usr/local/freeswitch/bin/fs_cli', ['-x', 'shutdown'])
+      ..stdout
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
+          .listen((String line) {
+        _log.fine("FS-cli returned: " + line);
+      })
+      ..stderr
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
+          .listen(_log.warning);
     _log.info('Freeswitch terminated');
   }
 }

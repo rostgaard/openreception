@@ -124,7 +124,7 @@ class UIMyCallQueue extends UIModel {
 
     return new LIElement()
       ..dataset['id'] = call.id
-      ..dataset['object'] = JSON.encode(call)
+      ..dataset['object'] = json.encode(call)
       ..children.addAll([numbersAndStateDiv, nameDiv])
       ..classes.add(call.inbound ? 'inbound' : 'outbound')
       ..classes.toggle('locked', call.locked)
@@ -153,7 +153,7 @@ class UIMyCallQueue extends UIModel {
    */
   Iterable<model.Call> get calls =>
       _list.querySelectorAll('li').map((Element li) => new model.Call.fromJson(
-          JSON.decode(li.dataset['object']) as Map<String, dynamic>));
+          json.decode(li.dataset['object']) as Map<String, dynamic>));
 
   /**
    * Add [calls] to the calls list.
@@ -176,7 +176,7 @@ class UIMyCallQueue extends UIModel {
   Iterable<model.Call> get markedForTransfer {
     return _list.querySelectorAll('[transfer]').map((Element li) =>
         new model.Call.fromJson(
-            JSON.decode(li.dataset['object']) as Map<String, dynamic>));
+            json.decode(li.dataset['object']) as Map<String, dynamic>));
   }
 
   /**
@@ -203,7 +203,7 @@ class UIMyCallQueue extends UIModel {
     _list.onDoubleClick.listen((Event event) {
       if ((event as MouseEvent).target is LIElement) {
         _dblClickBus.fire(new model.Call.fromJson(
-            JSON.decode((event.target as LIElement).dataset['object'])
+            json.decode((event.target as LIElement).dataset['object'])
             as Map<String, dynamic>));
       }
     });

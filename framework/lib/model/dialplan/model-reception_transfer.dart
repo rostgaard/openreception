@@ -60,7 +60,7 @@ class ReceptionTransfer implements Action {
   /// JSON serialization function.
   @override
   String toJson() => '${key.reception} $extension'
-      '${note.isNotEmpty ? ' ($note)': ''}';
+      '${note.isNotEmpty ? ' ($note)' : ''}';
 
   @override
   int get hashCode => toString().hashCode;

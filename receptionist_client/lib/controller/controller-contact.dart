@@ -14,13 +14,8 @@
 part of orc.controller;
 
 class Contact {
-  final service.RESTContactStore _store;
-  final Notification _notification;
-  final Map<int, Iterable<model.ReceptionContact>> _rcCache = {};
 
-  /**
-   * Constructor.
-   */
+  /// Constructor.
   Contact(this._store, this._notification) {
     _notification.onReceptionDataChange.listen((or_event.ReceptionData e) {
       _rcCache.remove(e.rid);
@@ -33,9 +28,11 @@ class Contact {
     });
   }
 
-  /**
-   * Fetch the [model.BaseContact] identified by [cid] .
-   */
+  final service.RESTContactStore _store;
+  final Notification _notification;
+  final Map<int, Iterable<model.ReceptionContact>> _rcCache = {};
+
+  /// Fetch the [model.BaseContact] identified by [cid] .
   Future<model.BaseContact> get(int cid) => _store.get(cid);
 
   /**

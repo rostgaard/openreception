@@ -1,16 +1,14 @@
 part of ort.benchmark;
 
 Future _sleep(int milliseconds) =>
-    new Future.delayed(new Duration(milliseconds: milliseconds));
+    Future.delayed(Duration(milliseconds: milliseconds));
 
 abstract class Call {
-  static final Logger log = new Logger('$_namespace.Call');
+  static final Logger log = Logger('$_namespace.Call');
   static int handled = 0;
 
-  /**
-   * Convenience function covering the scenario of a receptionist requesting a
-   * call, also covering the possible alternate scenarios that may occur.
-   */
+  /// Convenience function covering the scenario of a receptionist requesting a
+  /// call, also covering the possible alternate scenarios that may occur.
   static Future _receptionistRequestsCall(Receptionist r) async {
     bool callAvailable(model.Call call) =>
         call.assignedTo == model.User.noId && !call.locked;
@@ -33,7 +31,7 @@ abstract class Call {
         final model.Call activeCall =
             await r.pickup(nextCall, waitForEvent: true);
         log.info('$r got $activeCall, hangin it up after 100ms');
-        await new Future.delayed(new Duration(milliseconds: 100));
+        await Future.delayed(Duration(milliseconds: 100));
         await r.hangUp(activeCall);
         await r.waitForPhoneHangup();
         handled++;
@@ -52,19 +50,17 @@ abstract class Call {
     });
   }
 
-  /**
-   * Scenario of a call rush. Every available cutomer will originate an inbound
-   * call, and every available receptionist will race the others in trying to
-   * aquire it.
-   */
+  /// Scenario of a call rush. Every available customer will originate an inbound
+  /// call, and every available receptionist will race the others in trying to
+  /// acquire it.
   static Future callRush(
       Iterable<model.ReceptionDialplan> rdps,
       Iterable<Receptionist> receptionists,
       Iterable<Customer> customers) async {
     Receptionist callWaiter = receptionists.first;
 
-    Future waitForListToEmpty() => Future.doWhile((() => new Future.delayed(
-        new Duration(milliseconds: 1000),
+    Future waitForListToEmpty() => Future.doWhile((() => Future.delayed(
+        Duration(milliseconds: 1000),
         () => callWaiter.callFlowControl
             .callList()
             .then((Iterable<model.Call> calls) => calls.length != 0))));
@@ -78,9 +74,9 @@ abstract class Call {
       await Future.forEach(rdps, (rdp) async {
         await customer.dial(rdp.extension);
         spawned++;
-        await new Duration(milliseconds: 200);
+        await Duration(milliseconds: 200);
       });
-      await new Duration(milliseconds: 200);
+      await Duration(milliseconds: 200);
     }));
 
     await Future.doWhile(() async {
@@ -89,18 +85,18 @@ abstract class Call {
       log.info('${calls.length} <= $spawned');
 
       if (calls.length < spawned) {
-        await new Duration(seconds: 1);
+        await Duration(seconds: 1);
         return true;
       }
       return false;
-    }).timeout(new Duration(seconds: 10));
+    }).timeout(Duration(seconds: 10));
 
     handled = 0;
     log.info('$spawned calls spawned filled, starting to handle the calls');
     await Future.wait(
         receptionists.map((Receptionist r) => _receptionistRequestsCall(r)));
     log.info('Wait for call list to empty');
-    await waitForListToEmpty().timeout(new Duration(seconds: 10));
+    await waitForListToEmpty().timeout(Duration(seconds: 10));
     log.info('Receptionists processed $handled calls of $spawned spawned');
     expect(handled, equals(spawned));
 

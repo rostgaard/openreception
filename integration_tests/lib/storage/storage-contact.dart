@@ -1,28 +1,23 @@
 part of ort.storage;
 
 abstract class Contact {
-  static final Logger _log = new Logger('$_libraryName.ContactStore');
+  static final Logger _log = Logger('$_libraryName.ContactStore');
 
-  /**
-   * Test server behaviour when trying to aquire a contact object that
-   * does not exist.
-   *
-   * The expected behaviour is that the server should return a Not Found error.
-   */
+  /// Test server behaviour when trying to aquire a contact object that
+  /// does not exist.
+  ///
+  /// The expected behaviour is that the server should return a Not Found error.
   static Future nonExistingContact(ServiceAgent sa) async {
     _log.info('Checking server behaviour on a non-existing contact.');
 
-    await expect(
-        sa.contactStore.get(-1), throwsA(new isInstanceOf<NotFound>()));
+    await expect(sa.contactStore.get(-1), throwsA(TypeMatcher<NotFound>()));
   }
 
-  /**
-   * Test server behaviour when trying to aquire a list of contact objects from
-   * a reception.
-   *
-   * The expected behaviour is that the server should return a list of
-   * contact objects.
-   */
+  /// Test server behaviour when trying to aquire a list of contact objects from
+  /// a reception.
+  ///
+  /// The expected behaviour is that the server should return a list of
+  /// contact objects.
   static Future listByReception(ServiceAgent sa) async {
     final con1 = await sa.createsContact();
     final con2 = await sa.createsContact();
@@ -64,12 +59,10 @@ abstract class Contact {
     expect(cRefs2.any((ref) => ref.contact.id == con4.id), isTrue);
   }
 
-  /**
-   * Test server behaviour when trying to aquire a list of base contact objects.
-   *
-   * The expected behaviour is that the server should return a list of
-   * base contact objects.
-   */
+  /// Test server behaviour when trying to aquire a list of base contact objects.
+  ///
+  /// The expected behaviour is that the server should return a list of
+  /// base contact objects.
   static Future list(ServiceAgent sa) async {
     _log.info('Checking server behaviour on list of base contacts.');
 
@@ -194,14 +187,12 @@ abstract class Contact {
     expect(contact, isNotNull);
   }
 
-  /**
-   * Test server behaviour when trying to aquire a list of base contact objects.
-   *
-   * The expected behaviour is that the server should return a list of
-   * base contact objects.
-   */
+  /// Test server behaviour when trying to aquire a list of base contact objects.
+  ///
+  /// The expected behaviour is that the server should return a list of
+  /// base contact objects.
   static Future get(ServiceAgent sa) async {
-    _log.info('Creating a new base contact.');
+    _log.info('Creating a base contact.');
 
     final contact = Randomizer.randomBaseContact();
     contact.id = (await sa.createsContact(contact: contact)).id;
@@ -214,12 +205,10 @@ abstract class Contact {
     expect(contact.toJson(), equals(fetched.toJson()));
   }
 
-  /**
-   * Test server behaviour when trying to aquire a list of contact objects from
-   * a non existing reception.
-   *
-   * The expected behaviour is that the server should return an empty list.
-   */
+  /// Test server behaviour when trying to aquire a list of contact objects from
+  /// a non existing reception.
+  ///
+  /// The expected behaviour is that the server should return an empty list.
   static Future listContactsByNonExistingReception(ServiceAgent sa) async {
     const int receptionId = -1;
     _log.info(
@@ -231,14 +220,12 @@ abstract class Contact {
     expect(contacts, isEmpty);
   }
 
-  /**
-   * Test server behaviour when trying to create a new base contact object is
-   * created.
-   * The expected behaviour is that the server should return the created
-   * BaseContact object.
-   */
+  /// Test server behaviour when trying to create a base contact object is
+  /// created.
+  /// The expected behaviour is that the server should return the created
+  /// BaseContact object.
   static Future create(ServiceAgent sa) async {
-    _log.info('Creating a new base contact.');
+    _log.info('Creating a base contact.');
 
     final contact = Randomizer.randomBaseContact();
     final ref = await sa.contactStore.create(contact, sa.user);
@@ -262,12 +249,10 @@ abstract class Contact {
     await sa.createsContact();
   }
 
-  /**
-   * Test server behaviour when trying to delete a base contact object that
-   * exists.
-   *
-   * The expected behaviour is that the server should succeed.
-   */
+  /// Test server behaviour when trying to delete a base contact object that
+  /// exists.
+  ///
+  /// The expected behaviour is that the server should succeed.
   static Future remove(ServiceAgent sa) async {
     final model.BaseContact contact = Randomizer.randomBaseContact();
 
@@ -286,11 +271,9 @@ abstract class Contact {
     }
   }
 
-  /**
-   * Test server behaviour when trying to update an existingbase contact.
-   * The expected behaviour is that the server should return the updated
-   * BaseContact object.
-   */
+  /// Test server behaviour when trying to update an existing base contact.
+  /// The expected behaviour is that the server should return the updated
+  /// BaseContact object.
   static Future update(ServiceAgent sa) async {
     final model.BaseContact contact = Randomizer.randomBaseContact();
     final ref = await sa.contactStore.create(contact, sa.user);
@@ -315,12 +298,10 @@ abstract class Contact {
     expect(updated.toJson(), equals(fetched.toJson()));
   }
 
-  /**
-   * Test server behaviour when trying to retrieve an endpoint list of a
-   * contact.
-   *
-   * The expected behaviour is that the server should succeed.
-   */
+  /// Test server behaviour when trying to retrieve an endpoint list of a
+  /// contact.
+  ///
+  /// The expected behaviour is that the server should succeed.
   static Future endpoints(ServiceAgent sa) async {
     _log.info('Setting up reception data');
 
@@ -582,12 +563,12 @@ abstract class Contact {
 
     expect(commits.length, equals(1));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
-    final change = commits.first.changes.first;
+    final model.ContactChange change = commits.first.changes.first;
 
     expect(change.changeType, model.ChangeType.add);
     expect(change.cid, created.id);
@@ -606,23 +587,23 @@ abstract class Contact {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.ContactChange latestChange = commits.first.changes.first;
+    final model.ContactChange oldestChange = commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.modify);
     expect(latestChange.cid, created.id);
@@ -646,23 +627,23 @@ abstract class Contact {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.ContactChange latestChange = commits.first.changes.first;
+    final model.ContactChange oldestChange = commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.delete);
     expect(latestChange.cid, created.id);
@@ -695,12 +676,12 @@ abstract class Contact {
       Iterable<model.Commit> commits = await sa.contactStore.changes(con.id);
       expect(commits.length, equals(2));
       expect(commits.first.changedAt.millisecondsSinceEpoch,
-          lessThan(new DateTime.now().millisecondsSinceEpoch));
+          lessThan(DateTime.now().millisecondsSinceEpoch));
       expect(commits.first.authorIdentity, equals(sa.user.address));
       expect(commits.first.uid, equals(sa.user.id));
 
       expect(commits.first.changes.length, equals(1));
-      final change = commits.first.changes.first;
+      final model.ReceptionAttributeChange change = commits.first.changes.first;
 
       expect(change.changeType, model.ChangeType.add);
       expect(change.cid, con.id);
@@ -713,12 +694,12 @@ abstract class Contact {
 
       expect(commits.length, equals(1));
       expect(commits.first.changedAt.millisecondsSinceEpoch,
-          lessThan(new DateTime.now().millisecondsSinceEpoch));
+          lessThan(DateTime.now().millisecondsSinceEpoch));
       expect(commits.first.authorIdentity, equals(sa.user.address));
       expect(commits.first.uid, equals(sa.user.id));
 
       expect(commits.first.changes.length, equals(1));
-      final change = commits.first.changes.first;
+      final model.ReceptionAttributeChange change = commits.first.changes.first;
 
       expect(change.changeType, model.ChangeType.add);
       expect(change.cid, con.id);
@@ -751,12 +732,12 @@ abstract class Contact {
       Iterable<model.Commit> commits = await sa.contactStore.changes(con.id);
       expect(commits.length, equals(3));
       expect(commits.first.changedAt.millisecondsSinceEpoch,
-          lessThan(new DateTime.now().millisecondsSinceEpoch));
+          lessThan(DateTime.now().millisecondsSinceEpoch));
       expect(commits.first.authorIdentity, equals(sa.user.address));
       expect(commits.first.uid, equals(sa.user.id));
 
       expect(commits.first.changes.length, equals(1));
-      final change = commits.first.changes.first;
+      final model.ReceptionAttributeChange change = commits.first.changes.first;
 
       expect(change.changeType, model.ChangeType.modify);
       expect(change.cid, con.id);
@@ -769,12 +750,12 @@ abstract class Contact {
 
       expect(commits.length, equals(2));
       expect(commits.first.changedAt.millisecondsSinceEpoch,
-          lessThan(new DateTime.now().millisecondsSinceEpoch));
+          lessThan(DateTime.now().millisecondsSinceEpoch));
       expect(commits.first.authorIdentity, equals(sa.user.address));
       expect(commits.first.uid, equals(sa.user.id));
 
       expect(commits.first.changes.length, equals(1));
-      final change = commits.first.changes.first;
+      final model.ReceptionAttributeChange change = commits.first.changes.first;
 
       expect(change.changeType, model.ChangeType.modify);
       expect(change.cid, con.id);
@@ -808,12 +789,12 @@ abstract class Contact {
       Iterable<model.Commit> commits = await sa.contactStore.changes(con.id);
       expect(commits.length, equals(3));
       expect(commits.first.changedAt.millisecondsSinceEpoch,
-          lessThan(new DateTime.now().millisecondsSinceEpoch));
+          lessThan(DateTime.now().millisecondsSinceEpoch));
       expect(commits.first.authorIdentity, equals(sa.user.address));
       expect(commits.first.uid, equals(sa.user.id));
 
       expect(commits.first.changes.length, equals(1));
-      final change = commits.first.changes.first;
+      final model.ReceptionAttributeChange change = commits.first.changes.first;
 
       expect(change.changeType, model.ChangeType.delete);
       expect(change.cid, con.id);
@@ -826,12 +807,12 @@ abstract class Contact {
 
       expect(commits.length, equals(2));
       expect(commits.first.changedAt.millisecondsSinceEpoch,
-          lessThan(new DateTime.now().millisecondsSinceEpoch));
+          lessThan(DateTime.now().millisecondsSinceEpoch));
       expect(commits.first.authorIdentity, equals(sa.user.address));
       expect(commits.first.uid, equals(sa.user.id));
 
       expect(commits.first.changes.length, equals(1));
-      final change = commits.first.changes.first;
+      final model.ReceptionAttributeChange change = commits.first.changes.first;
 
       expect(change.changeType, model.ChangeType.delete);
       expect(change.cid, con.id);

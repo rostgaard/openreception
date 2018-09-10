@@ -1,15 +1,15 @@
 part of ort.rest;
 
-void _runMessageTests() {
+void _runMessageQueueTests() {
   group('$_namespace.Message', () {
-    Logger log = new Logger('$_namespace.Message');
+    Logger log = Logger('$_namespace.Message');
 
     ServiceAgent sa;
     TestEnvironment env;
     process.MessageServer mProcess;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       mProcess = await env.requestMessageserverProcess();

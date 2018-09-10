@@ -16,8 +16,8 @@ library ors.model;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:esl/esl.dart' as esl;
 import 'package:esl/constants.dart' as esl_const;
+import 'package:esl/esl.dart' as esl;
 import 'package:logging/logging.dart';
 import 'package:orf/bus.dart';
 import 'package:orf/event.dart' as event;

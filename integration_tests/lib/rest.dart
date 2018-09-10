@@ -25,6 +25,7 @@ part 'rest/rest-contact.dart';
 part 'rest/rest-dialplan.dart';
 part 'rest/rest-ivr.dart';
 part 'rest/rest-message.dart';
+part 'rest/rest-message_queue.dart';
 part 'rest/rest-notification.dart';
 part 'rest/rest-organization.dart';
 part 'rest/rest-peeraccount.dart';
@@ -32,29 +33,26 @@ part 'rest/rest-reception.dart';
 part 'rest/rest-user.dart';
 
 const String _namespace = 'rest';
-/**
- * Run all rest-service tests.
- */
+
+/// Run all rest-service tests.
 allTests() {
-  _runPeerAccountTests();
-  _runMessageTests();
-  _runDialplanDeploymentTests();
-  _runConfigTests();
-  _runAuthServerTests();
-  _runCallTests();
-  _runUserTests();
-  _runOrganizationTests();
-  _runReceptionTests();
-  _runContactTests();
-  _runCalendarTests();
-  _runDialplanTests();
-  _runIvrTests();
-  _runNotificationTests();
+//  _runPeerAccountTests();
+//  _runMessageTests();
+//  _runDialplanDeploymentTests();
+//  _runConfigTests();
+//  _runAuthServerTests();
+ _runCallTests();
+//  _runUserTests();
+// _runOrganizationTests();
+//  _runReceptionTests();
+//  _runContactTests();
+//  _runCalendarTests();
+//  _runDialplanTests();
+//  _runIvrTests();
+//  _runNotificationTests();
 }
 
-/**
- * Test for the presence of CORS headers.
- */
+/// Test for the presence of CORS headers.
 Future isCORSHeadersPresent(Uri uri, Logger log) async {
   final HttpClient client = new HttpClient();
 
@@ -66,25 +64,26 @@ Future isCORSHeadersPresent(Uri uri, Logger log) async {
         log.warning('$name : ${values.join(', ')}');
       });
 
-      fail('No CORS headers on path uri');
+      fail('No CORS headers on path uri: $uri headers: ${response.headers}');
     }
   }
 
   log.info('Checking CORS headers on URI $uri.');
 
   return client
-      .getUrl(uri)
-      .then((HttpClientRequest request) => request.close().then(checkHeaders))
+      .open("OPTIONS", uri.host, uri.port, uri.path)
+      .then((HttpClientRequest request) async {
+        request.headers.add('Origin', 'http://localhost');
+        checkHeaders(await request.close());
+      })
       .then((_) => log.info('Got expected headers.'))
       .whenComplete(() => client.close(force: true));
 }
 
-/**
- * Test server behaviour when trying to access a resource not associated with
- * a handler.
- *
- * The expected behaviour is that the server should return a Not Found error.
- */
+/// Test server behaviour when trying to access a resource not associated with
+/// a handler.
+///
+/// The expected behaviour is that the server should return a Not Found error.
 Future nonExistingPath(Uri uri, Logger log) async {
   final HttpClient client = new HttpClient();
 

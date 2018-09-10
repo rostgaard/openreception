@@ -99,8 +99,12 @@ class User {
         address = map[key.address],
         name = map[key.name],
         extension = map[key.extension],
-        groups = new Set<String>.from(map[key.groups]),
-        identities = new Set<String>.from(map[key.identites]),
+        groups = map.containsKey(key.groups)
+            ? Set<String>.from(map[key.groups])
+            : Set<String>(),
+        identities = map.containsKey(key.identites)
+            ? Set<String>.from(map[key.identites])
+            : Set<String>(),
         portrait = map.containsKey('remote_attributes') &&
                 (map['remote_attributes'] as Map<String, dynamic>)
                     .containsKey('picture')

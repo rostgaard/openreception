@@ -6,10 +6,10 @@ class CdrServer implements ServiceProcess {
   final int servicePort;
   final String bindAddress;
 
-  final Logger _log = new Logger('$_namespace.CdrServer');
+  final Logger _log = Logger('$_namespace.CdrServer');
   Process _process;
 
-  final Completer _ready = new Completer();
+  final Completer _ready = Completer();
   bool get ready => _ready.isCompleted;
   Future get whenReady => _ready.future;
 
@@ -29,7 +29,7 @@ class CdrServer implements ServiceProcess {
    *
    */
   Future _init() async {
-    final Stopwatch initTimer = new Stopwatch()..start();
+    final Stopwatch initTimer = Stopwatch()..start();
     whenReady.whenComplete(() {
       initTimer.stop();
       _log.info('Process initialization time was: '
@@ -48,12 +48,12 @@ class CdrServer implements ServiceProcess {
       arguments.addAll(['--auth-uri', authUri.toString()]);
     }
 
-    _log.fine('Starting process /usr/bin/dart ${arguments.join(' ')}');
-    _process = await Process.start('/usr/bin/dart', arguments,
+    _log.fine('Starting process /usr/local/bin/dart ${arguments.join(' ')}');
+    _process = await Process.start('/usr/local/bin/dart', arguments,
         workingDirectory: path)
       ..stdout
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
           .listen((String line) {
         _log.finest(line);
         if (!ready && line.contains('Ready to handle requests')) {
@@ -62,8 +62,8 @@ class CdrServer implements ServiceProcess {
         }
       })
       ..stderr
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
           .listen(_log.warning);
 
     _log.finest('Started cdrserver process (pid: ${_process.pid})');
@@ -72,7 +72,7 @@ class CdrServer implements ServiceProcess {
     /// Protect from hangs caused by process crashes.
     _process.exitCode.then((int exitCode) {
       if (exitCode != 0 && !ready) {
-        _ready.completeError(new StateError('Failed to launch process. '
+        _ready.completeError(StateError('Failed to launch process. '
             'Exit code: $exitCode'));
       }
     });

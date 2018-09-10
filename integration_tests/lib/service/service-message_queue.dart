@@ -1,7 +1,7 @@
 part of ort.service;
 
 abstract class MessageQueueStore {
-  static final Logger log = new Logger('$_namespace.MessageStore');
+  static final Logger log = Logger('$_namespace.MessageStore');
 
   /**
    *

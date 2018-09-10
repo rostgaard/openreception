@@ -1,14 +1,14 @@
 part of ort.rest;
 
 _runDialplanTests() {
-  Logger log = new Logger('$_namespace.dialplan');
+  Logger log = Logger('$_namespace.dialplan');
 
   group('rest.Dialplan', () {
     ServiceAgent sa;
     TestEnvironment env;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
     });
 
@@ -19,8 +19,8 @@ _runDialplanTests() {
     test(
         'CORS headers present (existingUri)',
         () async => isCORSHeadersPresent(
-            resource.ReceptionDialplan
-                .list((await env.requestDialplanProcess()).uri),
+            resource.ReceptionDialplan.list(
+                (await env.requestDialplanProcess()).uri),
             log));
 
     test(
@@ -46,7 +46,7 @@ _runDialplanTests() {
 
     service.RESTDialplanStore rdpStore;
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
       rdpStore = (await env.requestDialplanProcess())
           .bindDialplanClient(env.httpClient, sa.authToken);
@@ -74,7 +74,7 @@ _runDialplanTests() {
     service.RESTDialplanStore rdpStore;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
       rdpStore = (await env.requestDialplanProcess(withRevisioning: true))
           .bindDialplanClient(env.httpClient, sa.authToken);
@@ -105,7 +105,7 @@ _runDialplanTests() {
      */
     service.RESTReceptionStore rStore;
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
       rdpStore = (await env.requestDialplanProcess())
           .bindDialplanClient(env.httpClient, sa.authToken);
@@ -125,7 +125,7 @@ _runDialplanTests() {
 _runDialplanDeploymentTests() {
   group('DialplanDeployment', () {
     esl.Connection eslClient;
-    Logger log = new Logger('$_namespace.Call');
+    Logger log = Logger('$_namespace.Call');
 
     ServiceAgent sa;
     TestEnvironment env;
@@ -137,7 +137,7 @@ _runDialplanDeploymentTests() {
     model.ReceptionDialplan rdp;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       fsProcess = await env.requestFreeswitchProcess();
@@ -152,7 +152,7 @@ _runDialplanDeploymentTests() {
       socket = await Socket.connect(config.eslHost, config.eslPort);
 
       /// Initilize ESL connection.
-      eslClient = new esl.Connection(socket);
+      eslClient = esl.Connection(socket);
 
       Future<Null> authentication =
           esl.authHandler(eslClient, config.eslPassword);
@@ -169,8 +169,8 @@ _runDialplanDeploymentTests() {
 
     test(
         'No opening hours',
-        () => serviceTest.DialplanDeployment
-            .noHours(c, sa.dialplanService, sa.receptionStore, eslClient));
+        () => serviceTest.DialplanDeployment.noHours(
+            c, sa.dialplanService, sa.receptionStore, eslClient));
 
     test(
         'Opening hours - open',

@@ -15,6 +15,16 @@ part of orf.event;
 
 ///Event that spawns every time a client opens or closes a connection.
 class ClientConnectionState implements Event {
+  /// Create a [ClientConnectionState] for the [model.ClientConnection] conn.
+  ClientConnectionState(this.conn) : timestamp = DateTime.now();
+
+  /// Create a [ClientConnectionState] object from serialized data stored
+  /// in [map].
+  ClientConnectionState.fromJson(Map<String, dynamic> map)
+      : conn = model.ClientConnection.fromJson(
+            map[_Key._state] as Map<String, dynamic>),
+        timestamp = util.unixTimestampToDateTime(map[_Key._timestamp] as int);
+
   @override
   final DateTime timestamp;
 
@@ -23,21 +33,11 @@ class ClientConnectionState implements Event {
   @override
   final String eventName = _Key._connectionState;
 
-  /// Create a new [ClientConnectionState] for the [model.ClientConnection] conn.
-  ClientConnectionState(this.conn) : timestamp = new DateTime.now();
-
-  /// Create a new [ClientConnectionState] object from serialized data stored
-  /// in [map].
-  ClientConnectionState.fromJson(Map<String, dynamic> map)
-      : conn = new model.ClientConnection.fromJson(
-            map[_Key._state] as Map<String, dynamic>),
-        timestamp = util.unixTimestampToDateTime(map[_Key._timestamp]);
-
   /// Returns an umodifiable map representation of the object, suitable for
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._state: conn

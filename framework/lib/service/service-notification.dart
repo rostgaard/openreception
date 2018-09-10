@@ -14,15 +14,18 @@
 part of orf.service;
 
 class _NotificationRequest {
+  _NotificationRequest(Uri this.resource, Map<String, dynamic> this.body);
+
   final Map<String, dynamic> body;
   final Uri resource;
   final Completer<String> response = new Completer<String>();
-
-  _NotificationRequest(Uri this.resource, Map<String, dynamic> this.body);
 }
 
 /// Client for Notification sending.
 class NotificationService {
+  NotificationService(
+      Uri this.host, String this._clientToken, this._httpClient);
+
   static Queue<_NotificationRequest> _requestQueue =
       new Queue<_NotificationRequest>();
   static bool _busy = false;
@@ -30,9 +33,6 @@ class NotificationService {
   final WebService _httpClient;
   final Uri host;
   final String _clientToken;
-
-  NotificationService(
-      Uri this.host, String this._clientToken, this._httpClient);
 
   /// Performs a broadcast via the notification server.
   Future<String> broadcastEvent(event.Event event) {
@@ -42,24 +42,26 @@ class NotificationService {
     return _enqueue(new _NotificationRequest(uri, event.toJson()));
   }
 
-  /// Retrieves the [ClientConnection]'s currently active on the server.
+  /// Retrieves the [model.ClientConnection]'s currently active on the server.
   Future<Iterable<model.ClientConnection>> clientConnections() async {
     Uri uri = resource.Notification.clientConnections(host);
     uri = _appendToken(uri, _clientToken);
 
-    return await _httpClient.get(uri).then(JSON.decode).then(
-        (Iterable<Map<String, dynamic>> maps) => maps.map(
-            (Map<String, dynamic> map) =>
-                new model.ClientConnection.fromJson(map)));
+    final String response = await _httpClient.get(uri);
+    final Iterable maps = _json.decode(response);
+
+    return maps.map((map) => new model.ClientConnection.fromJson(map));
   }
 
-  /// Retrieves the [ClientConnection] currently associated with [uid].
+  /// Retrieves the [model.ClientConnection] currently associated with [uid].
   Future<model.ClientConnection> clientConnection(int uid) {
     Uri uri = resource.Notification.clientConnection(host, uid);
     uri = _appendToken(uri, _clientToken);
 
-    return _httpClient.get(uri).then(JSON.decode).then(
-        (Map<String, dynamic> map) => new model.ClientConnection.fromJson(map));
+    return _httpClient
+        .get(uri)
+        .then(_json.decode)
+        .then((map) => new model.ClientConnection.fromJson(map));
   }
 
   /// Sends an event via the notification server to [recipients]
@@ -72,7 +74,7 @@ class NotificationService {
       'message': event.toJson()
     };
 
-    await _httpClient.post(uri, JSON.encode(payload));
+    await _httpClient.post(uri, _json.encode(payload));
   }
 
   /// Every request sent to the phone is enqueued and executed in-order
@@ -105,7 +107,7 @@ class NotificationService {
     }
 
     return await _httpClient
-        .post(request.resource, JSON.encode(request.body))
+        .post(request.resource, _json.encode(request.body))
         .whenComplete(dispatchNext);
   }
 
@@ -121,6 +123,23 @@ class NotificationService {
 
 /// Notification listener socket client.
 class NotificationSocket {
+  /// Creates a new [NotificationSocket]. The [_websocket] parameter object needs
+  /// to be connected manually. Otherwise, the notification socket will remain
+  /// silent.
+  NotificationSocket(WebSocket this._websocket) {
+    _websocket.onMessage = _parseAndDispatch;
+
+    _websocket.onClose = () async {
+      // Discard any inbound messages instead of injecting them into a
+      // potentially closed stream.
+      _websocket.onMessage = (_) {};
+
+      await _closeEventListeners();
+    };
+
+    onEvent.listen(_injectInLocalSteams);
+  }
+
   final WebSocket _websocket;
 
   // Chuck-o'-busses.
@@ -146,23 +165,6 @@ class NotificationSocket {
   Bus<event.UserState> _userStateBus = new Bus<event.UserState>();
   Bus<event.WidgetSelect> _widgetSelectBus = new Bus<event.WidgetSelect>();
   Bus<event.FocusChange> _focusChangeBus = new Bus<event.FocusChange>();
-
-  /// Creates a new [NotificationSocket]. The [_websocket] parameter object needs
-  /// to be connected manually. Otherwise, the notification socket will remain
-  /// silent.
-  NotificationSocket(WebSocket this._websocket) {
-    _websocket.onMessage = _parseAndDispatch;
-
-    _websocket.onClose = () async {
-      // Discard any inbound messages instead of injecting them into a
-      // potentially closed stream.
-      _websocket.onMessage = (_) {};
-
-      await _closeEventListeners();
-    };
-
-    onEvent.listen(_injectInLocalSteams);
-  }
 
   /// Global event stream. Receive all events broadcast or sent to uid of
   /// subscriber.
@@ -288,7 +290,7 @@ class NotificationSocket {
   /// Parses, decodes and dispatches a received String buffer containg an
   /// encoded event object.
   void _parseAndDispatch(String buffer) {
-    Map<String, dynamic> map = JSON.decode(buffer) as Map<String, dynamic>;
+    Map<String, dynamic> map = _json.decode(buffer) as Map<String, dynamic>;
     event.Event newEvent = new event.Event.parse(map);
 
     if (newEvent != null) {

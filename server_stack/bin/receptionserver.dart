@@ -19,7 +19,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 import 'package:orf/filestore.dart' as filestore;
-import 'package:orf/gzip_cache.dart' as gzip_cache;
 import 'package:orf/service-io.dart' as service;
 import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
@@ -29,12 +28,12 @@ import 'package:ors/router/router-reception.dart' as router;
 
 Future main(List<String> args) async {
   ///Init logging.
-  final Logger log = new Logger('server.message');
+  final Logger log = Logger('server.message');
   Logger.root.level = config.receptionServer.log.level;
   Logger.root.onRecord.listen(config.receptionServer.log.onRecord);
 
   ///Handle argument parsing.
-  ArgParser parser = new ArgParser()
+  ArgParser parser = ArgParser()
     ..addFlag('help', help: 'Output this help', negatable: false)
     ..addOption('filestore', abbr: 'f', help: 'Path to the filestore backend')
     ..addOption('httpport',
@@ -73,51 +72,49 @@ Future main(List<String> args) async {
   final bool revisioning = parsedArgs['experimental-revisioning'];
 
   final receptionRevisionEngine = revisioning
-      ? new filestore.GitEngine(parsedArgs['filestore'] + '/reception')
+      ? filestore.GitEngine(parsedArgs['filestore'] + '/reception')
       : null;
 
   final contactRevisionEngine = revisioning
-      ? new filestore.GitEngine(parsedArgs['filestore'] + '/contact')
+      ? filestore.GitEngine(parsedArgs['filestore'] + '/contact')
       : null;
 
   final organizationRevisionEngine = revisioning
-      ? new filestore.GitEngine(parsedArgs['filestore'] + '/organization')
+      ? filestore.GitEngine(parsedArgs['filestore'] + '/organization')
       : null;
 
-  final service.Authentication _authService = new service.Authentication(
+  final service.Authentication _authService = service.Authentication(
       Uri.parse(parsedArgs['auth-uri']),
       config.userServer.serverToken,
-      new service.Client());
+      service.Client());
 
   final service.NotificationService _notification =
-      new service.NotificationService(Uri.parse(parsedArgs['notification-uri']),
-          config.userServer.serverToken, new service.Client());
+  service.NotificationService(Uri.parse(parsedArgs['notification-uri']),
+      config.userServer.serverToken, service.Client());
 
   final filestore.Reception rStore =
-      new filestore.Reception(filepath + '/reception', receptionRevisionEngine);
+  filestore.Reception(filepath + '/reception', receptionRevisionEngine);
 
-  final filestore.Contact cStore = new filestore.Contact(
+  final filestore.Contact cStore = filestore.Contact(
       rStore, filepath + '/contact', contactRevisionEngine);
 
-  final filestore.Organization oStore = new filestore.Organization(
+  final filestore.Organization oStore = filestore.Organization(
       cStore, rStore, filepath + '/organization', organizationRevisionEngine);
 
-  final controller.Organization organization = new controller.Organization(
+  final controller.Organization organization = controller.Organization(
       oStore,
       _notification,
-      _authService,
-      new gzip_cache.OrganizationCache(oStore, oStore.onOrganizationChange));
+      _authService);
 
-  controller.Reception reception = new controller.Reception(
+  controller.Reception reception = controller.Reception(
       rStore,
       _notification,
-      _authService,
-      new gzip_cache.ReceptionCache(rStore, rStore.onReceptionChange));
+      _authService);
 
-  await (new router.Reception(
-          _authService, _notification, reception, organization)
+  await (router.Reception(
+      _authService, _notification, reception, organization)
       .listen(
-          hostname: parsedArgs['host'],
-          port: int.parse(parsedArgs['httpport'])));
+      hostname: parsedArgs['host'],
+      port: int.parse(parsedArgs['httpport'])));
   log.info('Ready to handle requests');
 }

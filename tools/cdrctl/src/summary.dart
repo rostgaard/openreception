@@ -68,7 +68,7 @@ void saveSummary(CdrEntry cdrEntry, Configuration config, Logger log) {
 
       if (summaryFile.existsSync()) {
         summary = new CdrSummary.fromJson(
-            JSON.decode(summaryFile.readAsStringSync()));
+            json.decode(summaryFile.readAsStringSync()));
       } else {
         summaryFile.createSync(recursive: true);
         summary = new CdrSummary()..rid = cdrEntry.rid;
@@ -87,7 +87,7 @@ void saveSummary(CdrEntry cdrEntry, Configuration config, Logger log) {
         summary.inboundNotNotified += 1;
         summary.cdrFiles.add(cdrEntry.filename);
 
-        summaryFile.writeAsStringSync(JSON.encode(summary));
+        summaryFile.writeAsStringSync(json.encode(summary));
         break;
       case CdrEntryState.notifiedAnsweredByAgent:
         sb.write('${logText}  state: ${CdrEntryState.notifiedAnsweredByAgent}');
@@ -121,7 +121,7 @@ void saveSummary(CdrEntry cdrEntry, Configuration config, Logger log) {
 
         summary.setAgentSummary(agentSummary);
 
-        summaryFile.writeAsStringSync(JSON.encode(summary));
+        summaryFile.writeAsStringSync(json.encode(summary));
         break;
       case CdrEntryState.notifiedNotAnswered:
         sb.write('${logText}  state: ${CdrEntryState.notifiedNotAnswered}');
@@ -130,7 +130,7 @@ void saveSummary(CdrEntry cdrEntry, Configuration config, Logger log) {
         summary.notifiedNotAnswered += 1;
         summary.cdrFiles.add(cdrEntry.filename);
 
-        summaryFile.writeAsStringSync(JSON.encode(summary));
+        summaryFile.writeAsStringSync(json.encode(summary));
         break;
       case CdrEntryState.outboundByAgent:
         sb.write('${logText}  state: ${CdrEntryState.outboundByAgent}');
@@ -146,7 +146,7 @@ void saveSummary(CdrEntry cdrEntry, Configuration config, Logger log) {
         summary.outboundCost += getOutboundCost(cdrEntry, config, log);
         summary.setAgentSummary(agentSummary);
 
-        summaryFile.writeAsStringSync(JSON.encode(summary));
+        summaryFile.writeAsStringSync(json.encode(summary));
         break;
       case CdrEntryState.outboundByPbx:
         sb.write('${logText}  state: ${CdrEntryState.outboundByPbx}');
@@ -157,7 +157,7 @@ void saveSummary(CdrEntry cdrEntry, Configuration config, Logger log) {
         summary.outboundCost += getOutboundCost(cdrEntry, config, log);
         summary.cdrFiles.add(cdrEntry.filename);
 
-        summaryFile.writeAsStringSync(JSON.encode(summary));
+        summaryFile.writeAsStringSync(json.encode(summary));
         break;
       case CdrEntryState.unknown:
         sb.write(

@@ -27,7 +27,7 @@ void _testModelAgentStatistics() {
 abstract class _ModelAgentStatistics {
   static void serialization() {
     model.AgentStatistics builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);
@@ -37,7 +37,7 @@ abstract class _ModelAgentStatistics {
     model.AgentStatistics builtObject = buildObject();
     model.AgentStatistics deserializedObject =
         new model.AgentStatistics.fromJson(
-            JSON.decode(JSON.encode(builtObject)) as Map<String, dynamic>);
+            _json.decode(_json.encode(builtObject)) as Map<String, dynamic>);
 
     expect(builtObject.uid, equals(deserializedObject.uid));
     expect(builtObject.recent, equals(deserializedObject.recent));

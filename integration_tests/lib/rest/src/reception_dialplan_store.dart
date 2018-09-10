@@ -1,14 +1,14 @@
 part of ort.service;
 
-abstract class ReceptionDialplanStore {
+abstract class ReceptionDialplanStoreTest {
   /**
    *
    */
   static Future create(storage.ReceptionDialplan rdpStore,
       [model.User user]) async {
-    Model.ReceptionDialplan rdp = Randomizer.randomDialplan();
+    model.ReceptionDialplan rdp = Randomizer.randomDialplan();
 
-    Model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp, user);
+    model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp, user);
 
     expect(createdDialplan, isNotNull);
     expect(createdDialplan.extension, isNotEmpty);
@@ -22,15 +22,15 @@ abstract class ReceptionDialplanStore {
   static Future deploy(service.RESTDialplanStore rdpStore,
       service.RESTReceptionStore receptionStore,
       [model.User user]) async {
-    Model.ReceptionDialplan rdp = Randomizer.randomDialplan();
+    model.ReceptionDialplan rdp = Randomizer.randomDialplan();
 
-    Model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp, user);
-    model.Reception createdReception = await receptionStore
-        .create(Randomizer.randomReception()..dialplan = rdp.extension);
+    model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp, user);
+    final createdReception = await receptionStore.create(
+        Randomizer.randomReception()..dialplan = rdp.extension, null);
 
     await rdpStore.deployDialplan(rdp.extension, createdReception.id);
 
-    await receptionStore.remove(createdReception.id);
+    await receptionStore.remove(createdReception.id, null);
     await rdpStore.remove(createdDialplan.extension, user);
   }
 
@@ -39,9 +39,9 @@ abstract class ReceptionDialplanStore {
    */
   static Future get(storage.ReceptionDialplan rdpStore,
       [model.User user]) async {
-    Model.ReceptionDialplan rdp = Randomizer.randomDialplan();
+    model.ReceptionDialplan rdp = Randomizer.randomDialplan();
 
-    Model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp, user);
+    model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp, user);
 
     expect(
         (await rdpStore.get(createdDialplan.extension)).extension, isNotEmpty);
@@ -54,7 +54,7 @@ abstract class ReceptionDialplanStore {
    */
   static Future list(storage.ReceptionDialplan rdpStore,
       [model.User user]) async {
-    expect((await rdpStore.list()), new isInstanceOf<Iterable>());
+    expect((await rdpStore.list()), const TypeMatcher<Iterable>());
   }
 
   /**
@@ -62,13 +62,13 @@ abstract class ReceptionDialplanStore {
    */
   static Future remove(storage.ReceptionDialplan rdpStore,
       [model.User user]) async {
-    Model.ReceptionDialplan rdp = Randomizer.randomDialplan();
+    model.ReceptionDialplan rdp = Randomizer.randomDialplan();
 
-    Model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp, user);
+    model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp, user);
 
     await rdpStore.remove(createdDialplan.extension, user);
     await expect(rdpStore.get(createdDialplan.extension),
-        throwsA(new isInstanceOf<storage.NotFound>()));
+        throwsA(const TypeMatcher<storage.NotFound>()));
   }
 
   /**
@@ -76,15 +76,15 @@ abstract class ReceptionDialplanStore {
    */
   static Future update(storage.ReceptionDialplan rdpStore,
       [model.User user]) async {
-    Model.ReceptionDialplan rdp = Randomizer.randomDialplan();
+    model.ReceptionDialplan rdp = Randomizer.randomDialplan();
 
-    Model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp, user);
+    model.ReceptionDialplan createdDialplan = await rdpStore.create(rdp, user);
 
     expect(createdDialplan, isNotNull);
     expect(createdDialplan.extension, isNotEmpty);
 
     {
-      Model.ReceptionDialplan changed = Randomizer.randomDialplan();
+      model.ReceptionDialplan changed = Randomizer.randomDialplan();
       changed.extension = createdDialplan.extension;
 
       createdDialplan = changed;

@@ -35,9 +35,10 @@ class RESTReceptionStore implements storage.Reception {
     Uri url = resource.Reception.root(this.host);
     url = _appendToken(url, this.token);
 
-    return _backend.post(url, JSON.encode(reception)).then(JSON.decode).then(
-        (Map<String, dynamic> map) =>
-            new model.ReceptionReference.fromJson(map));
+    return _backend
+        .post(url, _json.encode(reception))
+        .then(_json.decode)
+        .then((map) => new model.ReceptionReference.fromJson(map));
   }
 
   @override
@@ -47,7 +48,7 @@ class RESTReceptionStore implements storage.Reception {
 
     return this._backend.get(url).then((String response) =>
         new model.Reception.fromJson(
-            JSON.decode(response) as Map<String, dynamic>));
+            _json.decode(response) as Map<String, dynamic>));
   }
 
   @override
@@ -56,7 +57,7 @@ class RESTReceptionStore implements storage.Reception {
     url = _appendToken(url, this.token);
 
     return this._backend.get(url).then((String response) =>
-        (JSON.decode(response) as Iterable<Map<String, dynamic>>).map(
+        (_json.decode(response) as Iterable<Map<String, dynamic>>).map(
             (Map<String, dynamic> map) =>
                 new model.ReceptionReference.fromJson(map)));
   }
@@ -75,22 +76,23 @@ class RESTReceptionStore implements storage.Reception {
     Uri url = resource.Reception.single(this.host, reception.id);
     url = _appendToken(url, this.token);
 
-    String data = JSON.encode(reception);
+    String data = _json.encode(reception);
 
-    return this._backend.put(url, data).then(JSON.decode).then(
-        (Map<String, dynamic> map) =>
-            new model.ReceptionReference.fromJson(map));
+    return this
+        ._backend
+        .put(url, data)
+        .then(_json.decode)
+        .then((map) => new model.ReceptionReference.fromJson(map));
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([int rid]) {
+  Future<Iterable<model.Commit>> changes([int rid]) async {
     Uri url = resource.Reception.changeList(host, rid);
     url = _appendToken(url, this.token);
 
-    Iterable<model.Commit> convertMaps(Iterable<Map<String, dynamic>> maps) =>
-        maps.map((Map<String, dynamic> map) => new model.Commit.fromJson(map));
-
-    return this._backend.get(url).then(JSON.decode).then(convertMaps);
+    final String response = await _backend.get(url);
+    final Iterable<Map> maps = _json.decode(response);
+    return maps.map((map) => new model.Commit.fromJson(map));
   }
 
   Future<String> changelog(int rid) {

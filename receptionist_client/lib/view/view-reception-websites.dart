@@ -13,23 +13,21 @@
 
 part of orc.view;
 
-/**
- * The reception websites list.
- */
+/// The reception websites list.
 class ReceptionWebsites extends ViewWidget {
-  final controller.Destination _myDestination;
-  final ui_model.UIReceptionSelector _receptionSelector;
-  final ui_model.UIReceptionWebsites _uiModel;
 
-  /**
-   * Constructor.
-   */
+
+  /// Constructor.
   ReceptionWebsites(
       ui_model.UIReceptionWebsites this._uiModel,
       controller.Destination this._myDestination,
       ui_model.UIReceptionSelector this._receptionSelector) {
     _observers();
   }
+
+  final controller.Destination _myDestination;
+  final ui_model.UIReceptionSelector _receptionSelector;
+  final ui_model.UIReceptionWebsites _uiModel;
 
   @override
   controller.Destination get _destination => _myDestination;
@@ -41,17 +39,13 @@ class ReceptionWebsites extends ViewWidget {
   @override
   void _onFocus(controller.Destination _) {}
 
-  /**
-   * Simply navigate to my [Destination]. Matters not if this widget is already
-   * focused.
-   */
+  /// Simply navigate to my [controller.Destination]. Matters not if this widget is already
+  /// focused.
   void _activateMe() {
     _navigateToMyDestination();
   }
 
-  /**
-   * Observers.
-   */
+  /// Observers.
   void _observers() {
     _navigate.onGo.listen(_setWidgetState);
 
@@ -60,9 +54,7 @@ class ReceptionWebsites extends ViewWidget {
     _receptionSelector.onSelect.listen(_render);
   }
 
-  /**
-   * Render the widget with [reception].
-   */
+  /// Render the widget with [reception].
   void _render(model.Reception reception) {
     if (reception.isEmpty) {
       _ui.clear();

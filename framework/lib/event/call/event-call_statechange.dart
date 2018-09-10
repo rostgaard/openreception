@@ -24,14 +24,14 @@ class CallStateChanged extends CallEvent {
   /// call.
   CallStateChanged(model.Call call) : super(call);
 
-  /// Create a new [CallStateChanged] object from serialized data stored in [map].
+  /// Create a [CallStateChanged] object from serialized data stored in [map].
   CallStateChanged.fromJson(Map<String, dynamic> map) : super.fromJson(map);
 
   /// Returns an umodifiable map representation of the object, suitable for
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._call: call.toJson()

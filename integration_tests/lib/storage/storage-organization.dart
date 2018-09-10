@@ -1,24 +1,22 @@
 part of ort.storage;
 
 class Organization {
-  static Logger _log = new Logger('$_libraryName.Organization');
+  static Logger _log = Logger('$_libraryName.Organization');
 
-  /**
-   * Test server behaviour when trying to aquire a organization object that
-   * exists.
-   *
-   * The expected behaviour is that the server should return the
-   * Organization object.
-   */
+  /// Test server behaviour when trying to aquire a organization object that
+  /// exists.
+  ///
+  /// The expected behaviour is that the server should return the
+  /// Organization object.
   static Future existingOrganization(ServiceAgent sa) async {
     _log.info('Checking server behaviour on an existing organization.');
-    _log.info('Creating new organization');
+    _log.info('Creating organization');
 
     final model.Organization newOrg = Randomizer.randomOrganization();
     final model.OrganizationReference newOrgRef =
         await sa.organizationStore.create(newOrg, sa.user);
 
-    _log.info('Fetching new organization');
+    _log.info('Fetching organization');
 
     final model.Organization org = await sa.organizationStore.get(newOrgRef.id);
 
@@ -34,12 +32,10 @@ class Organization {
     await sa.organizationStore.remove(newOrgRef.id, sa.user);
   }
 
-  /**
-   * Test server behaviour when trying to aquire a mappings of
-   * reception ID -> reception name + organization name
-   *
-   * The expected behaviour is that the server should return these mappings.
-   */
+  /// Test server behaviour when trying to aquire a mappings of
+  /// reception ID -> reception name + organization name
+  ///
+  /// The expected behaviour is that the server should return these mappings.
   static Future receptionMap(ServiceAgent sa) async {
     final org1 = await sa.createsOrganization();
     final org2 = await sa.createsOrganization();
@@ -62,12 +58,10 @@ class Organization {
     expect(rec2map['organization'], equals(org2.name));
   }
 
-  /**
-   * Test server behaviour when trying to aquire a list of organization objects
-   *
-   * The expected behaviour is that the server should return a list of
-   * Organization objects.
-   */
+  /// Test server behaviour when trying to aquire a list of organization objects
+  ///
+  /// The expected behaviour is that the server should return a list of
+  /// Organization objects.
   static Future list(ServiceAgent sa) async {
     _log.info('Checking server behaviour on list of organizations.');
     final org1 = await sa.createsOrganization();
@@ -81,13 +75,11 @@ class Organization {
     expect(orgRefs.any((ref) => ref.id == org2.id), isTrue);
   }
 
-  /**
-   * Test server behaviour when trying to list contacts associated with
-   * a given organization.
-   *
-   * The expected behaviour is that the server should return a list of
-   * BaseContact objects.
-   */
+  /// Test server behaviour when trying to list contacts associated with
+  /// a given organization.
+  ///
+  /// The expected behaviour is that the server should return a list of
+  /// BaseContact objects.
   static Future existingOrganizationContacts(ServiceAgent sa) async {
     final con1 = await sa.createsContact();
     final con2 = await sa.createsContact();
@@ -146,12 +138,10 @@ class Organization {
     }
   }
 
-  /**
-   * Test server behaviour when trying to list contacts associated with
-   * a non-existing organization.
-   *
-   * The expected behaviour is that the server should return an empty list.
-   */
+  /// Test server behaviour when trying to list contacts associated with
+  /// a non-existing organization.
+  ///
+  /// The expected behaviour is that the server should return an empty list.
   static Future nonExistingOrganizationContacts(ServiceAgent sa) async {
     final int organizationId = -1;
 
@@ -165,28 +155,24 @@ class Organization {
     });
   }
 
-  /**
-   * Test server behaviour when trying to list contacts associated with
-   * a non-existing organization.
-   *
-   * The expected behaviour is that the server should return an empty list.
-   */
+  /// Test server behaviour when trying to list contacts associated with
+  /// a non-existing organization.
+  ///
+  /// The expected behaviour is that the server should return an empty list.
   static Future nonExistingOrganization(ServiceAgent sa) async {
     const int organizationId = -1;
 
     _log.info('Looking up organization $organizationId.');
 
     expect(sa.organizationStore.get(organizationId),
-        throwsA(new isInstanceOf<NotFound>()));
+        throwsA(const TypeMatcher<NotFound>()));
   }
 
-  /**
-   * Test server behaviour when trying to list receptions associated with
-   * a given organization.
-   *
-   * The expected behaviour is that the server should return a list of
-   * BaseContact objects.
-   */
+  /// Test server behaviour when trying to list receptions associated with
+  /// a given organization.
+  ///
+  /// The expected behaviour is that the server should return a list of
+  /// BaseContact objects.
   static Future existingOrganizationReceptions(ServiceAgent sa) async {
     final org1 = await sa.createsOrganization();
     final org2 = await sa.createsOrganization();
@@ -208,12 +194,10 @@ class Organization {
     }
   }
 
-  /**
-   * Test server behaviour when trying to list receptions associated with
-   * a non-existing organization.
-   *
-   * The expected behaviour is that the server should return an empty list.
-   */
+  /// Test server behaviour when trying to list receptions associated with
+  /// a non-existing organization.
+  ///
+  /// The expected behaviour is that the server should return an empty list.
   static Future nonExistingOrganizationReceptions(ServiceAgent sa) async {
     const int organizationId = -1;
 
@@ -225,20 +209,17 @@ class Organization {
     expect(rRefs, isNotNull);
   }
 
-  /**
-   * Test server behaviour when trying to create a new empty organization
-   * which is invalid.
-   *
-   * The expected behaviour is that the server should return an error.
-   */
+  /// Test server behaviour when trying to create a empty organization
+  /// which is invalid.
+  ///
+  /// The expected behaviour is that the server should return an error.
   static void createEmpty(ServiceAgent sa) {
-    model.Organization organization = new model.Organization.empty()..id = null;
+    model.Organization organization = model.Organization.empty()..id = null;
 
-    _log.info(
-        'Creating a new empty/invalid organization ${organization.toJson()}');
+    _log.info('Creating a empty/invalid organization ${organization.toJson()}');
 
     return expect(sa.organizationStore.create(organization, sa.user),
-        throwsA(new isInstanceOf<ClientError>()));
+        throwsA(const TypeMatcher<ClientError>()));
   }
 
   /**
@@ -251,21 +232,19 @@ class Organization {
     await sa.createsOrganization();
   }
 
-  /**
-   * Test server behaviour when trying to create a new organization.
-   *
-   * The expected behaviour is that the server should return the created
-   * Organization object.
-   */
+  /// Test server behaviour when trying to create a organization.
+  ///
+  /// The expected behaviour is that the server should return the created
+  /// Organization object.
   static Future create(ServiceAgent sa) async {
     _log.info('Checking server behaviour on an existing organization.');
-    _log.info('Creating new organization');
+    _log.info('Creating organization');
 
     final model.Organization newOrg = Randomizer.randomOrganization();
     final model.OrganizationReference newOrgRef =
         await sa.organizationStore.create(newOrg, sa.user);
 
-    _log.info('Fetching new organization');
+    _log.info('Fetching organization');
 
     final model.Organization org = await sa.organizationStore.get(newOrgRef.id);
 
@@ -281,22 +260,20 @@ class Organization {
     _log.info('Test OK. Cleaning up');
   }
 
-  /**
-   * Test server behaviour when trying to update a organization event object that
-   * exists.
-   *
-   * The expected behaviour is that the server should return the updated
-   * Organization object.
-   */
+  /// Test server behaviour when trying to update a organization event object that
+  /// exists.
+  ///
+  /// The expected behaviour is that the server should return the updated
+  /// Organization object.
   static Future update(ServiceAgent sa) async {
     _log.info('Checking server behaviour when updating an organization.');
-    _log.info('Creating new organization');
+    _log.info('Creating organization');
 
     final model.Organization newOrg = Randomizer.randomOrganization();
     final model.OrganizationReference newOrgRef =
         await sa.organizationStore.create(newOrg, sa.user);
 
-    _log.info('Fetching new organization');
+    _log.info('Fetching organization');
 
     final model.Organization org = await sa.organizationStore.get(newOrgRef.id);
 
@@ -333,26 +310,22 @@ class Organization {
     expect(updated.notes, equals(fetched.notes));
   }
 
-  /**
-   * Test server behaviour when trying to update a organization object that
-   * exists but with invalid data.
-   *
-   * The expected behaviour is that the server should return an error,
-   */
+  /// Test server behaviour when trying to update a organization object that
+  /// exists but with invalid data.
+  ///
+  /// The expected behaviour is that the server should return an error,
   static Future updateInvalid(ServiceAgent sa) async {
     final org = await sa.createsOrganization();
 
     org.id = model.Organization.noId;
 
     expect(sa.organizationStore.update(org, sa.user),
-        throwsA(new isInstanceOf<ClientError>()));
+        throwsA(const TypeMatcher<ClientError>()));
   }
 
-  /**
-   * Test server behaviour when trying to delete an organization that exists.
-   *
-   * The expected behaviour is that the server should succeed.
-   */
+  /// Test server behaviour when trying to delete an organization that exists.
+  ///
+  /// The expected behaviour is that the server should succeed.
   static Future remove(ServiceAgent sa) async {
     final org = await sa.createsOrganization();
 
@@ -361,20 +334,18 @@ class Organization {
     await sa.deletesOrganization(org);
 
     expect(sa.organizationStore.get(org.id),
-        throwsA(new isInstanceOf<NotFound>()));
+        throwsA(const TypeMatcher<NotFound>()));
   }
 
-  /**
-   * Test server behaviour when trying to delete an organization that
-   * do not exists.
-   *
-   * The expected behaviour is that the server should return Not Found error.
-   */
+  /// Test server behaviour when trying to delete an organization that
+  /// do not exists.
+  ///
+  /// The expected behaviour is that the server should return Not Found error.
   static Future removeNonExisting(ServiceAgent sa) async {
     _log.info('Targeting not found organization for removal');
 
     return expect(sa.organizationStore.remove(-1, sa.user),
-        throwsA(new isInstanceOf<NotFound>()));
+        throwsA(const TypeMatcher<NotFound>()));
   }
 
   /**
@@ -390,12 +361,12 @@ class Organization {
 
     expect(commits.length, equals(1));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
-    final change = commits.first.changes.first;
+    final model.OrganizationChange change = commits.first.changes.first;
 
     expect(change.changeType, model.ChangeType.add);
     expect(change.oid, created.id);
@@ -414,23 +385,23 @@ class Organization {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.OrganizationChange latestChange = commits.first.changes.first;
+    final model.OrganizationChange oldestChange = commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.modify);
     expect(latestChange.oid, created.id);
@@ -454,23 +425,23 @@ class Organization {
     expect(commits.length, equals(2));
 
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
 
     expect(commits.last.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.last.authorIdentity, equals(sa.user.address));
 
     expect(commits.length, equals(2));
     expect(commits.first.changedAt.millisecondsSinceEpoch,
-        lessThan(new DateTime.now().millisecondsSinceEpoch));
+        lessThan(DateTime.now().millisecondsSinceEpoch));
     expect(commits.first.authorIdentity, equals(sa.user.address));
     expect(commits.first.uid, equals(sa.user.id));
 
     expect(commits.first.changes.length, equals(1));
     expect(commits.last.changes.length, equals(1));
-    final latestChange = commits.first.changes.first;
-    final oldestChange = commits.last.changes.first;
+    final model.OrganizationChange latestChange = commits.first.changes.first;
+    final model.OrganizationChange oldestChange = commits.last.changes.first;
 
     expect(latestChange.changeType, model.ChangeType.delete);
     expect(latestChange.oid, created.id);

@@ -1,12 +1,10 @@
 part of ort.service;
 
 abstract class UserState {
-  static Logger log = new Logger('$_namespace.CallFlowControl.UserState');
+  static Logger log = Logger('$_namespace.CallFlowControl.UserState');
 
-  /**
-  * Tests if the receptionist receives an error when trying originate
-  * a new call while in call.
-   */
+  /// Tests if the receptionist receives an error when trying originate
+  /// a call while in call.
   static Future originateForbidden(model.OriginationContext context,
       Receptionist receptionist, Customer caller, Customer callee) async {
     log.info('Caller dials the reception at ${context.dialplan}');
@@ -17,23 +15,21 @@ abstract class UserState {
     expect(firstCall, isNotNull);
     expect(firstCall.id, isNot(model.Call.noId));
 
-    log.info('Receptionist tries to orignate a new call to $callee');
+    log.info('Receptionist tries to orignate a call to $callee');
     expect(receptionist.originate(callee.extension, context),
-        throwsA(new isInstanceOf<ClientError>()));
+        throwsA(TypeMatcher<ClientError>()));
     await receptionist.hangUp(firstCall);
     await receptionist.waitForPhoneHangup();
 
-    log.info('$receptionist tries to orignate a new call to $callee again');
+    log.info('$receptionist tries to orignate a call to $callee again');
     final model.Call outboundCall =
         await receptionist.originate(callee.extension, context);
     await receptionist.hangUp(outboundCall);
     await receptionist.waitForPhoneHangup();
   }
 
-  /**
-   * Tests if the receptionist receives an error when trying to pick
-   * up a second call while in call.
-   */
+  /// Tests if the receptionist receives an error when trying to pick
+  /// up a second call while in call.
   static Future pickupForbidden(
       model.OriginationContext context,
       Receptionist receptionist,
@@ -52,8 +48,8 @@ abstract class UserState {
     final model.Call secondCall = await receptionist.nextOfferedCall();
 
     log.info('Receptionist tries to pick up second call $secondCall');
-    expect(receptionist.pickup(secondCall),
-        throwsA(new isInstanceOf<ClientError>()));
+    expect(
+        receptionist.pickup(secondCall), throwsA(TypeMatcher<ClientError>()));
 
     await receptionist.hangUp(firstCall);
     await receptionist.waitForPhoneHangup();

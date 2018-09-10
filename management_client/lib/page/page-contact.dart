@@ -189,7 +189,7 @@ class Contact {
     collRefs.forEach(
         (model.ReceptionReference rRef, Iterable<model.BaseContact> crefs) {
       final li = _createReceptionNode(rRef);
-      List colls = crefs.toList(growable: false)..sort(view.compareContacts);
+      List<model.BaseContact> colls = crefs.toList(growable: false)..sort(view.compareContacts);
 
       li.children.add(new UListElement()
         ..classes.add('zebra-odd')

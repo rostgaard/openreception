@@ -1,18 +1,18 @@
 library ort.support.auth;
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
-import 'package:logging/logging.dart';
+import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:orf/model.dart' as model;
 
 const String _namespace = 'test.support.auth';
 
 class AuthTokenDir {
   final Directory dir;
-  Set<AuthToken> tokens = new Set<AuthToken>();
-  final Logger _log = new Logger('$_namespace.AuthTokenDir');
+  Set<AuthToken> tokens = Set<AuthToken>();
+  final Logger _log = Logger('$_namespace.AuthTokenDir');
 
   AuthTokenDir(this.dir, {Iterable<AuthToken> intialTokens: const []}) {
     tokens.addAll(intialTokens);
@@ -21,10 +21,10 @@ class AuthTokenDir {
   Future writeTokens() async {
     await Future.wait((tokens.map((token) async {
       final String tokenPath = '${dir.path}/${token.tokenName}.json';
-      final File file = new File(tokenPath);
+      final File file = File(tokenPath);
       if (!file.existsSync()) {
         _log.finest('Writing token to file ${tokenPath}');
-        await file.writeAsString(JSON.encode(token.toJson()));
+        await file.writeAsString(json.encode(token.toJson()));
       }
       return file;
     })));
@@ -37,7 +37,7 @@ class AuthToken {
 
   AuthToken(this.user);
 
-  String get tokenName => this.user.id.toString();
+  String get tokenName => user.id.toString();
 
   int get hashCode => tokenName.hashCode;
 

@@ -7,10 +7,10 @@ class AuthServer implements ServiceProcess {
   final String bindAddress;
   AuthTokenDir tokenDir;
 
-  final Logger _log = new Logger('$_namespace.AuthServer');
+  final Logger _log = Logger('$_namespace.AuthServer');
   Process _process;
 
-  Completer _ready = new Completer();
+  Completer _ready = Completer();
   bool get ready => _ready.isCompleted;
   Future get whenReady => _ready.future;
 
@@ -28,20 +28,27 @@ class AuthServer implements ServiceProcess {
    *
    */
   Future _init(Iterable<AuthToken> initialTokens) async {
-    final Stopwatch initTimer = new Stopwatch()..start();
+    final Stopwatch initTimer = Stopwatch()..start();
     whenReady.whenComplete(() {
       initTimer.stop();
-      _log.info('Process initialization time was: '
+      _log.fine('Process initialization time was: '
           '${initTimer.elapsedMilliseconds}ms');
     });
 
-    tokenDir = new AuthTokenDir(new Directory('/tmp').createTempSync(),
+    tokenDir = AuthTokenDir(Directory('/tmp').createTempSync(),
         intialTokens: initialTokens);
 
+    String processName;
+    final arguments = <String>[];
+    if (config.runNative) {
+      processName = '${config.buildPath}/authserver';
+    } else {
+      processName = config.dartPath;
+      arguments.add('${config.serverStackPath}/bin/authserver.dart');
+    }
+
     await _writeTokens();
-    final arguments = [
-      '--checked',
-      '$path/bin/authserver.dart',
+    arguments.addAll([
       '-d',
       tokenDir.dir.absolute.path,
       '--filestore',
@@ -50,26 +57,26 @@ class AuthServer implements ServiceProcess {
       servicePort.toString(),
       '--host',
       bindAddress
-    ];
-    _log.fine('Starting process /usr/bin/dart ${arguments.join(' ')}');
+    ]);
+    _log.fine('Starting process $processName ${arguments.join(' ')}');
 
-    _process = await Process.start('/usr/bin/dart', arguments,
-        workingDirectory: path)
-      ..stdout
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
-          .listen((String line) {
-        _log.finest(line);
-        if ((!ready && line.contains('Ready to handle requests')) ||
-            (!ready && line.contains('Reloaded tokens from disk'))) {
-          _log.info('Ready');
-          _ready.complete();
-        }
-      })
-      ..stderr
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
-          .listen(_log.warning);
+    _process =
+        await Process.start(processName, arguments, workingDirectory: path)
+          ..stdout
+              .transform(Utf8Decoder())
+              .transform(LineSplitter())
+              .listen((String line) {
+            _log.finest(line);
+            if ((!ready && line.contains('Ready to handle requests')) ||
+                (!ready && line.contains('Reloaded tokens from disk'))) {
+              _log.fine('Ready');
+              _ready.complete();
+            }
+          })
+          ..stderr
+              .transform(Utf8Decoder())
+              .transform(LineSplitter())
+              .listen(_log.warning);
 
     _log.finest('Started authserver process (pid: ${_process.pid})');
     _launchedProcesses.add(_process);
@@ -77,7 +84,7 @@ class AuthServer implements ServiceProcess {
     /// Protect from hangs caused by process crashes.
     _process.exitCode.then((int exitCode) {
       if (exitCode != 0 && !ready) {
-        _ready.completeError(new StateError('Failed to launch process. '
+        _ready.completeError(StateError('Failed to launch process. '
             'Exit code: $exitCode'));
       }
     });
@@ -97,21 +104,21 @@ class AuthServer implements ServiceProcess {
    */
   Future addTokens(Iterable<AuthToken> ts) async {
     await whenReady;
-    _ready = new Completer();
+    _ready = Completer();
 
     try {
       tokenDir.tokens.addAll(ts);
       await _writeTokens();
-      _process.kill(ProcessSignal.SIGHUP);
+      _process.kill(ProcessSignal.sighup);
     } catch (e, s) {
       _ready.completeError(e, s);
     }
 
-    await whenReady.timeout(new Duration(seconds: 10));
+    await whenReady.timeout(Duration(seconds: 10));
   }
 
   /**
-   * Constructs a new [service.Autentication] based on the launch parameters
+   * Constructs a [service.Autentication] based on the launch parameters
    * of the process.
    */
   service.Authentication bindClient(service.Client client, AuthToken token,
@@ -120,7 +127,7 @@ class AuthServer implements ServiceProcess {
       connectUri = this.uri;
     }
 
-    return new service.Authentication(connectUri, token.tokenName, client);
+    return service.Authentication(connectUri, token.tokenName, client);
   }
 
   /**

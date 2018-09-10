@@ -11,9 +11,7 @@
   this program; see the file COPYING3. If not, see http://www.gnu.org/licenses.
 */
 
-/**
- * The OR-Stack calendar server. Provides a REST calendar interface.
- */
+/// The OR-Stack calendar server. Provides a REST calendar interface.
 library ors.calendar;
 
 import 'dart:async';
@@ -21,25 +19,21 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
-import 'package:orf/filestore.dart' as filestore;
-import 'package:orf/gzip_cache.dart' as gzip_cache;
+import 'package:orf/filestore.dart' as fileStore;
 import 'package:orf/service-io.dart' as service;
 import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
 import 'package:ors/controller/controller-calendar.dart' as controller;
 import 'package:ors/router/router-calendar.dart' as router;
 
-ArgResults _parsedArgs;
-ArgParser _parser = new ArgParser();
-
 Future main(List<String> args) async {
   ///Init logging.
   Logger.root.level = config.calendarServer.log.level;
   Logger.root.onRecord.listen(config.calendarServer.log.onRecord);
-  Logger log = new Logger('calendarserver');
+  Logger log = Logger('calendarserver');
 
   ///Handle argument parsing.
-  ArgParser parser = new ArgParser()
+  ArgParser parser = ArgParser()
     ..addFlag('help', help: 'Output this help', negatable: false)
     ..addOption('filestore', abbr: 'f', help: 'Path to the filestore backend')
     ..addOption('httpport',
@@ -78,7 +72,7 @@ Future main(List<String> args) async {
   try {
     port = int.parse(parsedArgs['httpport']);
     if (port < 1 || port > 65535) {
-      throw new FormatException();
+      throw FormatException();
     }
   } on FormatException {
     stderr.writeln('Bad port argument: ${parsedArgs['httpport']}');
@@ -89,40 +83,36 @@ Future main(List<String> args) async {
 
   final bool revisioning = parsedArgs['experimental-revisioning'];
 
-  filestore.GitEngine contactRevisionEngine = revisioning
-      ? new filestore.GitEngine(parsedArgs['filestore'] + '/contact')
+  fileStore.GitEngine contactRevisionEngine = revisioning
+      ? fileStore.GitEngine(parsedArgs['filestore'] + '/contact')
       : null;
-  filestore.GitEngine receptionRevisionEngine = revisioning
-      ? new filestore.GitEngine(parsedArgs['filestore'] + '/reception')
+  fileStore.GitEngine receptionRevisionEngine = revisioning
+      ? fileStore.GitEngine(parsedArgs['filestore'] + '/reception')
       : null;
 
-  final service.Authentication _authentication = new service.Authentication(
+  final service.Authentication _authentication = service.Authentication(
       Uri.parse(parsedArgs['auth-uri']),
       config.calendarServer.serverToken,
-      new service.Client());
+      service.Client());
 
   final service.NotificationService _notification =
-      new service.NotificationService(Uri.parse(parsedArgs['notification-uri']),
-          config.calendarServer.serverToken, new service.Client());
+      service.NotificationService(Uri.parse(parsedArgs['notification-uri']),
+          config.calendarServer.serverToken, service.Client());
 
-  final filestore.Reception rStore = new filestore.Reception(
+  final fileStore.Reception rStore = fileStore.Reception(
       parsedArgs['filestore'] + '/reception', receptionRevisionEngine);
 
-  final filestore.Contact cStore = new filestore.Contact(
+  final fileStore.Contact cStore = fileStore.Contact(
       rStore, parsedArgs['filestore'] + '/contact', contactRevisionEngine);
 
-  final controller.Calendar _calendarController = new controller.Calendar(
+  final controller.Calendar _calendarController = controller.Calendar(
       cStore,
       rStore,
       _authentication,
-      _notification,
-      new gzip_cache.CalendarCache(cStore.calendarStore, rStore.calendarStore, [
-        cStore.calendarStore.changeStream,
-        rStore.calendarStore.changeStream,
-      ]));
+      _notification);
 
   final router.Calendar calendarRouter =
-      new router.Calendar(_authentication, _notification, _calendarController);
+  router.Calendar(_authentication, _notification, _calendarController);
 
   await calendarRouter.listen(port: port, hostname: parsedArgs['host']);
 

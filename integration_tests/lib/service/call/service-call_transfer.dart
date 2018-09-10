@@ -1,7 +1,7 @@
 part of ort.service.call;
 
 abstract class Transfer {
-  static Logger log = new Logger('$_namespace.CallFlowControl.Transfer');
+  static Logger log = Logger('$_namespace.CallFlowControl.Transfer');
 
   static Future transferParkedInboundCall(
       Receptionist receptionist,
@@ -49,7 +49,7 @@ abstract class Transfer {
     log.info('Caller ${caller} hangs up');
     await caller.hangupAll();
     log.info('Waiting around for 100ms to avoid race conditions');
-    await new Future.delayed(new Duration(milliseconds: 100));
+    await Future.delayed(Duration(milliseconds: 100));
     log.info('Caller ${caller} waits for hang up');
     await caller.waitForHangup();
     log.info('Callee ${callee} waits for hang up');
@@ -114,7 +114,7 @@ abstract class Transfer {
     caller.hangupAll();
 
     log.info('Waiting around for 100ms to avoid race conditions');
-    await new Future.delayed(new Duration(milliseconds: 100));
+    await Future.delayed(Duration(milliseconds: 100));
 
     log.info('Caller ${caller} waits for hang up');
     await caller.waitForHangup();
@@ -196,7 +196,7 @@ abstract class Transfer {
     log.info('Caller ${caller} hangs up');
     await caller.hangupAll();
     log.info('Waiting around for 100ms to avoid race conditions');
-    await new Future.delayed(new Duration(milliseconds: 100));
+    await Future.delayed(Duration(milliseconds: 100));
     log.info('Caller ${caller} waits for hang up');
     await caller.waitForHangup();
     log.info('Callee ${callee} waits for hang up');

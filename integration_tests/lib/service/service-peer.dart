@@ -1,12 +1,10 @@
 part of ort.service;
 
 abstract class Peer {
-  static Logger log = new Logger('Test.Peer');
+  static Logger log = Logger('Test.Peer');
 
-  /**
-   * Test for the presence of hangup events when a peer
-   * changes registration status.
-   */
+  /// Test for the presence of hangup events when a peer
+  /// changes registration status.
   static Future eventPresence(Receptionist receptionist) async {
     String peerName = receptionist.user.extension;
 
@@ -17,7 +15,7 @@ abstract class Peer {
             e is event.PeerState &&
             e.peer.name == peerName &&
             !e.peer.registered)
-        .timeout(new Duration(seconds: 10));
+        .timeout(Duration(seconds: 10));
 
     await receptionist.phone.unregister();
     await unregisterEvent;

@@ -15,6 +15,21 @@ part of orf.model.dialplan;
 
 ///Class representing an IVR menu.
 class IvrMenu {
+  /// Default constructor.
+  IvrMenu(this.name, this.greetingLong);
+
+  /// Decoding factory.
+  factory IvrMenu.fromJson(Map<String, dynamic> map) =>
+      (IvrMenu(map[key.name] as String, Playback.parse(map[key.greeting] as String))
+
+        .._greetingShort = Playback.parse(map[key.greetingShort] as String))
+        ..entries =
+        ((map[key.ivrEntries] as List<dynamic>).cast<String>()
+          .map<IvrEntry>(IvrEntry.parse)
+            .toList())
+        ..submenus = List<IvrMenu>.from((map[key.submenus] as List<dynamic>)
+            .map<IvrMenu>((dynamic map) => IvrMenu.fromJson(map as Map<String, dynamic>)));
+
   /// Name of IVR menu.
   String name;
 
@@ -29,21 +44,9 @@ class IvrMenu {
 
   Playback _greetingShort = Playback.none;
 
-  /// Default constructor.
-  IvrMenu(this.name, this.greetingLong);
-
-  /// Decoding factory.
-  factory IvrMenu.fromJson(Map<String, dynamic> map) => (new IvrMenu(
-      map[key.name],
-      Playback.parse(map[key
-          .greeting])).._greetingShort = Playback.parse(map[key.greetingShort]))
-    ..entries = new List<IvrEntry>.from(map[key.ivrEntries].map(IvrEntry.parse))
-    ..submenus = new List<IvrMenu>.from(map[key.submenus]
-        .map((Map<String, dynamic> map) => new IvrMenu.fromJson(map)));
-
   /// Extracts the contained [Action] objects from the menu.
   Iterable<Action> get allActions {
-    final List<Action> actions = new List<Action>();
+    final List<Action> actions = List<Action>();
 
     entries.fold(actions, (List<Action> list, IvrEntry entry) {
       if (entry is IvrTransfer) {
@@ -52,8 +55,9 @@ class IvrMenu {
         list.add(entry.voicemail);
       } else if (entry is IvrReceptionTransfer) {
         list.add(entry.transfer);
-      } else if (entry is IvrSubmenu || entry is IvrTopmenu) {} else
-        throw new StateError('Unknown type in entries: ${entry.runtimeType}');
+      } else if (entry is IvrSubmenu || entry is IvrTopmenu) {
+      } else
+        throw StateError('Unknown type in entries: ${entry.runtimeType}');
 
       return list;
     });
@@ -67,7 +71,7 @@ class IvrMenu {
 
   /// Decoding factory method.
   @deprecated
-  static IvrMenu decode(Map<String, dynamic> map) => new IvrMenu.fromJson(map);
+  static IvrMenu decode(Map<String, dynamic> map) => IvrMenu.fromJson(map);
 
   /// An IVR menu equals another IVR menu if their names match.
   @override
@@ -79,7 +83,7 @@ class IvrMenu {
         key.greeting: greetingLong.toJson(),
         key.greetingShort: greetingShort.toJson(),
         key.ivrEntries: entries
-            .map((IvrEntry entry) => entry.toJson())
+            .map<dynamic>((IvrEntry entry) => entry.toJson())
             .toList(growable: false),
         key.submenus: submenus
             .map((IvrMenu menu) => menu.toJson())

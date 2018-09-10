@@ -95,7 +95,7 @@ class WhenWhats {
       _foldJson.hidden = true;
       _unfoldJson.hidden = false;
       _whenWhatInput.style.height = '';
-      _whenWhatInput.value = JSON.encode(whenWhats.toList());
+      _whenWhatInput.value = json.encode(whenWhats.toList());
     });
   }
 
@@ -103,11 +103,11 @@ class WhenWhats {
     if (_unfoldJson.hidden) {
       _whenWhatInput.value = _jsonpp.convert(wws.toList());
     } else {
-      _whenWhatInput.value = JSON.encode(wws.toList());
+      _whenWhatInput.value = json.encode(wws.toList());
     }
   }
 
-  Iterable<model.WhenWhat> get whenWhats => JSON
+  Iterable<model.WhenWhat> get whenWhats => json
           .decode(_whenWhatInput.value)
           .map((Map<String, dynamic> m) => new model.WhenWhat.fromJson(m))
       as Iterable<model.WhenWhat>;

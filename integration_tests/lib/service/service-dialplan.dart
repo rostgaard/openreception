@@ -54,7 +54,7 @@ abstract class ReceptionDialplanStore {
    */
   static Future list(storage.ReceptionDialplan rdpStore,
       [model.User user]) async {
-    expect((await rdpStore.list()), new isInstanceOf<Iterable>());
+    expect((await rdpStore.list()), TypeMatcher<Iterable>());
   }
 
   /**
@@ -68,7 +68,7 @@ abstract class ReceptionDialplanStore {
 
     await rdpStore.remove(createdDialplan.extension, user);
     await expect(rdpStore.get(createdDialplan.extension),
-        throwsA(new isInstanceOf<NotFound>()));
+        throwsA(TypeMatcher<NotFound>()));
   }
 
   /**

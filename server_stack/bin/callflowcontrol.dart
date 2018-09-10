@@ -39,7 +39,7 @@ Logger _log = new Logger('callflow');
 ArgResults _parsedArgs;
 ArgParser _parser = new ArgParser();
 
-HttpServer _httpServer;
+HttpServer _callflowChannel;
 
 Future _startService(conf.EslConfig eslConf) async {
   final service.Authentication _authentication = new service.Authentication(
@@ -88,7 +88,7 @@ Future _startService(conf.EslConfig eslConf) async {
   controller.Call _callController = new controller.Call(
       callList, channelList, peerList, pbxController, _authentication);
 
-  final router.Call callRouter = new router.Call(
+  final callRouter = new router.Call(
       _callController,
       _channelController,
       new controller.ActiveRecording(activeRecordings),
@@ -97,7 +97,7 @@ Future _startService(conf.EslConfig eslConf) async {
 
   pbxController.eslClient.eventStream.listen(peerList.handlePacket);
 
-  _httpServer = await callRouter.start(
+  _callflowChannel = await callRouter.start(
       hostname: _parsedArgs['host'], port: int.parse(_parsedArgs['httpport']));
   _log.fine(
       'Using server on ${_authentication.host} as authentication backend');
@@ -106,7 +106,7 @@ Future _startService(conf.EslConfig eslConf) async {
 }
 
 Future _stopService() async {
-  await _httpServer.close(force: true);
+  await _callflowChannel.close();
 }
 
 /// Call-flow-control server.

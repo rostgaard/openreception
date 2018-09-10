@@ -46,7 +46,7 @@ abstract class _ModelMessageQueueEntry {
     model.MessageQueueEntry obj = buildObject();
     model.MessageQueueEntry deserializedObj =
         new model.MessageQueueEntry.fromJson(
-            JSON.decode(JSON.encode(obj)) as Map<String, dynamic>);
+            _json.decode(_json.encode(obj)) as Map<String, dynamic>);
 
     expect(obj.id, equals(deserializedObj.id));
 
@@ -58,7 +58,7 @@ abstract class _ModelMessageQueueEntry {
 
   static void serialization() {
     model.MessageQueueEntry builtObject = buildObject();
-    String serializedObject = JSON.encode(builtObject);
+    String serializedObject = _json.encode(builtObject);
 
     expect(serializedObject, isNotNull);
     expect(serializedObject, isNotEmpty);

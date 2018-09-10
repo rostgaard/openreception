@@ -27,8 +27,8 @@ class HourAction {
 
   /// Parse and create a new [HourAction] objec from a decoded [Map].
   static HourAction parse(Map<String, dynamic> map) => new HourAction()
-    ..hours = parseMultipleHours(map['hours']).toList()
-    ..actions = (map['actions'] as Iterable<String>).map(Action.parse).toList();
+    ..hours = parseMultipleHours(map['hours'] as String).toList()
+    ..actions = (map['actions'] as List<dynamic>).cast<String>().map(Action.parse).toList();
 
   /// Serialization function.
   Map<String, dynamic> toJson() => <String, dynamic>{

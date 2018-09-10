@@ -56,7 +56,7 @@ class Transfer implements Action {
 
   @override
   String toJson() => '${key.transfer} $extension'
-      '${note.isNotEmpty ? ' ($note)': ''}';
+      '${note.isNotEmpty ? ' ($note)' : ''}';
 
   @override
   int get hashCode => toString().hashCode;

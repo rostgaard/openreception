@@ -2,16 +2,19 @@ name: orc
 version: 0.5.9
 description: A receptionist web-app.
 environment:
-  sdk: '>=1.0.0 <2.0.0'
+  sdk: '>=2.0.0 <3.0.0'
 dependencies:
-  browser: any
-  dart_to_js_script_rewriter: any
   intl: any
   logging: any
   markdown: any
-  okeyee: any
+  okeyee2:
+    path: ../../okeyee
   orf:
     path: ../framework
     version: '>=0.0.30'
-transformers:
-- dart_to_js_script_rewriter
+
+dev_dependencies:
+  build_runner: ^1.0.0
+  build_test: ^0.10.2
+  build_web_compilers: ^0.4.0
+  test: any

@@ -93,27 +93,24 @@ final Map<String, Destination> _destinations = {
       new Destination(Context.messages, Widget.messageArchive)
 };
 
-/**
- * A [Destination] points to a location in the application. It does this by
- * utilizing the [Context] and [Widget] enum's.
- *
- * The optional [from] [Destination] MAY be used to inform a widget from where
- * it was brought into focus.
- *
- * The optional [cmd] [Cmd] can be used as a lightweight payload given
- * to the destination.
- */
+/// A [Destination] points to a location in the application. It does this by
+/// utilizing the [Context] and [Widget] enum's.
+///
+/// The optional [from] [Destination] MAY be used to inform a widget from where
+/// it was brought into focus.
+///
+/// The optional [cmd] [Cmd] can be used as a lightweight payload given
+/// to the destination.
 class Destination {
+  /// Constructor.
+  Destination(Context this.context, Widget this.widget,
+      {Destination this.from, Cmd this.cmd});
   Context context;
   Cmd cmd;
   Destination from;
   Widget widget;
 
-  /**
-   * Constructor.
-   */
-  Destination(Context this.context, Widget this.widget,
-      {Destination this.from, Cmd this.cmd});
+
 
   @override
   bool operator ==(Object other) =>
@@ -128,26 +125,21 @@ class Destination {
   String toString() => '$context-$widget';
 }
 
-/**
- * Handles navigation for the application. This is a singleton.
- */
+/// Handles navigation for the application. This is a singleton.
 class Navigate {
+
+  /// Constructor.
+  Navigate._internal() {
+    _observers();
+  }
   final Bus<Destination> _bus = new Bus<Destination>();
   static final Navigate _singleton = new Navigate._internal();
   factory Navigate() => _singleton;
   final Map<Context, Widget> _widgetHistory = {};
 
-  /**
-   * Constructor.
-   */
-  Navigate._internal() {
-    _observers();
-  }
 
-  /**
-   * Push [destination] to the [onGo] stream. If [pushState] is true, then also
-   * add [destination] to the browser history.
-   */
+  /// Push [destination] to the [onGo] stream. If [pushState] is true, then also
+  /// add [destination] to the browser history.
   void go(Destination destination, {bool pushState: true}) {
     if (destination.widget == null) {
       if (_widgetHistory.containsKey(destination.context)) {
@@ -165,12 +157,10 @@ class Navigate {
     _bus.fire(destination);
   }
 
-  /**
-   * Turn the current window.location into a [Destination] and call [go] using
-   * that.
-   * If [pushState] is true, then also add the resulting [Destination] to the
-   * browser history.
-   */
+  /// Turn the current window.location into a [Destination] and call [go] using
+  /// that.
+  /// If [pushState] is true, then also add the resulting [Destination] to the
+  /// browser history.
   void goWindowLocation({bool pushState: true}) {
     String hash = '';
 

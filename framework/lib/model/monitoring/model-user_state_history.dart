@@ -15,15 +15,6 @@ part of orf.model.monitoring;
 
 /// Model class representing a historic user state change.
 class UserStateHistory {
-  /// The uid of the user that changed state.
-  final int uid;
-
-  /// The point in time where the change occured.
-  final DateTime timestamp;
-
-  /// The pause flag value after the state change.
-  final bool pause;
-
   /// Default constructor
   const UserStateHistory(this.uid, this.timestamp, this.pause);
 
@@ -32,6 +23,15 @@ class UserStateHistory {
       : uid = map['uid'],
         timestamp = DateTime.parse(map['t']),
         pause = map['p'];
+
+  /// The uid of the user that changed state.
+  final int uid;
+
+  /// The point in time where the change occured.
+  final DateTime timestamp;
+
+  /// The pause flag value after the state change.
+  final bool pause;
 
   /// Serialization function
   Map<String, dynamic> toJson() =>

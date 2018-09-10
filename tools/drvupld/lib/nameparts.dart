@@ -12,9 +12,7 @@
 
 part of drvupld;
 
-/**
- * Structure for the various properties needed to store a file.
- */
+/// Structure for the various properties needed to store a file.
 class NameParts {
   int agentId;
   String agentName;
@@ -27,11 +25,9 @@ class NameParts {
   String remoteNumber;
   String uuid;
 
-  /**
-   * Return a title.
-   *
-   * Does not throw.
-   */
+  /// Return a title.
+  ///
+  /// Does not throw.
   String title() => '${saneTimeStamp(callStart)}_'
       '${agentName}_'
       '${receptionName}_'
@@ -39,11 +35,9 @@ class NameParts {
       '${remoteNumber}_'
       '${uuid}';
 
-  /**
-   * Return an ASCII-only title.
-   *
-   * Does not throw.
-   */
+  /// Return an ASCII-only title.
+  ///
+  /// Does not throw.
   String titleASCIIOnly() => '${saneTimeStamp(callStart)}_'
       '${agentId}_'
       '${receptionExten}_'
@@ -51,3 +45,11 @@ class NameParts {
       '${remoteNumber}_'
       '${uuid}';
 }
+
+/// Returns [time] as an ISO8601 String without the milliseconds and with the T
+/// replaced with one whitespace. toLocal() is called on [time] before building
+/// the string.
+///
+/// Does not throw.
+String saneTimeStamp(DateTime time) =>
+    time.toLocal().toIso8601String().split('.').first.replaceAll('T', ' ');

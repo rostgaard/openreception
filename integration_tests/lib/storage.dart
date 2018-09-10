@@ -21,5 +21,5 @@ part 'storage/storage-user.dart';
 
 const String _libraryName = 'storage';
 
-final notFoundError = new isInstanceOf<NotFound>();
-final unchangedError = new isInstanceOf<Unchanged>();
+final notFoundError = new TypeMatcher<NotFound>();
+final unchangedError = new TypeMatcher<Unchanged>();

@@ -342,15 +342,16 @@ class Contact {
             ..receptionId = rRef.id
             ..cid = contact.id;
 
-      await _contactController
-          .addToReception(template)
-          .then((model.ReceptionContact ref) {
+      try {
+        model.ReceptionContact ref = await _contactController.addToReception(
+            template);
+
         notify.success('Tilføjede kontaktperson til reception',
             '${contact.name} til ${rRef.name}');
-      }).catchError((e) {
+      } catch (e) {
         notify.error(
             'Kunne ikke tilføje kontaktperson til reception', 'Fejl: ${e}');
-      });
+      }
     }
   }
 

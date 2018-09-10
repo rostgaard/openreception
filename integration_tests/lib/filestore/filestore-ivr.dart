@@ -6,7 +6,7 @@ void _runIvrTests() {
     TestEnvironment env;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
       await env.ivrStore.ready;
     });
@@ -33,7 +33,7 @@ void _runIvrTests() {
     ServiceAgent sa;
     TestEnvironment env;
     setUp(() async {
-      env = new TestEnvironment(enableRevisions: true);
+      env = TestEnvironment(enableRevisions: true);
       sa = await env.createsServiceAgent();
       await env.ivrStore.ready;
     });

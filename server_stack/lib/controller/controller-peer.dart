@@ -13,29 +13,28 @@
 
 library ors.controller.peer;
 
+import 'dart:async';
+
 import 'package:orf/exceptions.dart';
 import 'package:orf/model.dart' as model;
 import 'package:ors/model.dart' as _model;
 import 'package:ors/response_utils.dart';
-
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
+import 'package:shelf/shelf.dart';
 
 class Peer {
-  final _model.PeerList _peerlist;
-
   Peer(this._peerlist);
 
-  shelf.Response list(shelf.Request request) => okJson(_peerlist);
+  final _model.PeerList _peerlist;
 
-  shelf.Response get(shelf.Request request) {
-    final String peerName = shelf_route.getPathParameter(request, 'peerid');
+  Future<Response> list(Request request) => okJson(_peerlist);
+
+  Future<Response> get(Request request, final String peerName) async {
     model.Peer peer;
 
     try {
       peer = _peerlist.get(peerName);
     } on NotFound {
-      return new shelf.Response.notFound('No peer with name $peerName');
+      return new Response.notFound('No peer with name $peerName');
     }
 
     return okJson(peer);

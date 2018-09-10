@@ -48,14 +48,14 @@ class IvrMenu {
 
   void _checkInput() {
     model.IvrMenu menu;
-    Map json;
+    Map<String, dynamic> map;
     _inputErrorList.children.clear();
     _menuInput.classes.toggle('error', false);
     try {
-      json = JSON.decode(_menuInput.value);
+      map = json.decode(_menuInput.value);
 
       try {
-        menu = new model.IvrMenu.fromJson(json as Map<String, dynamic>);
+        menu = new model.IvrMenu.fromJson(map);
         final List<ValidationException> errors = validateIvrMenu(menu);
 
         if (errors.isNotEmpty) {
@@ -107,12 +107,12 @@ class IvrMenu {
   bool get hasValidationError => _menuInput.classes.contains('error');
 
   model.IvrMenu get menu => model.IvrMenu
-      .decode(JSON.decode(_menuInput.value) as Map<String, dynamic>);
+      .decode(json.decode(_menuInput.value) as Map<String, dynamic>);
 
   set menu(model.IvrMenu menu) {
     _menuInput.hidden = false;
     _menuInput.style.height = '';
-    _menuInput.value = JSON.encode(menu);
+    _menuInput.value = json.encode(menu);
     _deleteButton.hidden = false;
     _foldJson.hidden = true;
     _saveButton.hidden = false;
@@ -174,7 +174,7 @@ class IvrMenu {
       _foldJson.hidden = true;
       _unfoldJson.hidden = false;
       _menuInput.style.height = '';
-      _menuInput.value = JSON.encode(menu);
+      _menuInput.value = json.encode(menu);
       _resizeInput();
     });
   }

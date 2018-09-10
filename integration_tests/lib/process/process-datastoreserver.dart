@@ -1,7 +1,7 @@
 part of ort.process;
 
 class DatastoreServer implements ServiceProcess {
-  final Logger _log = new Logger('$_namespace.DatastoreServer');
+  final Logger _log = Logger('$_namespace.DatastoreServer');
   Process _process;
   final String path;
   final String storePath;
@@ -17,7 +17,7 @@ class DatastoreServer implements ServiceProcess {
   final String eslPassword;
   final int eslPort;
 
-  final Completer _ready = new Completer();
+  final Completer _ready = Completer();
   bool get ready => _ready.isCompleted;
   Future get whenReady => _ready.future;
 
@@ -41,7 +41,7 @@ class DatastoreServer implements ServiceProcess {
    *
    */
   Future _init() async {
-    final Stopwatch initTimer = new Stopwatch()..start();
+    final Stopwatch initTimer = Stopwatch()..start();
     whenReady.whenComplete(() {
       initTimer.stop();
       _log.info('Process initialization time was: '
@@ -88,12 +88,12 @@ class DatastoreServer implements ServiceProcess {
       arguments.add('--no-experimental-revisioning');
     }
 
-    _log.fine('Starting process /usr/bin/dart ${arguments.join(' ')}');
-    _process = await Process.start('/usr/bin/dart', arguments,
+    _log.fine('Starting process /usr/local/bin/dart ${arguments.join(' ')}');
+    _process = await Process.start('/usr/local/bin/dart', arguments,
         workingDirectory: path)
       ..stdout
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
           .listen((String line) {
         _log.finest(line);
         if (!ready && line.contains('Ready to handle requests')) {
@@ -102,8 +102,8 @@ class DatastoreServer implements ServiceProcess {
         }
       })
       ..stderr
-          .transform(new Utf8Decoder())
-          .transform(new LineSplitter())
+          .transform(Utf8Decoder())
+          .transform(LineSplitter())
           .listen(_log.warning);
 
     _log.finest('Started datastore process (pid: ${_process.pid})');
@@ -112,14 +112,14 @@ class DatastoreServer implements ServiceProcess {
     /// Protect from hangs caused by process crashes.
     _process.exitCode.then((int exitCode) {
       if (exitCode != 0 && !ready) {
-        _ready.completeError(new StateError('Failed to launch process. '
+        _ready.completeError(StateError('Failed to launch process. '
             'Exit code: $exitCode'));
       }
     });
   }
 
   /**
-   * Constructs a new [service.CallFlowControl] based on the launch
+   * Constructs a [service.CallFlowControl] based on the launch
    * parametersof the process.
    */
   service.Datastore bindClient(service.Client client, AuthToken token,
@@ -128,7 +128,7 @@ class DatastoreServer implements ServiceProcess {
       connectUri = this.uri;
     }
 
-    return new service.Datastore(connectUri, token.tokenName, client);
+    return service.Datastore(connectUri, token.tokenName, client);
   }
 
   /**

@@ -19,36 +19,29 @@ import 'dart:async';
 import 'package:orf/exceptions.dart';
 import 'package:ors/model.dart' as model;
 import 'package:ors/response_utils.dart';
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
+import 'package:shelf/shelf.dart';
 
 /// Controller for the [model.ActiveRecordings] container class.
 class ActiveRecording {
-  final model.ActiveRecordings _activeRecordings;
-
   /// Create a new [ActiveRecording] controller that wraps around
   /// an [model.ActiveRecordings] container and transforms its content
-  /// to [shelf.Response]s.
+  /// to [Response]s.
   ActiveRecording(this._activeRecordings);
 
-  /// Retrieve and JSON encode the current [ActiveRecordings] model class.
-  Future<shelf.Response> list(shelf.Request request) async =>
-      okJson(_activeRecordings);
+  final model.ActiveRecordings _activeRecordings;
+
+  /// Retrieve and JSON encode the current [model.ActiveRecordings] model class.
+  Future<Response> list(Request request) async => okJson(_activeRecordings);
 
   /// Retrieve and JSON encode a single recording from the
-  /// [ActiveRecordings] model class.
-  Future<shelf.Response> get(shelf.Request request) async {
-    final String channelId =
-        shelf_route.getPathParameters(request).containsKey('cid')
-            ? shelf_route.getPathParameter(request, 'cid')
-            : '';
-
+  /// [model.ActiveRecordings] model class.
+  Future<Response> get(Request request, final String channelId) async {
     if (channelId.isEmpty) {
       return clientError('No channel id supplied');
     }
 
     try {
-      final recording = _activeRecordings.get(channelId);
+      final recording = await _activeRecordings.get(channelId);
 
       return okJson(recording);
     } on NotFound {

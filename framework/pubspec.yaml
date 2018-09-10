@@ -1,9 +1,9 @@
 name: orf
-version: 0.0.30+0
+version: 0.0.31+0
 author: BitStackers
 description: A utility package for the OpenReception application that provides data model service and storage layer.
 environment:
-  sdk: '>=1.0.0 <2.0.0'
+  sdk: ">=1.0.0 <3.0.0"
 dependencies:
   archive: any
   intl: any
@@ -13,3 +13,4 @@ dev_dependencies:
   path: any
   test: any
   xml: any
+  pedantic: ^1.0.0

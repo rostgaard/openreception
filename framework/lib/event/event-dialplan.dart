@@ -32,21 +32,21 @@ class DialplanChange implements Event {
   final String state;
 
   DialplanChange._internal(this.extension, this.modifierUid, this.state)
-      : timestamp = new DateTime.now();
+      : timestamp = DateTime.now();
 
-  /// Create a new creation event.
+  /// Create a creation event.
   factory DialplanChange.create(String extension, int modifierUid) =>
-      new DialplanChange._internal(extension, modifierUid, Change.created);
+      DialplanChange._internal(extension, modifierUid, Change.created);
 
-  /// Create a new update event.
+  /// Create a update event.
   factory DialplanChange.update(String extension, int modifierUid) =>
-      new DialplanChange._internal(extension, modifierUid, Change.updated);
+      DialplanChange._internal(extension, modifierUid, Change.updated);
 
-  /// Create a new deletion event.
+  /// Create a deletion event.
   factory DialplanChange.delete(String extension, int modifierUid) =>
-      new DialplanChange._internal(extension, modifierUid, Change.deleted);
+      DialplanChange._internal(extension, modifierUid, Change.deleted);
 
-  /// Create a new [DialplanChange] object from serialized data stored in [map].
+  /// Create a [DialplanChange] object from serialized data stored in [map].
   DialplanChange.fromJson(Map<String, dynamic> map)
       : modifierUid = map[_Key._modifierUid],
         extension = map[_Key._extension],
@@ -66,7 +66,7 @@ class DialplanChange implements Event {
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._modifierUid: modifierUid,

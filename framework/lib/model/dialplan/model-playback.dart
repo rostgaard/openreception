@@ -90,8 +90,8 @@ class Playback implements Action {
   @override
   String toString() => '${key.playback}'
       ' $filename'
-      '${repeat != 1? ' ${key.repeat}:$repeat' :''}'
-      '${note.isNotEmpty ? ' ($note)': ''}';
+      '${repeat != 1 ? ' ${key.repeat}:$repeat' : ''}'
+      '${note.isNotEmpty ? ' ($note)' : ''}';
 
   @override
   String toJson() => toString();

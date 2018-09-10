@@ -6,6 +6,7 @@ import 'package:esl/esl.dart' as esl;
 import 'package:logging/logging.dart';
 import 'package:orf/event.dart' as event;
 import 'package:orf/exceptions.dart';
+import 'package:orf/exceptions.dart' as storage;
 import 'package:orf/model.dart' as model;
 import 'package:orf/service.dart' as service;
 import 'package:orf/storage.dart' as storage;
@@ -16,6 +17,9 @@ import 'package:test/test.dart';
 
 export 'package:ort/service/service-call.dart';
 
+part 'rest/src/dialplan_deployment.dart';
+part 'rest/src/reception_dialplan_store.dart';
+part 'rest/src/service-active_recording.dart';
 part 'service/service-auth.dart';
 part 'service/service-calendar.dart';
 part 'service/service-config.dart';

@@ -18,37 +18,32 @@ enum CallCommand {
   transferFailure
 }
 
-/**
- * Is thrown when a [Call] object is busy talking to the server.
- */
+/// Is thrown when a [Call] object is busy talking to the server.
 class BusyException implements Exception {
+  /// Constructor.
+  const BusyException([this.message = ""]);
+  
   /// Exception error message.
   final String message;
-
-  /**
-   * Constructor.
-   */
-  const BusyException([this.message = ""]);
 
   @override
   String toString() => "BusyException: $message";
 }
 
-/**
- * Exposes methods for call operations.
- */
+/// Exposes methods for call operations.
 class Call {
+
+  /// Constructor.
+  Call(service.CallFlowControl this._service,
+      ui_model.AppClientState this._appState);
+
   final ui_model.AppClientState _appState;
   bool _busyFlag = false;
   final Bus<CallCommand> _command = new Bus<CallCommand>();
   static final Logger _log = new Logger('$libraryName.Call');
   final service.CallFlowControl _service;
 
-  /**
-   * Constructor.
-   */
-  Call(service.CallFlowControl this._service,
-      ui_model.AppClientState this._appState);
+
 
   /**
    * Return true if the Call object is already busy talking to the server.

@@ -19,14 +19,14 @@
 /// but also as "fix these" error lists in a client UI.
 library orf.validation;
 
-import 'package:orf/model.dart';
-import 'package:orf/util.dart';
-import 'package:orf/exceptions.dart';
+import 'model.dart';
+import 'util.dart';
+import 'exceptions.dart';
 
 /// Determines if [string] contains only alphanumeric characters with no
 /// spaces.
 bool isAlphaNumeric(String string) =>
-    new RegExp(r"^[a-zA-Z0-9]*$").hasMatch(string);
+    RegExp(r"^[a-zA-Z0-9]*$").hasMatch(string);
 
 /// Performs object validation of an [OriginationContext] object.
 ///
@@ -37,15 +37,15 @@ List<ValidationException> validateOriginationContext(
   List<ValidationException> errors = <ValidationException>[];
 
   if (context.contactId == BaseContact.noId) {
-    errors.add(new InvalidId('cid'));
+    errors.add(InvalidId('cid'));
   }
 
   if (context.receptionId == Reception.noId) {
-    errors.add(new InvalidId('rid'));
+    errors.add(InvalidId('rid'));
   }
 
   if (context.dialplan.isEmpty) {
-    errors.add(new IsEmpty('dialplan'));
+    errors.add(IsEmpty('dialplan'));
   }
 
   return errors;
@@ -59,20 +59,20 @@ List<ValidationException> validateIvrMenu(IvrMenu menu) {
   List<ValidationException> errors = <ValidationException>[];
 
   if (menu.name.isEmpty) {
-    errors.add(new IsEmpty('name'));
+    errors.add(IsEmpty('name'));
   }
 
   if (!isAlphaNumeric(menu.name)) {
-    errors.add(new InvalidCharacters(
+    errors.add(InvalidCharacters(
         'name', 'Menu name must contain only alphanumeric characters.'));
   }
 
   if (menu.entries == null) {
-    errors.add(new NullValue('entries', 'Menu entries may not be null'));
+    errors.add(NullValue('entries', 'Menu entries may not be null'));
   }
 
   if (menu.greetingLong.filename.isEmpty) {
-    errors.add(new IsEmpty('greeting'));
+    errors.add(IsEmpty('greeting'));
   }
 
   menu.entries.forEach((IvrEntry entry) {
@@ -81,15 +81,14 @@ List<ValidationException> validateIvrMenu(IvrMenu menu) {
         entry.digits.runes.any((int r) => e.digits.runes.contains(r)));
 
     if (duplicated.length > 1) {
-      errors.add(new DuplicateDigits('digits', duplicated.first.digits,
+      errors.add(DuplicateDigits('digits', duplicated.first.digits,
           'Duplicate digit ${entry.digits}'));
     }
   });
 
-  errors.addAll(menu.submenus.map(validateIvrMenu).fold(
-      new List<ValidationException>(),
-      (List<ValidationException> list, List<ValidationException> e) =>
-          list..addAll(e)));
+  menu.submenus.forEach((IvrMenu submenu) {
+    errors.addAll(validateIvrMenu(submenu));
+  });
 
   return errors;
 }
@@ -102,23 +101,23 @@ List<ValidationException> validateMessage(Message msg) {
   List<ValidationException> errors = <ValidationException>[];
 
   if (msg.id == null) {
-    errors.add(new NullValue('id'));
+    errors.add(NullValue('id'));
   }
 
   if (msg.recipients.isEmpty) {
-    errors.add(new IsEmpty('recipients'));
+    errors.add(IsEmpty('recipients'));
   }
 
   if (msg.state == MessageState.unknown || msg.state == null) {
-    errors.add(new BadType('state', msg.state.toString()));
+    errors.add(BadType('state', msg.state.toString()));
   }
 
   if (msg.body.isEmpty) {
-    errors.add(new IsEmpty('body'));
+    errors.add(IsEmpty('body'));
   }
 
   if (msg.createdAt.isAtSameMomentAs(never)) {
-    errors.add(new TimeOrderConstraint('date', 'never'));
+    errors.add(TimeOrderConstraint('date', 'never'));
   }
 
   errors.addAll(validateMessageContext(msg.context));
@@ -138,7 +137,7 @@ List<ValidationException> validateMessageCallerInfo(CallerInfo callerInfo) {
   List<ValidationException> errors = <ValidationException>[];
 
   if (callerInfo.name.isEmpty) {
-    errors.add(new IsEmpty('name'));
+    errors.add(IsEmpty('name'));
   }
 
   return errors;
@@ -155,15 +154,15 @@ List<ValidationException> validateMessageRecipients(
 
   for (MessageEndpoint recipient in recipients) {
     if (!MessageEndpointType.types.contains(recipient.type)) {
-      errors.add(new BadType('type', recipient.type));
+      errors.add(BadType('type', recipient.type));
     }
 
     if (recipient.name.isEmpty) {
-      errors.add(new IsEmpty('name'));
+      errors.add(IsEmpty('name'));
     }
 
     if (recipient.address.isEmpty) {
-      errors.add(new IsEmpty('address'));
+      errors.add(IsEmpty('address'));
     }
   }
 
@@ -178,19 +177,19 @@ List<ValidationException> validateMessageContext(MessageContext context) {
   List<ValidationException> errors = <ValidationException>[];
 
   if (context.cid <= BaseContact.noId) {
-    errors.add(new InvalidId('cid'));
+    errors.add(InvalidId('cid'));
   }
 
   if (context.rid <= Reception.noId) {
-    errors.add(new InvalidId('rid'));
+    errors.add(InvalidId('rid'));
   }
 
   if (context.contactName.isEmpty) {
-    errors.add(new IsEmpty('contactName'));
+    errors.add(IsEmpty('contactName'));
   }
 
   if (context.receptionName.isEmpty) {
-    errors.add(new IsEmpty('receptionName'));
+    errors.add(IsEmpty('receptionName'));
   }
 
   return errors;
@@ -204,11 +203,11 @@ List<ValidationException> validateOwner(Owner owner) {
   final List<ValidationException> errors = <ValidationException>[];
 
   if (owner.id == null) {
-    errors.add(new NullValue('id'));
+    errors.add(NullValue('id'));
   }
 
   if (owner.id < BaseContact.noId) {
-    errors.add(new InvalidId('id'));
+    errors.add(InvalidId('id'));
   }
 
   return errors;
@@ -222,7 +221,7 @@ List<ValidationException> validatePhonenumber(PhoneNumber pn) {
   final List<ValidationException> errors = <ValidationException>[];
 
   if (pn.normalizedDestination.isEmpty) {
-    errors.add(new IsEmpty('destination'));
+    errors.add(IsEmpty('destination'));
   }
 
   return errors;
@@ -236,11 +235,11 @@ List<ValidationException> validateReceptionAttribute(ReceptionAttributes attr) {
   final List<ValidationException> errors = <ValidationException>[];
 
   if (attr.cid <= BaseContact.noId) {
-    errors.add(new InvalidId('cid'));
+    errors.add(InvalidId('cid'));
   }
 
   if (attr.receptionId < Reception.noId) {
-    errors.add(new InvalidId('rid'));
+    errors.add(InvalidId('rid'));
   }
 
   return errors;
@@ -254,19 +253,19 @@ List<ValidationException> validateReception(Reception rec) {
   List<ValidationException> errors = <ValidationException>[];
 
   if (rec.name.isEmpty) {
-    errors.add(new IsEmpty('name'));
+    errors.add(IsEmpty('name'));
   }
 
   if (rec.oid <= Organization.noId) {
-    errors.add(new InvalidId('oid'));
+    errors.add(InvalidId('oid'));
   }
 
   if (rec.id < Reception.noId) {
-    errors.add(new InvalidId('id'));
+    errors.add(InvalidId('id'));
   }
 
   if (rec.greeting.isEmpty) {
-    errors.add(new IsEmpty('greeting'));
+    errors.add(IsEmpty('greeting'));
   }
 
   return errors;
@@ -280,19 +279,19 @@ List<ValidationException> validateOrganization(Organization org) {
   List<ValidationException> errors = <ValidationException>[];
 
   if (org.id == null) {
-    errors.add(new NullValue('uuid'));
+    errors.add(NullValue('uuid'));
   }
 
   if (org.name == null) {
-    errors.add(new NullValue('name'));
+    errors.add(NullValue('name'));
   }
 
   if (org.name.isEmpty) {
-    errors.add(new IsEmpty('name'));
+    errors.add(IsEmpty('name'));
   }
 
   if (org.notes == null) {
-    errors.add(new NullValue('flags'));
+    errors.add(NullValue('flags'));
   }
 
   return errors;
@@ -306,26 +305,26 @@ List<ValidationException> validateUser(User user) {
   List<ValidationException> errors = <ValidationException>[];
 
   if (user.name.isEmpty) {
-    errors.add(new IsEmpty('name'));
+    errors.add(IsEmpty('name'));
   }
 
   if (user.address.isEmpty) {
-    errors.add(new IsEmpty('address'));
+    errors.add(IsEmpty('address'));
   }
 
   if (user.id < User.noId) {
-    errors.add(new InvalidId('id'));
+    errors.add(InvalidId('id'));
   }
 
   user.groups.forEach((String group) {
     if (UserGroups.isValid(group)) {
-      errors.add(new BadType('group', group));
+      errors.add(BadType('group', group));
     }
   });
 
   user.identities.forEach((String identity) {
     if (identity.isEmpty) {
-      errors.add(new IsEmpty('identity'));
+      errors.add(IsEmpty('identity'));
     }
   });
 
@@ -340,19 +339,19 @@ List<ValidationException> validateCalendarEntry(CalendarEntry entry) {
   List<ValidationException> errors = <ValidationException>[];
 
   if (entry.id == null) {
-    errors.add(new NullValue('id'));
+    errors.add(NullValue('id'));
   }
 
   if (entry.id < CalendarEntry.noId) {
-    errors.add(new InvalidId('id'));
+    errors.add(InvalidId('id'));
   }
 
   if (entry.content.isEmpty) {
-    errors.add(new IsEmpty('content'));
+    errors.add(IsEmpty('content'));
   }
 
   if (entry.start.isAfter(entry.stop)) {
-    errors.add(new TimeOrderConstraint('stop', 'start'));
+    errors.add(TimeOrderConstraint('stop', 'start'));
   }
 
   return errors;
@@ -366,19 +365,19 @@ List<ValidationException> validateBaseContact(BaseContact bc) {
   List<ValidationException> errors = <ValidationException>[];
 
   if (bc.id == null) {
-    errors.add(new NullValue('id'));
+    errors.add(NullValue('id'));
   }
 
   if (bc.id < BaseContact.noId) {
-    errors.add(new InvalidId('id'));
+    errors.add(InvalidId('id'));
   }
 
   if (bc.name.isEmpty) {
-    errors.add(new IsEmpty('name'));
+    errors.add(IsEmpty('name'));
   }
 
   if (!ContactType.types.contains(bc.type)) {
-    errors.add(new BadType('type', bc.type));
+    errors.add(BadType('type', bc.type));
   }
 
   return errors;
@@ -392,7 +391,7 @@ List<ValidationException> validateReceptionDialplan(ReceptionDialplan rdp) {
   List<ValidationException> errors = <ValidationException>[];
 
   if (rdp.extension.isEmpty) {
-    errors.add(new IsEmpty('name'));
+    errors.add(IsEmpty('name'));
   }
 
   return errors;
@@ -413,20 +412,20 @@ List<ValidationException> validateOpeningHour(OpeningHour oh) {
       oh.toHour < 0 ||
       oh.fromHour > 23 ||
       oh.toHour > 23) {
-    errors.add(new ValidationException('Bad opening hour range: $oh'));
+    errors.add(ValidationException('Bad opening hour range: $oh'));
   }
 
   if (oh.fromDay == null) {
-    errors.add(new NullValue('fromDay'));
+    errors.add(NullValue('fromDay'));
   } else if (oh.fromDay != null && oh.toDay != null) {
     if (oh.fromDay.index > oh.toDay.index) {
-      errors.add(new TimeOrderConstraint('fromDay', 'toDay'));
+      errors.add(TimeOrderConstraint('fromDay', 'toDay'));
     } else if (oh.fromDay.index == oh.toDay.index) {
       if (oh.fromHour > oh.toHour) {
-        errors.add(new TimeOrderConstraint('fromHour', 'toHour'));
+        errors.add(TimeOrderConstraint('fromHour', 'toHour'));
       } else if (oh.fromHour == oh.toHour) {
         if (oh.fromMinute > oh.toMinute) {
-          errors.add(new TimeOrderConstraint('fromMinute', 'toMinute'));
+          errors.add(TimeOrderConstraint('fromMinute', 'toMinute'));
         }
       }
     }
@@ -437,13 +436,13 @@ List<ValidationException> validateOpeningHour(OpeningHour oh) {
 /// Validate call-id.
 void validateCallId(String callId) {
   if (callId == null || callId.isEmpty) {
-    throw new ValidationException('Invalid CallId: $callId');
+    throw ValidationException('Invalid CallId: $callId');
   }
 }
 
 /// Validates a network [port].
 void validateNetworkport(int port) {
   if (port < 1 || port > 65536) {
-    throw new ValidationException('Invalid network port: $port');
+    throw ValidationException('Invalid network port: $port');
   }
 }

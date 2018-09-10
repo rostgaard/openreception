@@ -16,7 +16,7 @@ part of orf.filestore;
 /// File-based storage backed for [model.IvrMenu] objects.
 class Ivr implements storage.Ivr {
   /// Internal logger
-  final Logger _log = new Logger('$_libraryName.Ivr');
+  final Logger _log = Logger('$_libraryName.Ivr');
 
   /// Directory path to where the serialized [model.IvrMenu] objects
   /// are stored on disk.
@@ -25,18 +25,18 @@ class Ivr implements storage.Ivr {
   final bool logChanges;
   final Directory trashDir;
 
-  Bus<event.IvrMenuChange> _changeBus = new Bus<event.IvrMenuChange>();
+  Bus<event.IvrMenuChange> _changeBus = Bus<event.IvrMenuChange>();
 
   factory Ivr(String path, [GitEngine revisionEngine, bool enableChangelog]) {
     if (path.isEmpty) {
-      throw new ArgumentError.value('', 'path', 'Path must not be empty');
+      throw ArgumentError.value('', 'path', 'Path must not be empty');
     }
 
-    if (!new Directory(path).existsSync()) {
-      new Directory(path).createSync();
+    if (!Directory(path).existsSync()) {
+      Directory(path).createSync();
     }
 
-    final Directory trashDir = new Directory(path + '/.trash')..createSync();
+    final Directory trashDir = Directory(path + '/.trash')..createSync();
 
     if (revisionEngine != null) {
       revisionEngine.init().catchError((dynamic error, StackTrace stackTrace) =>
@@ -44,7 +44,7 @@ class Ivr implements storage.Ivr {
               .shout('Failed to initialize git engine', error, stackTrace));
     }
 
-    return new Ivr._internal(path, revisionEngine,
+    return Ivr._internal(path, revisionEngine,
         (enableChangelog != null) ? enableChangelog : true, trashDir);
   }
 
@@ -73,11 +73,11 @@ class Ivr implements storage.Ivr {
   Stream<event.IvrMenuChange> get onChange => _changeBus.stream;
   @override
   Future<model.IvrMenu> create(model.IvrMenu menu, model.User modifier) async {
-    final Directory menuDir = new Directory('$path/${menu.name}')..createSync();
-    final File file = new File('${menuDir.path}/menu.json');
+    final Directory menuDir = Directory('$path/${menu.name}')..createSync();
+    final File file = File('${menuDir.path}/menu.json');
 
     if (file.existsSync()) {
-      throw new ClientError('File already exists, please update instead');
+      throw ClientError('File already exists, please update instead');
     }
 
     file.writeAsStringSync(_jsonpp.convert(menu));
@@ -91,48 +91,49 @@ class Ivr implements storage.Ivr {
     }
 
     if (logChanges) {
-      new ChangeLogger(menuDir.path)
-          .add(new model.IvrChangelogEntry.create(modifier.reference, menu));
+      ChangeLogger(menuDir.path)
+          .add(model.IvrChangelogEntry.create(modifier.reference, menu));
     }
 
-    _changeBus.fire(new event.IvrMenuChange.create(menu.name, modifier.id));
+    _changeBus.fire(event.IvrMenuChange.create(menu.name, modifier.id));
 
     return menu;
   }
 
   @override
   Future<model.IvrMenu> get(String menuName) async {
-    final File file = new File('$path/$menuName/menu.json');
+    final File file = File('$path/$menuName/menu.json');
 
     if (!file.existsSync()) {
-      throw new NotFound('No file with name $menuName');
+      throw NotFound('No file with name $menuName');
     }
 
     try {
-      final model.IvrMenu menu = new model.IvrMenu.fromJson(
-          JSON.decode(file.readAsStringSync()) as Map<String, dynamic>);
+      final model.IvrMenu menu = model.IvrMenu.fromJson(
+          _json.decode(file.readAsStringSync()) as Map<String, dynamic>);
       return menu;
-    } catch (e) {
+    } catch (e,s) {
+      print(s);
       throw e;
     }
   }
 
   @override
-  Future<Iterable<model.IvrMenu>> list() async => new Directory(path)
+  Future<Iterable<model.IvrMenu>> list() async => Directory(path)
       .listSync()
       .where((FileSystemEntity fse) =>
-          _isDirectory(fse) && new File(fse.path + '/menu.json').existsSync())
-      .map((FileSystemEntity fse) => new model.IvrMenu.fromJson(
-          JSON.decode((new File(fse.path + '/menu.json')).readAsStringSync())
+          _isDirectory(fse) && File(fse.path + '/menu.json').existsSync())
+      .map((FileSystemEntity fse) => model.IvrMenu.fromJson(
+          _json.decode((File(fse.path + '/menu.json')).readAsStringSync())
           as Map<String, dynamic>));
 
   @override
   Future<model.IvrMenu> update(model.IvrMenu menu, model.User modifier) async {
-    final Directory menuDir = new Directory('$path/${menu.name}');
-    final File file = new File('${menuDir.path}/menu.json');
+    final Directory menuDir = Directory('$path/${menu.name}');
+    final File file = File('${menuDir.path}/menu.json');
 
     if (!file.existsSync()) {
-      throw new NotFound();
+      throw NotFound();
     }
 
     file.writeAsStringSync(_jsonpp.convert(menu));
@@ -146,22 +147,22 @@ class Ivr implements storage.Ivr {
     }
 
     if (logChanges) {
-      new ChangeLogger(menuDir.path)
-          .add(new model.IvrChangelogEntry.update(modifier.reference, menu));
+      ChangeLogger(menuDir.path)
+          .add(model.IvrChangelogEntry.update(modifier.reference, menu));
     }
 
-    _changeBus.fire(new event.IvrMenuChange.update(menu.name, modifier.id));
+    _changeBus.fire(event.IvrMenuChange.update(menu.name, modifier.id));
 
     return menu;
   }
 
   @override
   Future<Null> remove(String menuName, model.User modifier) async {
-    final Directory menuDir = new Directory('$path/$menuName');
-    final File file = new File('${menuDir.path}/menu.json');
+    final Directory menuDir = Directory('$path/$menuName');
+    final File file = File('${menuDir.path}/menu.json');
 
     if (!file.existsSync()) {
-      throw new NotFound();
+      throw NotFound();
     }
 
     if (this._git != null) {
@@ -173,29 +174,29 @@ class Ivr implements storage.Ivr {
     }
 
     if (logChanges) {
-      new ChangeLogger(menuDir.path).add(
-          new model.IvrChangelogEntry.delete(modifier.reference, menuName));
+      ChangeLogger(menuDir.path).add(
+          model.IvrChangelogEntry.delete(modifier.reference, menuName));
     }
 
     await menuDir.rename(trashDir.path +
-        '/$menuName-${new DateTime.now().millisecondsSinceEpoch}');
+        '/$menuName-${DateTime.now().millisecondsSinceEpoch}');
 
-    _changeBus.fire(new event.IvrMenuChange.delete(menuName, modifier.id));
+    _changeBus.fire(event.IvrMenuChange.delete(menuName, modifier.id));
   }
 
   @override
   Future<Iterable<model.Commit>> changes([String menuName]) async {
     if (this._git == null) {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           'Filestore is instantiated without git support');
     }
 
     FileSystemEntity fse;
 
     if (menuName == null) {
-      fse = new Directory(path);
+      fse = Directory(path);
     } else {
-      fse = new File('$path/$menuName/menu.json');
+      fse = File('$path/$menuName/menu.json');
     }
 
     Iterable<Change> gitChanges = await _git.changes(fse);
@@ -221,16 +222,16 @@ class Ivr implements storage.Ivr {
           .toList(growable: false);
       final String name = parts.first;
 
-      return new model.IvrChange(fc.changeType, name);
+      return model.IvrChange(fc.changeType, name);
     }
 
     Iterable<model.Commit> changes = gitChanges.map((Change change) =>
-        new model.Commit()
+        model.Commit()
           ..uid = extractUid(change.message)
           ..changedAt = change.changeTime
           ..commitHash = change.commitHash
           ..authorIdentity = change.author
-          ..changes = new List<model.ObjectChange>.from(
+          ..changes = List<model.ObjectChange>.from(
               change.fileChanges.map(convertFilechange)));
 
     _log.info(changes.map((model.Commit c) => c.toJson()));
@@ -239,5 +240,5 @@ class Ivr implements storage.Ivr {
   }
 
   Future<String> changeLog(String menuName) async =>
-      logChanges ? new ChangeLogger('$path/$menuName').contents() : '';
+      logChanges ? ChangeLogger('$path/$menuName').contents() : '';
 }

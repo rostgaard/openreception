@@ -25,19 +25,19 @@ class ChannelState implements Event {
   /// The uuid of the channel that changed state.
   final String channelUuid;
 
-  /// Create a new [ChannelState] event for [channelUuid].
-  ChannelState(this.channelUuid) : timestamp = new DateTime.now();
+  /// Create a [ChannelState] event for [channelUuid].
+  ChannelState(this.channelUuid) : timestamp = DateTime.now();
 
-  /// Create a new [ChannelState] object from serialized data stored in [map].
+  /// Create a [ChannelState] object from serialized data stored in [map].
   ChannelState.fromJson(Map<String, dynamic> map)
-      : channelUuid = map[_Key._channel][_Key._id],
-        timestamp = util.unixTimestampToDateTime(map[_Key._timestamp]);
+      : channelUuid = map[_Key._channel][_Key._id] as String,
+        timestamp = util.unixTimestampToDateTime(map[_Key._timestamp] as int);
 
   /// Returns an umodifiable map representation of the object, suitable for
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._channel: <String, dynamic>{_Key._id: channelUuid}

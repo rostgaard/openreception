@@ -69,7 +69,7 @@ class AgentHistory {
       ..addRoute(
           name: 'history',
           enter: activate,
-          path: '/history',
+          path: 'history',
           leave: deactivate);
   }
 

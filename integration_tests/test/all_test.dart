@@ -1,21 +1,20 @@
 library ort;
 
 import 'dart:io';
-import 'package:ort/filestore.dart' as filestore;
-import 'package:ort/rest.dart' as rest;
-import 'package:ort/benchmark.dart' as benchmark;
-
-import 'package:ort/support.dart';
 
 import 'package:logging/logging.dart';
+import 'package:ort/rest.dart' as rest;
+import 'package:ort/filestore.dart' as filestore;
+
+import 'package:ort/support.dart';
 import 'package:test/test.dart';
 
 void runBenchmarkTests() {
-  benchmark.allTests();
+//  benchmark.allTests();
 }
 
 void runFilestoreTests() {
-  filestore.allTests();
+ // filestore.allTests();
 }
 
 void runRestStoreTests() {
@@ -86,7 +85,7 @@ void main() {
         print('Warning: Bad loglevel value: ${env['LOGLEVEL']}');
     }
   } else {
-    Logger.root.level = Level.OFF;
+    Logger.root.level = Level.ALL;
   }
   Logger.root.onRecord.listen(logMessage);
 
@@ -95,11 +94,11 @@ void main() {
    * possibility to output the test state, and to wait for setup and teardown.
    */
   group('pre-test setup', () {
-    Logger _log = new Logger('test environment detection');
+    Logger _log = Logger('test environment detection');
     TestEnvironmentConfig envConfig;
 
     setUp(() async {
-      envConfig = new TestEnvironment().envConfig;
+      envConfig = TestEnvironment().envConfig;
       await envConfig.load();
     });
 
@@ -118,11 +117,11 @@ void main() {
    * possibility to output the test state, and to wait for setup and teardown.
    */
   group('post-test cleanup', () {
-    test('finalize test environment', () => new TestEnvironment().finalize());
+    test('finalize test environment', () => TestEnvironment().finalize());
   });
 
-  ProcessSignal.SIGINT.watch().listen((_) async {
-    await new TestEnvironment().finalize();
+  ProcessSignal.sigint.watch().listen((_) async {
+    await TestEnvironment().finalize();
 
     exit(0);
   });

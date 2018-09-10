@@ -16,6 +16,29 @@ part of orf.event;
 /// Model class representing a change in a persistent [model.User]
 /// object. May be serialized and sent via a notification socket.
 class UserChange implements Event {
+
+  /// Create a creation event.
+  factory UserChange.create(int userID, int changedBy) =>
+      UserChange._internal(userID, Change.created, changedBy);
+
+  /// Create a update event.
+  factory UserChange.update(int userID, int changedBy) =>
+      UserChange._internal(userID, Change.updated, changedBy);
+
+  /// Create a deletion event.
+  factory UserChange.delete(int userID, int changedBy) =>
+      UserChange._internal(userID, Change.deleted, changedBy);
+
+  /// Create a [UserChange] object from serialized data stored in [map].
+  UserChange.fromJson(Map<String, dynamic> map)
+      : uid = map[_Key._userChange][_Key._modifierUid],
+        state = map[_Key._userChange][_Key._state],
+        modifierUid = map[_Key._userChange][_Key._changedBy],
+        timestamp = util.unixTimestampToDateTime(map[_Key._timestamp]);
+
+  UserChange._internal(this.uid, this.state, this.modifierUid)
+      : timestamp = DateTime.now();
+
   @override
   final DateTime timestamp;
 
@@ -31,28 +54,6 @@ class UserChange implements Event {
   /// The modification state. Must be one of the valid [Change] values.
   final String state;
 
-  /// Create a new creation event.
-  factory UserChange.create(int userID, int changedBy) =>
-      new UserChange._internal(userID, Change.created, changedBy);
-
-  /// Create a new update event.
-  factory UserChange.update(int userID, int changedBy) =>
-      new UserChange._internal(userID, Change.updated, changedBy);
-
-  /// Create a new deletion event.
-  factory UserChange.delete(int userID, int changedBy) =>
-      new UserChange._internal(userID, Change.deleted, changedBy);
-
-  /// Create a new [UserChange] object from serialized data stored in [map].
-  UserChange.fromJson(Map<String, dynamic> map)
-      : uid = map[_Key._userChange][_Key._modifierUid],
-        state = map[_Key._userChange][_Key._state],
-        modifierUid = map[_Key._userChange][_Key._changedBy],
-        timestamp = util.unixTimestampToDateTime(map[_Key._timestamp]);
-
-  UserChange._internal(this.uid, this.state, this.modifierUid)
-      : timestamp = new DateTime.now();
-
   /// Determines if the object signifies a creation.
   bool get isCreate => state == Change.created;
 
@@ -66,7 +67,7 @@ class UserChange implements Event {
   /// serialization.
   @override
   Map<String, dynamic> toJson() =>
-      new Map<String, dynamic>.unmodifiable(<String, dynamic>{
+      Map<String, dynamic>.unmodifiable(<String, dynamic>{
         _Key._event: eventName,
         _Key._timestamp: util.dateTimeToUnixTimestamp(timestamp),
         _Key._modifierUid: modifierUid,

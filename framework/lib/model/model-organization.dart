@@ -15,12 +15,6 @@ part of orf.model;
 
 /// Class representing an organization.
 class Organization {
-  static const int noId = 0;
-
-  int id = noId;
-  String name = '';
-  List<String> notes = <String>[];
-
   /// Default empty constructor.
   Organization.empty();
 
@@ -28,7 +22,15 @@ class Organization {
   Organization.fromJson(Map<String, dynamic> map)
       : id = map[key.id],
         name = map[key.name],
-        notes = map[key.notes] as List<String>;
+        notes = map.containsKey(key.notes)
+            ? stringList(map[key.notes])
+            : <String>[];
+
+  static const int noId = 0;
+
+  int id = noId;
+  String name = '';
+  List<String> notes = <String>[];
 
   /// Deserializing factory.
   @deprecated
@@ -43,4 +45,7 @@ class Organization {
 
   Map<String, dynamic> toJson() =>
       <String, dynamic>{key.id: id, key.name: name, key.notes: notes};
+
+  @override
+  String toString() => toJson().toString();
 }

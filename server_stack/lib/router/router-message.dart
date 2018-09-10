@@ -24,16 +24,17 @@ import 'package:ors/response_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
+import 'package:shelf_router/shelf_router.dart' as shelf_route;
 
 class Message {
-  final Logger _log = new Logger('server.router.message');
+  Message(this._authService, this._notification, this._msgController);
+
+  final Logger _log = Logger('server.router.message');
   final service.Authentication _authService;
   final service.NotificationService _notification;
 
   final controller.Message _msgController;
 
-  Message(this._authService, this._notification, this._msgController);
 
   /**
    *
@@ -41,36 +42,37 @@ class Message {
   void bindRoutes(dynamic router) {
     router
       ..get('/message/list/drafts', _msgController.listDrafts)
-      ..get('/message/list/{day}', _msgController.list)
+      ..get('/message/list/<day>', _msgController.list)
       ..post('/message/list', _msgController.queryById)
-      ..get('/message', _msgController.list)
+      ..get('/message', _msgController.listToday)
       ..get('/message/history', _msgController.history)
-      ..get('/message/{mid}', _msgController.get)
-      ..put('/message/{mid}', _msgController.update)
-      ..delete('/message/{mid}', _msgController.remove)
-      ..post('/message/{mid}/send', _msgController.send)
-      ..get('/message/{mid}/history', _msgController.history)
-      ..post('/message', _msgController.create);
+      ..get('/message/<mid>', _msgController.get)
+      ..put('/message/<mid>', _msgController.update)
+      ..delete('/message/<mid>', _msgController.remove)
+      ..post('/message/<mid>/send', _msgController.send)
+      ..get('/message/<mid>/history', _msgController.objectHistory)
+      ..post('/message', _msgController.create)
+      ..all('/<catch-all|.*>', (shelf.Request request) {
+        return shelf.Response.notFound('Page not found');
+      });
   }
 
   /**
    *
    */
   Future<io.HttpServer> listen({String hostname: 'localhost', int port: 4040}) {
-    final router = shelf_route.router();
+    final router = shelf_route.Router();
     bindRoutes(router);
 
     final handler = const shelf.Pipeline()
         .addMiddleware(
-            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);
 
     _log.fine('Using server on ${_authService.host} as authentication backend');
     _log.fine('Using server on ${_notification.host} as notification backend');
     _log.fine('Accepting incoming REST requests on http://$hostname:$port');
-    _log.fine('Serving routes:');
-    shelf_route.printRoutes(router, printer: (String item) => _log.fine(item));
 
     return shelf_io.serve(handler, hostname, port);
   }

@@ -15,10 +15,11 @@ part of orf.model.monitoring;
 
 /// Model class for a call that is currently in progress (not yet hung up).
 class ActiveCall {
-  final List<_event.CallEvent> _events = <_event.CallEvent>[];
 
   /// Default empty constructor.
   ActiveCall.empty();
+
+  final List<_event.CallEvent> _events = <_event.CallEvent>[];
 
   /// Reception id of the call.
   int get rid => _events

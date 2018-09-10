@@ -1,7 +1,6 @@
 analyzer:
   exclude:
     - .pub-cache/
-  strong-mode: true
 
 linter:
   rules:
@@ -63,7 +62,7 @@ linter:
     - always_declare_return_types
 
     # Specify type annotations.
-    - always_specify_types
+    # - always_specify_types
 
     # Avoid using as.
     # - avoid_as
@@ -87,7 +86,7 @@ linter:
     - overridden_fields
 
     # Provide doc comments for all public APIs
-    - package_api_docs
+    # - package_api_docs
 
     # Prefix library names with the package name and a dot-separated path.
     - package_prefixed_library_names
@@ -96,10 +95,10 @@ linter:
     - prefer_is_not_empty
 
     # Document all public members
-    #- public_member_api_docs
+    # - public_member_api_docs
 
     # Prefer to use /// for doc comments
-    - slash_for_doc_comments
+    # - slash_for_doc_comments
 
     # Sort constructor declarations before method declarations.
     - sort_constructors_first
@@ -107,20 +106,14 @@ linter:
     # Sort unnamed constructor declarations first
     - sort_unnamed_constructors_first
 
-    # Place the super() call last in a constructor initialization list.
-    - super_goes_last
-
     # Type annotate public APIs.
-    - type_annotate_public_apis
+    # - type_annotate_public_apis
 
     # Don't type annotate initializing formals.
     #- type_init_formals
 
     # Await for future expression statements inside async function bodies.
     - unawaited_futures
-
-    # Avoid using braces in interpolation when not needed.
-    - unnecessary_brace_in_string_interp
 
     # Avoid wrapping fields in getters and setters just to be "safe".
     - unnecessary_getters_setters

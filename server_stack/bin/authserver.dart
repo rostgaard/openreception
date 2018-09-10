@@ -19,10 +19,12 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
+import 'package:orf/filestore.dart' as filestore;
 import 'package:ors/configuration.dart';
 import 'package:ors/router/router-authentication.dart' as router;
 import 'package:ors/token_vault.dart';
-import 'package:ors/token_watcher.dart' as watcher;
+import 'package:ors/token_watcher.dart';
+
 
 Future main(List<String> args) async {
   //Init logging.
@@ -49,7 +51,7 @@ Future main(List<String> args) async {
 
   final ArgResults parsedArgs = parser.parse(args);
 
-  if (parsedArgs['help']) {
+  if (parsedArgs.wasParsed('help')) {
     print(parser.usage);
     exit(1);
   }
@@ -60,19 +62,31 @@ Future main(List<String> args) async {
     exit(1);
   }
 
-  watcher.setup();
-  await vault.loadFromDirectory(parsedArgs['servertokendir']);
+  final Map<String,dynamic> context = <String,dynamic>{
+    'servertokendir' : parsedArgs['servertokendir'],
+    'filestore' : parsedArgs['filestore']
+  };
+
+  final String host = parsedArgs['host'].toString();
+  final int port = int.parse(parsedArgs['httpport'].toString());
+
+
+  final vault = TokenVault();
+
+  final tokenWatcher = TokenWatcher(vault);
+  final filestore.User _userStore = new filestore.User(parsedArgs['filestore'] + '/user');
+
+
+  vault.loadFromDirectory(parsedArgs['servertokendir']);
 
   // Install "reload-token" mechanism.
-  ProcessSignal.SIGHUP.watch().listen((_) async {
+  ProcessSignal.sighup.watch().listen((_) async {
     log.info('SIGHUP caught. Reloading tokens');
-    await vault.loadFromDirectory(parsedArgs['servertokendir']);
+    vault.loadFromDirectory(parsedArgs['servertokendir']);
     log.info('Reloaded tokens from disk');
   });
 
-  await (new router.Authentication()).start(
-      hostname: parsedArgs['host'],
-      port: int.parse(parsedArgs['httpport']),
-      filepath: parsedArgs['filestore']);
+  await (router.Authentication(vault, _userStore).start(
+      hostname: host, port: port));
   log.info('Ready to handle requests');
 }

@@ -6,7 +6,7 @@ void _runReceptionTests() {
     TestEnvironment env;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
     });
 
@@ -33,7 +33,7 @@ void _runReceptionTests() {
     ServiceAgent sa;
     TestEnvironment env;
     setUp(() async {
-      env = new TestEnvironment(enableRevisions: true);
+      env = TestEnvironment(enableRevisions: true);
       sa = await env.createsServiceAgent();
     });
 

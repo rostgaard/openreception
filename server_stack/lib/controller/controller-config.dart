@@ -17,22 +17,19 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:logging/logging.dart';
-import 'package:shelf/shelf.dart' as shelf;
-
 import 'package:orf/model.dart' as model;
-
 import 'package:orf/service.dart' as service;
-
 import 'package:ors/configuration.dart';
 import 'package:ors/response_utils.dart';
+import 'package:shelf/shelf.dart';
 
 /// Configuration controller class.
 class Config {
-  final Logger _log = new Logger('controller.config');
+  final Logger _log = Logger('controller.config');
 
   /// The current client configuration.
   final model.ClientConfiguration clientConfig =
-      new model.ClientConfiguration.empty()
+      model.ClientConfiguration.empty()
         ..authServerUri = config.configserver.authServerUri
         ..calendarServerUri = config.configserver.calendarServerUri
         ..callFlowServerUri = config.configserver.callFlowControlUri
@@ -48,74 +45,66 @@ class Config {
         ..systemLanguage = config.systemLanguage
         ..userServerUri = config.configserver.userServerUri;
 
-  /**
-   *
-   */
-  shelf.Response get(shelf.Request request) => okJson(clientConfig);
+  /// Get the client configuration.
+  Future<Response> get(Request request) async => okJson(clientConfig);
 
-  /**
-   *
-   */
-  Future<shelf.Response> register(shelf.Request request) async {
-    Uri uri;
-    service.ServerType servertype;
+  /// Overload a server endpoint in the client configuration
+  Future<Response> register(Request request) async {
+    service.ServerType serverType;
 
     try {
-      Map body = JSON.decode(await request.readAsString());
-      final String type = body['type'];
+      final Map<String, dynamic> body =
+          json.decode(await request.readAsString());
 
-      if (type == null || type.isEmpty) {
-        throw new FormatException('Bad value of type: $type');
+      for (String value in body.keys) {
+        serverType = service.decodeServerType(value);
+        final uri = Uri.parse(body[value]);
+        switch (serverType) {
+          case service.ServerType.authentication:
+            clientConfig.authServerUri = uri;
+            break;
+          case service.ServerType.calendar:
+            clientConfig.calendarServerUri = uri;
+            break;
+          case service.ServerType.callflow:
+            clientConfig.callFlowServerUri = uri;
+            break;
+          case service.ServerType.cdr:
+            clientConfig.cdrServerUri = uri;
+            break;
+          case service.ServerType.contact:
+            clientConfig.contactServerUri = uri;
+            break;
+          case service.ServerType.dialplan:
+            clientConfig.dialplanServerUri = uri;
+            break;
+          case service.ServerType.message:
+            clientConfig.messageServerUri = uri;
+            break;
+          case service.ServerType.notification:
+            clientConfig.notificationServerUri = uri;
+            break;
+          case service.ServerType.notificationSocket:
+            clientConfig.notificationSocketUri = uri;
+            break;
+          case service.ServerType.reception:
+            clientConfig.receptionServerUri = uri;
+            break;
+          case service.ServerType.user:
+            clientConfig.userServerUri = uri;
+            break;
+          default:
+            _log.warning('Uknown type of registration: $serverType');
+        }
       }
-      if (body['uri'] == null) {
-        throw new FormatException('Bad value of uri: $uri');
-      }
-      servertype = service.decodeServerType(type);
-      uri = Uri.parse(body['uri']);
     } on FormatException catch (e) {
       return clientError('Bad parameters: $e');
     } on StateError catch (e) {
       return clientError('Bad parameters: $e');
+    } catch (e, s) {
+      return clientError('Bad parameters: $e $s');
     }
 
-    switch (servertype) {
-      case service.ServerType.authentication:
-        clientConfig.authServerUri = uri;
-        break;
-      case service.ServerType.calendar:
-        clientConfig.calendarServerUri = uri;
-        break;
-      case service.ServerType.callflow:
-        clientConfig.callFlowServerUri = uri;
-        break;
-      case service.ServerType.cdr:
-        clientConfig.cdrServerUri = uri;
-        break;
-      case service.ServerType.contact:
-        clientConfig.contactServerUri = uri;
-        break;
-      case service.ServerType.dialplan:
-        clientConfig.dialplanServerUri = uri;
-        break;
-      case service.ServerType.message:
-        clientConfig.messageServerUri = uri;
-        break;
-      case service.ServerType.notification:
-        clientConfig.notificationServerUri = uri;
-        break;
-      case service.ServerType.notificationSocket:
-        clientConfig.notificationSocketUri = uri;
-        break;
-      case service.ServerType.reception:
-        clientConfig.receptionServerUri = uri;
-        break;
-      case service.ServerType.user:
-        clientConfig.userServerUri = uri;
-        break;
-      default:
-        _log.warning('Uknown type of registration: $servertype');
-    }
-
-    return okJson({});
+    return okJson(const <String, String>{});
   }
 }

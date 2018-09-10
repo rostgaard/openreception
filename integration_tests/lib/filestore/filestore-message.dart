@@ -6,7 +6,7 @@ _runMessageTests() {
     TestEnvironment env;
 
     setUp(() async {
-      env = new TestEnvironment();
+      env = TestEnvironment();
       await env.messageStore.ready;
 
       sa = await env.createsServiceAgent();
@@ -33,7 +33,7 @@ _runMessageTests() {
     ServiceAgent sa;
     TestEnvironment env;
     setUp(() async {
-      env = new TestEnvironment(enableRevisions: true);
+      env = TestEnvironment(enableRevisions: true);
       await env.messageStore.ready;
 
       sa = await env.createsServiceAgent();

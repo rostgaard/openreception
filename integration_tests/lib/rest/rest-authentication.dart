@@ -2,14 +2,14 @@ part of ort.rest;
 
 void _runAuthServerTests() {
   group('$_namespace.Authentication', () {
-    Logger log = new Logger('$_namespace.Authentication');
+    Logger log = Logger('$_namespace.Authentication');
 
     ServiceAgent sa;
     TestEnvironment env;
     process.AuthServer aProcess;
 
-    setUp(() async {
-      env = new TestEnvironment();
+    setUpAll(() async {
+      env = TestEnvironment();
       sa = await env.createsServiceAgent();
 
       aProcess = await env.requestAuthserverProcess();
@@ -18,7 +18,7 @@ void _runAuthServerTests() {
       await aProcess.whenReady;
     });
 
-    tearDown(() async {
+    tearDownAll(() async {
       await env.clear();
     });
 

@@ -15,67 +15,61 @@ library ors.controller.agent_history;
 
 import 'dart:async';
 
+import 'package:ors/response_utils.dart';
+import 'package:shelf/shelf.dart';
 import 'package:logging/logging.dart';
 import 'package:orf/exceptions.dart';
 import 'package:orf/filestore.dart' as filestore;
-import 'package:ors/response_utils.dart';
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
 class AgentStatistics {
-  final filestore.AgentHistory _agentHistory;
-  Logger _log = new Logger('ors.controller.agent_history');
-
-  /**
-   *
-   */
   AgentStatistics(this._agentHistory);
 
-  Future<shelf.Response> today(shelf.Request request) async {
-    return okJson(_agentHistory.getRaw(new DateTime.now()));
+  final filestore.AgentHistory _agentHistory;
+  Logger _log = Logger('ors.controller.agent_history');
+
+  Future<Response> today(Request request) async {
+    return okJson(_agentHistory.get(DateTime.now()));
   }
 
-  Future<shelf.Response> summary(shelf.Request request) async {
-    final String dayStr = shelf_route.getPathParameter(request, 'day');
+  Future<Response> summary(Request request, String dayParam) async {
     DateTime day;
 
     try {
-      final List<String> part = dayStr.split('-');
+      final List<String> part = dayParam.split('-');
 
-      day = new DateTime(
+      day = DateTime(
           int.parse(part[0]), int.parse(part[1]), int.parse(part[2]));
     } catch (e) {
-      final String msg = 'Day parsing failed: $dayStr';
+      final String msg = 'Day parsing failed: $dayParam';
       _log.warning(msg, e);
-      return clientError(msg);
+      return ok(msg);
     }
 
     try {
       return okJson(await _agentHistory.agentSummay(day));
     } on NotFound {
-      return notFound('No stats for the day $dayStr');
+      return notFound('No stats for the day $dayParam');
     }
   }
 
-  Future<shelf.Response> get(shelf.Request request) async {
-    final String dayStr = shelf_route.getPathParameter(request, 'day');
+  Future<Response> get(Request request, String dayParam) async {
     DateTime day;
 
     try {
-      final List<String> part = dayStr.split('-');
+      final List<String> part = dayParam.split('-');
 
-      day = new DateTime(
+      day = DateTime(
           int.parse(part[0]), int.parse(part[1]), int.parse(part[2]));
     } catch (e) {
-      final String msg = 'Day parsing failed: $dayStr';
+      final String msg = 'Day parsing failed: $dayParam';
       _log.warning(msg, e);
       return clientError(msg);
     }
 
     try {
-      return okGzip(_agentHistory.getRaw(day));
+      return okJson(_agentHistory.get(day));
     } on NotFound {
-      return notFound('No stats for the day $dayStr');
+      return notFound('No stats for the day $dayParam');
     }
   }
 }

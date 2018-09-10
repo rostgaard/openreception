@@ -16,14 +16,14 @@ part of orf.model.dialplan;
 /// Sends a channel to the voicemail application if one of [digits] are
 /// pressed.
 class IvrVoicemail implements IvrEntry {
+  /// Create a new [IvrVoicemail] ivr menu entry object.
+  IvrVoicemail(this.digits, this.voicemail);
+
   @override
   final String digits;
 
   /// The voicemail account to send to.
   final Voicemail voicemail;
-
-  /// Create a new [IvrVoicemail] ivr menu entry object.
-  IvrVoicemail(this.digits, this.voicemail);
 
   @override
   String toJson() => '$digits: ${voicemail.toJson()}';

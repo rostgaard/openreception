@@ -19,15 +19,6 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class Datastore {
-  final RESTContactStore contact;
-  final RESTReceptionStore reception;
-  final RESTOrganizationStore organization;
-  final RESTCalendarStore calendar;
-  final RESTUserStore user;
-  final RESTIvrStore ivr;
-  final RESTDialplanStore dialplan;
-  final PeerAccount peerAccount;
-
   factory Datastore(Uri host, String token, WebService backend) {
     final RESTContactStore contactStore =
         new RESTContactStore(host, token, backend);
@@ -49,4 +40,13 @@ class Datastore {
 
   Datastore._(this.contact, this.reception, this.calendar, this.organization,
       this.user, this.ivr, this.dialplan, this.peerAccount);
+
+  final RESTContactStore contact;
+  final RESTReceptionStore reception;
+  final RESTOrganizationStore organization;
+  final RESTCalendarStore calendar;
+  final RESTUserStore user;
+  final RESTIvrStore ivr;
+  final RESTDialplanStore dialplan;
+  final PeerAccount peerAccount;
 }

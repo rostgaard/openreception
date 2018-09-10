@@ -21,8 +21,8 @@ abstract class Action {
   /// throw or propagate [FormatException] on parse errors. Note: Every
   /// specialization of an [Action] _must_ override the [parse] method.
   /// Otherwise a stack overflow will occur.
-  static Action parse(dynamic buffer) {
-    final dynamic consumed = consumeWord(buffer);
+  static Action parse(String buffer) {
+    final _ConsumedIdenBuf consumed = consumeWord(buffer);
 
     switch (consumed.iden) {
       case key.transfer:
