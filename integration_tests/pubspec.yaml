@@ -6,7 +6,7 @@ dependencies:
   logging: any
   esl:
     git:
-      ref: devel
+      ref: 2f990727174a5a79f82174588ebabe271dfaf7a0
       url: https://github.com/rostgaard/libesl-dart.git
   orf:
     path: ../framework

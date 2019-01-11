@@ -9,11 +9,7 @@ dependencies:
     git:
       ref: master
       url: https://github.com/Bitstackers/emailer.git
-  esl:
-    git:
-      ref: devel
-      url: https://github.com/rostgaard/libesl-dart.git
-    version: '>=0.0.17 <0.1.0'
+  esl: '0.1.0'
   http: any
   intl: any
   logging: any
