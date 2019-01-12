@@ -32,6 +32,8 @@ import 'package:ors/response_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
+const _json = const JsonCodec();
+
 class Call {
   final _model.CallList _callList;
   final _model.PeerList _peerlist;
@@ -55,7 +57,7 @@ class Call {
 
     try {
       model.Call call = _callList.get(callID);
-      return new shelf.Response.ok(JSON.encode(call));
+      return new shelf.Response.ok(_json.encode(call));
     } on NotFound {
       return new shelf.Response.notFound('{}');
     } catch (error, stackTrace) {
@@ -153,7 +155,7 @@ class Call {
     try {
       targetCall = _callList.get(callID);
     } on NotFound catch (_) {
-      return new shelf.Response.notFound(JSON.encode({'call_id': callID}));
+      return new shelf.Response.notFound(_json.encode({'call_id': callID}));
     }
 
     model.Peer peer = _peerlist.get(user.extension);
@@ -167,13 +169,13 @@ class Call {
     Future<model.Call> callHangup = _callList.onEvent
         .firstWhere(
             (event.Event e) => e is event.CallHangup && e.call.id == callID)
-        .then((event.CallHangup hangupEvent) => hangupEvent.call);
+        .then((event.Event hangupEvent) => (hangupEvent as event.CallEvent).call);
 
     return await _pbxController.hangup(targetCall).then((_) {
       return callHangup.then((model.Call hungupCall) {
         /// Update peer state.
         peer.inTransition = false;
-        return new shelf.Response.ok(JSON.encode(hungupCall));
+        return new shelf.Response.ok(_json.encode(hungupCall));
       }).timeout(new Duration(seconds: 3));
     }).catchError((error, stackTrace) {
       /// Update peer state.
@@ -188,7 +190,7 @@ class Call {
    * Lists every active call in system.
    */
   shelf.Response list(shelf.Request request) =>
-      new shelf.Response.ok(JSON.encode(_callList));
+      new shelf.Response.ok(_json.encode(_callList));
 
   /**
    * Originate a new call by first creating a parked phone channel to the
@@ -308,7 +310,7 @@ class Call {
         e.channel.fields['Other-Leg-Unique-ID'] == agentChannel;
 
     Future<model.Call> outboundCall = _pbxController.eslClient.eventStream
-        .firstWhere(outboundCallWithUuid, defaultValue: () => null)
+        .firstWhere(outboundCallWithUuid, orElse: () => null)
         .then((esl.Event e) => _callList.createCall(e));
 
     /// At this point, we have an active agent channel and may perform
@@ -362,7 +364,7 @@ class Call {
     }
 
     peer.inTransition = false;
-    return new shelf.Response.ok(JSON.encode(call));
+    return new shelf.Response.ok(_json.encode(call));
   }
 
   /**
@@ -470,13 +472,13 @@ class Call {
       assignedCall = _callList.requestSpecificCall(callID, user);
     } on Conflict {
       return new shelf.Response(409,
-          body: JSON.encode({'error': 'Call not currently available.'}));
+          body: _json.encode({'error': 'Call not currently available.'}));
     } on NotFound {
       return new shelf.Response.notFound(
-          JSON.encode({'error': 'No calls available.'}));
+          _json.encode({'error': 'No calls available.'}));
     } on Forbidden {
       return new shelf.Response.forbidden(
-          JSON.encode({'error': 'Call already assigned.'}));
+          _json.encode({'error': 'Call already assigned.'}));
     } catch (error, stackTrace) {
       final String msg = 'Failed retrieve call from call list';
       _log.severe(msg, error, stackTrace);
@@ -548,7 +550,7 @@ class Call {
     /// Update the user state. At this point, all is well.
     peer.inTransition = false;
     assignedCall.locked = false;
-    return new shelf.Response.ok(JSON.encode(assignedCall));
+    return new shelf.Response.ok(_json.encode(assignedCall));
   }
 
   /**
@@ -577,7 +579,7 @@ class Call {
       sourceCall = _callList.get(sourceCallID);
       destinationCall = _callList.get(destinationCallID);
     } on NotFound catch (_) {
-      return new shelf.Response.notFound(JSON.encode({
+      return new shelf.Response.notFound(_json.encode({
         'description': 'At least one of the calls are ' 'no longer available'
       }));
     }
@@ -670,8 +672,7 @@ class Call {
 
     model.Call updatedCall;
     try {
-      updatedCall = await request.readAsString().then(JSON.decode).then(
-          (Map map) => new model.Call.fromJson(map as Map<String, dynamic>));
+      updatedCall = new model.Call.fromJson(_json.decode(await request.readAsString()));
     } catch (error, stackTrace) {
       _log.warning(
           'Bad parameters from user '

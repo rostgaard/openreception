@@ -26,6 +26,8 @@ import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
 import 'package:ors/response_utils.dart';
 
+const _json = const JsonCodec();
+
 /// Configuration controller class.
 class Config {
   final Logger _log = new Logger('controller.config');
@@ -61,7 +63,7 @@ class Config {
     service.ServerType servertype;
 
     try {
-      Map body = JSON.decode(await request.readAsString());
+      Map body = _json.decode(await request.readAsString());
       final String type = body['type'];
 
       if (type == null || type.isEmpty) {

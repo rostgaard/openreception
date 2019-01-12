@@ -3,14 +3,9 @@ version: 0.0.1
 description: Simple agent monitoring tool
 
 environment:
-  sdk: '>=1.0.0 <2.0.0'
+  sdk: '>=1.0.0 <3.0.0'
 
 dependencies:
-  browser: '>=0.10.0 <0.11.0'
-  dart_to_js_script_rewriter: '^0.1.0'
   orf:
     path: ../../../framework
     version: '>=0.0.26'
-
-transformers:
-- dart_to_js_script_rewriter

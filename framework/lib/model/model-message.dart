@@ -53,12 +53,12 @@ class Message {
   Message.fromJson(Map<String, dynamic> map) {
     Iterable<MessageEndpoint> iterRcp = (map[key.recipients]
             as Iterable<dynamic>)
-        .map((map) => MessageEndpoint.fromJson(map));
+        .map((map) => new MessageEndpoint.fromJson(map));
 
     id = (map.containsKey(key.id) ? map[key.id] : noId);
     recipients.addAll(iterRcp);
-    context = MessageContext.fromJson(map[key.context] as Map<String, dynamic>);
-    flag = MessageFlag(List<String>.from(map['flags']));
+    context = new MessageContext.fromJson(map[key.context] as Map<String, dynamic>);
+    flag = new MessageFlag(new List<String>.from(map['flags']));
     callerInfo =
         new CallerInfo.fromJson(map[key.caller] as Map<String, dynamic>);
     body = map[key.body];

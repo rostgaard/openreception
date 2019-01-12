@@ -47,32 +47,33 @@ class RESTCalendarStore implements storage.Calendar {
   }
 
   @override
-  Future<model.CalendarEntry> get(int id, model.Owner owner) {
+  Future<model.CalendarEntry> get(int id, model.Owner owner) async {
     Uri url = resource.Calendar.single(host, id, owner);
     url = _appendToken(url, this.token);
 
-    return this._backend.get(url).then(_json.decode).then(
-        (Map<String, dynamic> map) => new model.CalendarEntry.fromJson(map));
+    final Map<String, dynamic> map = _json.decode(await _backend.get(url));
+    return new model.CalendarEntry.fromJson(map);
   }
 
   @override
   Future<model.CalendarEntry> create(
-      model.CalendarEntry entry, model.Owner owner, model.User user) {
+      model.CalendarEntry entry, model.Owner owner, model.User user) async {
     Uri url = resource.Calendar.ownerBase(host, owner);
     url = _appendToken(url, this.token);
 
-    return this._backend.post(url, _json.encode(entry)).then(_json.decode).then(
-        (Map<String, dynamic> map) => new model.CalendarEntry.fromJson(map));
+    final Map<String, dynamic> map = _json.decode(await _backend.get(url));
+
+    return new model.CalendarEntry.fromJson(map);
   }
 
   @override
   Future<model.CalendarEntry> update(
-      model.CalendarEntry entry, model.Owner owner, model.User modifier) {
+      model.CalendarEntry entry, model.Owner owner, model.User modifier) async {
     Uri url = resource.Calendar.single(host, entry.id, owner);
     url = _appendToken(url, this.token);
+    final Map<String, dynamic> map = _json.decode(await _backend.get(url));
 
-    return _backend.put(url, _json.encode(entry)).then(_json.decode).then(
-        (Map<String, dynamic> map) => new model.CalendarEntry.fromJson(map));
+    return new model.CalendarEntry.fromJson(map);
   }
 
   @override

@@ -23,6 +23,8 @@ import 'package:orf/service-io.dart' as transport;
 import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
 
+const JsonCodec _json = const JsonCodec();
+
 Future main(List<String> args) async {
   transport.WebSocketClient client = new transport.WebSocketClient();
   await client.connect(Uri.parse(
@@ -32,6 +34,6 @@ Future main(List<String> args) async {
       new service.NotificationSocket(client);
 
   notificationSocket.onEvent.listen((event) {
-    print(JSON.encode(event));
+    print(_json.encode(event));
   });
 }

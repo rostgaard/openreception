@@ -27,6 +27,8 @@ import 'package:ors/response_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
+const _json = const JsonCodec();
+
 Future<List<String>> writeVoicemailfiles(
         Iterable<model.Voicemail> vms,
         dialplanTools.DialplanCompiler compiler,
@@ -100,7 +102,7 @@ class Ivr {
    */
   Future<shelf.Response> create(shelf.Request request) async {
     final model.IvrMenu ivrMenu = new model.IvrMenu.fromJson(
-        JSON.decode(await request.readAsString()) as Map<String, dynamic>);
+        _json.decode(await request.readAsString()) as Map<String, dynamic>);
 
     model.User user;
     try {
@@ -164,7 +166,7 @@ class Ivr {
    */
   Future<shelf.Response> update(shelf.Request request) async {
     final model.IvrMenu ivrMenu = new model.IvrMenu.fromJson(
-        JSON.decode(await request.readAsString()) as Map<String, dynamic>);
+        _json.decode(await request.readAsString()) as Map<String, dynamic>);
 
     model.User user;
     try {

@@ -1,6 +1,8 @@
 name: ort
 version: 0.3.0
 description: OpenReception Acceptance and integration tests
+environment:
+  sdk: '>=2.0.0 <3.0.0'
 dependencies:
   http: any
   logging: any

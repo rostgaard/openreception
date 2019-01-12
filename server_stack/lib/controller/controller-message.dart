@@ -27,6 +27,8 @@ import 'package:ors/response_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
+const _json = const JsonCodec();
+
 class Message {
   final Logger _log = new Logger('controller.message');
   final service.Authentication _authService;
@@ -90,7 +92,7 @@ class Message {
     try {
       content = await request.readAsString();
       message = new model.Message.fromJson(
-          JSON.decode(content) as Map<String, dynamic>)..sender = modifier;
+          _json.decode(content) as Map<String, dynamic>)..sender = modifier;
       if (message.id == model.Message.noId) {
         return clientError('Refusing to update a non-existing message. '
             'set messageID or use the PUT method instead.');
@@ -209,7 +211,7 @@ class Message {
     try {
       content = await request.readAsString();
       message = new model.Message.fromJson(
-          JSON.decode(content) as Map<String, dynamic>)..sender = user;
+          _json.decode(content) as Map<String, dynamic>)..sender = user;
 
       if ([model.Message.noId, null].contains(message.id)) {
         return clientError('Invalid message ID');
@@ -258,7 +260,7 @@ class Message {
     try {
       content = await request.readAsString();
       message = new model.Message.fromJson(
-          JSON.decode(content) as Map<String, dynamic>)
+          _json.decode(content) as Map<String, dynamic>)
         ..sender = modifier
         ..createdAt = new DateTime.now();
 
@@ -317,7 +319,7 @@ class Message {
 
     List<int> ids;
     try {
-      ids = JSON.decode(body) as List<int>;
+      ids = _json.decode(body) as List<int>;
     } on FormatException {
       return clientError('Bad list: $body');
     }

@@ -22,7 +22,7 @@ abstract class WebSocket {
 
   Future<WebSocket> connect(Uri path);
 
-  Future<void> close();
+  Future close();
 
   void checkResponseCode(int responseCode) {
     switch (responseCode) {

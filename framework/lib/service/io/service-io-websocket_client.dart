@@ -29,5 +29,5 @@ class WebSocketClient extends service.WebSocket {
   }
 
   @override
-  Future<void> close() => _websocket.close().then((_) => null);
+  Future close() => _websocket.close().then((_) => null);
 }

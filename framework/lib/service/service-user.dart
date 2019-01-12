@@ -191,13 +191,11 @@ class RESTUserStore implements storage.User {
             new model.DailyReport.fromJson(userMap)));
   }
 
-  Future<model.DailySummary> dailySummary(DateTime day) {
+  Future<model.DailySummary> dailySummary(DateTime day) async {
     Uri url = resource.User.dailySummary(host, day);
     url = _appendToken(url, this.token);
 
-    return _backend
-        .get(url)
-        .then((String reponse) => _json.decode(reponse))
-            new model.DailySummary.fromJson(userMap)));
+    final Map<String,Object> response = _json.decode(await _backend.get(url));
+    return new model.DailySummary.fromJson(response);
   }
 }

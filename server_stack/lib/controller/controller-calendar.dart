@@ -27,6 +27,8 @@ import 'package:ors/response_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
+const _json = const JsonCodec();
+
 /**
  * Ivr menu controller class.
  */
@@ -129,7 +131,7 @@ class Calendar {
     }
 
     final model.CalendarEntry entry = new model.CalendarEntry.fromJson(
-        JSON.decode(await request.readAsString()) as Map<String, dynamic>);
+        _json.decode(await request.readAsString()) as Map<String, dynamic>);
 
     model.CalendarEntry created;
 
@@ -310,7 +312,7 @@ class Calendar {
     }
 
     final model.CalendarEntry entry = new model.CalendarEntry.fromJson(
-        JSON.decode(await request.readAsString()) as Map<String, dynamic>);
+        _json.decode(await request.readAsString()) as Map<String, dynamic>);
 
     model.CalendarEntry updated;
 

@@ -29,6 +29,8 @@ import 'package:ors/token_watcher.dart' as watcher;
 import 'package:shelf/shelf.dart' as shelf show Request, Response;
 import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
+const JsonCodec _json = const JsonCodec();
+
 class Authentication {
   final Logger _log = new Logger('server.controller.authentication');
 
@@ -136,7 +138,7 @@ class Authentication {
     try {
       final String response = await httpClient.postForm(
           tokenEndpoint, postBody as Map<String, dynamic>);
-      json = JSON.decode(response);
+      json = _json.decode(response);
     } catch (error) {
       return new shelf.Response.internalServerError(
           body: 'authenticationserver.router.oauthCallback uri ${request.url} '
@@ -159,7 +161,7 @@ class Authentication {
       } catch (error) {
         _log.severe('Could not retrieve user info', error);
         return new shelf.Response.forbidden(
-            JSON.encode(const {'status': 'Forbidden'}));
+            _json.encode(const {'status': 'Forbidden'}));
       }
 
       if (userData == null || userData.isEmpty) {
@@ -167,11 +169,11 @@ class Authentication {
             'token:"${json['access_token']}" userdata:"$userData"');
 
         return new shelf.Response.forbidden(
-            JSON.encode(const {'status': 'Forbidden'}));
+            _json.encode(const {'status': 'Forbidden'}));
       } else {
         json['identity'] = userData;
 
-        String cacheObject = JSON.encode(json);
+        String cacheObject = _json.encode(json);
         String hash = sha256Token(cacheObject);
 
         try {
@@ -203,8 +205,10 @@ class Authentication {
     Uri url = Uri.parse('https://www.googleapis.com/oauth2/'
         'v1/userinfo?alt=json&access_token=$accessToken');
 
+
+
     final Map googleProfile =
-        await new service.Client().get(url).then(JSON.decode);
+        _json.decode(await new service.Client().get(url));
 
     final model.User user =
         await _userStore.getByIdentity(googleProfile['email']);
@@ -233,10 +237,10 @@ class Authentication {
         'grant_type': 'refresh_token'
       };
 
-      final String response = await httpClient.post(url, JSON.encode(body));
+      final String response = await httpClient.post(url, _json.encode(body));
 
       return new shelf.Response.ok(
-          'BODY \n ==== \n${JSON.encode(body)} \n\n RESPONSE '
+          'BODY \n ==== \n${_json.encode(body)} \n\n RESPONSE '
           '\n ======== \n $response');
     } catch (error, stackTrace) {
       _log.severe(error, stackTrace);
@@ -251,7 +255,7 @@ class Authentication {
     _vault.usermap.values.forEach((model.User user) {
       picturemap[user.address] = user.portrait;
     });
-    return new shelf.Response.ok(JSON.encode(picturemap));
+    return new shelf.Response.ok(_json.encode(picturemap));
   }
 
   shelf.Response userinfo(shelf.Request request) {
@@ -263,7 +267,7 @@ class Authentication {
     try {
       if (token == _config.serverToken) {
         return new shelf.Response.ok(
-            JSON.encode(new model.User.empty()..id = model.User.noId));
+            _json.encode(new model.User.empty()..id = model.User.noId));
       }
 
       Map content = _vault.getToken(token);
@@ -278,15 +282,15 @@ class Authentication {
             body: 'Parse error in stored map');
       }
 
-      return new shelf.Response.ok(JSON.encode(content['identity']));
+      return new shelf.Response.ok(_json.encode(content['identity']));
     } on NotFound {
       return new shelf.Response.notFound(
-          JSON.encode({'Status': 'Token $token not found'}));
+          _json.encode({'Status': 'Token $token not found'}));
     } catch (error, stacktrace) {
       _log.severe(error, stacktrace);
 
       return new shelf.Response.internalServerError(
-          body: JSON.encode({'Status': 'Not found'}));
+          body: _json.encode({'Status': 'Not found'}));
     }
   }
 
@@ -298,7 +302,7 @@ class Authentication {
 
     if (token.isNotEmpty) {
       if (token == _config.serverToken) {
-        return new shelf.Response.ok(JSON.encode(const {}));
+        return new shelf.Response.ok(_json.encode(const {}));
       }
 
       if (_vault.containsToken(token)) {
@@ -308,9 +312,9 @@ class Authentication {
           _log.severe(error, stacktrace);
         }
 
-        return new shelf.Response.ok(JSON.encode(const {}));
+        return new shelf.Response.ok(_json.encode(const {}));
       } else {
-        return new shelf.Response.notFound(JSON.encode(const {}));
+        return new shelf.Response.notFound(_json.encode(const {}));
       }
     }
 

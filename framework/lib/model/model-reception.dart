@@ -110,20 +110,20 @@ class Reception {
 
   set attributes(Map<String, Object> attributes) {
     if (attributes.containsKey(key.whenWhat)) {
-      List<Map<String, Object>> values = List.from(attributes[key.whenWhat]);
+      List<Map<String, Object>> values = new List.from(attributes[key.whenWhat]);
       whenWhats = values
           .map((Map<String, Object> map) => new WhenWhat.fromJson(map))
           .toList();
     }
 
     this
-      ..addresses = List<String>.from(attributes[key.addresses])
-      ..alternateNames = List<String>.from(attributes[key.alternateNames])
-      ..bankingInformation = List<String>.from(attributes[key.bankingInfo])
-      ..customerTypes = List<String>.from(attributes[key.customerTypes])
-      ..emailAddresses = List<String>.from(attributes[key.emailAdresses])
+      ..addresses = new List<String>.from(attributes[key.addresses])
+      ..alternateNames = new List<String>.from(attributes[key.alternateNames])
+      ..bankingInformation = new List<String>.from(attributes[key.bankingInfo])
+      ..customerTypes = new List<String>.from(attributes[key.customerTypes])
+      ..emailAddresses = new List<String>.from(attributes[key.emailAdresses])
       ..greeting = attributes[key.greeting] as String
-      ..handlingInstructions = List<String>.from(attributes[key.handlingInstructions])
+      ..handlingInstructions = new List<String>.from(attributes[key.handlingInstructions])
       ..miniWiki = attributes[key.miniWiki]
       ..phoneNumbers =
           (attributes[key.phoneNumbers] as Iterable<Map<String, dynamic>>)

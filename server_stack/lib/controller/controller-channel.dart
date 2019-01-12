@@ -19,6 +19,7 @@ import 'package:logging/logging.dart';
 import 'package:ors/model.dart' as _model;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart' as shelf_route;
+const _json = const JsonCodec();
 
 class Channel {
   final Logger log =
@@ -35,7 +36,7 @@ class Channel {
         retval.add(channel.toMap());
       });
 
-      return new shelf.Response.ok(JSON.encode(retval));
+      return new shelf.Response.ok(_json.encode(retval));
     } catch (error, stacktrace) {
       log.severe(error, stacktrace);
       return new shelf.Response.internalServerError(
@@ -47,6 +48,6 @@ class Channel {
     final String channelId = shelf_route.getPathParameter(request, 'chanid');
 
     return new shelf.Response.ok(
-        JSON.encode(_channelList.get(channelId).toMap()));
+        _json.encode(_channelList.get(channelId).toMap()));
   }
 }

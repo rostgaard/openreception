@@ -33,7 +33,7 @@ class WebSocketClient extends service.WebSocket {
   void _onMessage(html.MessageEvent e) => this.onMessage(e.data.toString());
 
   @override
-  Future<void> close() async {
+  Future close() async {
     _websocket.close();
   }
 }

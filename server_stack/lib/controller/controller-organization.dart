@@ -14,8 +14,8 @@
 library ors.controller.organization;
 
 import 'dart:async';
-import 'dart:convert';
 
+import 'package:logging/logging.dart';
 import 'package:orf/event.dart' as event;
 import 'package:orf/exceptions.dart';
 import 'package:orf/filestore.dart' as filestore;
@@ -26,7 +26,6 @@ import 'package:orf/validation.dart';
 import 'package:ors/response_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart' as shelf_route;
-import 'package:logging/logging.dart';
 
 class Organization {
   final filestore.Organization _orgStore;

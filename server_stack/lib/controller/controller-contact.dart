@@ -27,6 +27,8 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:logging/logging.dart';
 import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
+const _json = const JsonCodec();
+
 class Contact {
   final service.Authentication _authservice;
   final filestore.Contact _contactStore;
@@ -58,7 +60,7 @@ class Contact {
     model.User modifier;
 
     try {
-      contact = await request.readAsString().then(JSON.decode).then(
+      contact = await request.readAsString().then(_json.decode).then(
           (Map<String, dynamic> map) => new model.BaseContact.fromJson(map));
     } on FormatException {
       return clientError('Failed to parse contact object');
@@ -186,7 +188,7 @@ class Contact {
     model.BaseContact contact;
 
     try {
-      contact = await request.readAsString().then(JSON.decode).then(
+      contact = await request.readAsString().then(_json.decode).then(
           (Map<String, dynamic> map) => new model.BaseContact.fromJson(map));
     } catch (error) {
       final Map response = {
@@ -240,7 +242,7 @@ class Contact {
     model.User modifier;
 
     try {
-      Map data = JSON.decode(await request.readAsString());
+      Map data = _json.decode(await request.readAsString());
       attr =
           new model.ReceptionAttributes.fromJson(data as Map<String, dynamic>);
     } catch (error) {
@@ -288,7 +290,7 @@ class Contact {
 
     model.ReceptionAttributes attr;
     try {
-      attr = await request.readAsString().then(JSON.decode).then(
+      attr = await request.readAsString().then(_json.decode).then(
           (Map<String, dynamic> map) =>
               new model.ReceptionAttributes.fromJson(map));
     } catch (error) {

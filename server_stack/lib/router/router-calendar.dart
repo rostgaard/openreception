@@ -25,7 +25,6 @@ import 'package:ors/response_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
-import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
 class Calendar {
   final Logger _log = new Logger('server.router.calendar');
@@ -91,14 +90,15 @@ class Calendar {
     shelf.Middleware checkAuthentication = shelf.createMiddleware(
         requestHandler: _lookupToken, responseHandler: null);
 
-    var router = shelf_route.router();
-    bindRoutes(router);
+    Router routes = new Router()
+      ..get('/item/{itemid}', handler.doItem);
 
     var handler = const shelf.Pipeline()
         .addMiddleware(
             shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(checkAuthentication)
         .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
+    .
         .addHandler(router.handler);
 
     _log.fine('Using server on ${_authService.host} as authentication backend');

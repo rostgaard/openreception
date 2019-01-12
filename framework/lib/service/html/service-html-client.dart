@@ -20,7 +20,7 @@ class Client extends service.WebService {
   /// Throws subclasses of [StorageException] upon failure.
   @override
   Future<String> get(Uri resource) {
-    final Completer<String> completer = Completer<String>();
+    final Completer<String> completer = new Completer<String>();
 
     html.HttpRequest request;
     request = html.HttpRequest()

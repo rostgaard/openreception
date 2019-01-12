@@ -28,6 +28,8 @@ import 'package:orf/dialplan_tools.dart' as dialplanTools;
 
 import 'package:ors/response_utils.dart';
 
+const _json = const JsonCodec();
+
 /**
  * PeerAccount controller class.
  */
@@ -49,7 +51,7 @@ class PeerAccount {
     final int uid = int.parse(shelf_route.getPathParameter(request, 'uid'));
     final model.PeerAccount account = await request
         .readAsString()
-        .then(JSON.decode)
+        .then(_json.decode)
         .then(
             (Map<String, dynamic> map) => new model.PeerAccount.fromJson(map));
 

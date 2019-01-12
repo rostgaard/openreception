@@ -119,7 +119,7 @@ class _WhenBlock {
     return matches;
   }
 
-  int _stringToInt(String s) => int.parse(s, onError: (_) => -1);
+  int _stringToInt(String s) => int.tryParse(s) ?? -1;
 }
 
 class WhenWhat {

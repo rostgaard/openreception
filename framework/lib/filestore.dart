@@ -49,9 +49,9 @@ const String _libraryName = 'openreception.filestore';
 const JsonEncoder _jsonpp = const JsonEncoder.withIndent('  ');
 const JsonCodec _json = const JsonCodec();
 
-final model.User _systemUser = new model.User.empty()
-  ..name = 'System'
-  ..address = 'root@localhost';
+//final model.User _systemUser = new model.User.empty()
+//  ..name = 'System'
+//  ..address = 'root@localhost';
 
 /// Generate an author string from a [model.User] object.
 ///

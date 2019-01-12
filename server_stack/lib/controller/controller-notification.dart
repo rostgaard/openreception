@@ -27,9 +27,11 @@ import 'package:shelf_route/shelf_route.dart' as shelf_route;
 import 'package:shelf_web_socket/shelf_web_socket.dart' as sWs;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+const _json = const JsonCodec();
+
 class Notification {
   final Logger _log = new Logger('server.controller.notification');
-  final List _stats = [];
+  final List<int> _stats = [];
   int _sendCountBuffer = 0;
 
   final Map<int, List<WebSocketChannel>> clientRegistry =
@@ -53,14 +55,14 @@ class Notification {
   }
 
   shelf.Response statistics(shelf.Request request) {
-    List retval = [];
+    List<int> retval = [];
 
     int i = 0;
     _stats.forEach((int num) {
       retval.add([i, num]);
       i++;
     });
-    return new shelf.Response.ok(JSON.encode(retval));
+    return new shelf.Response.ok(_json.encode(retval));
   }
 
   /**
@@ -68,12 +70,12 @@ class Notification {
    */
   Future<shelf.Response> broadcast(shelf.Request request) async {
     try {
-      Map contentMap = JSON.decode(await request.readAsString());
+      Map contentMap = _json.decode(await request.readAsString());
 
       return okJson(_sendToAll(contentMap));
     } catch (error, stackTrace) {
       _log.warning('Bad client request', error, stackTrace);
-      return clientError('Malformed JSON body');
+      return clientError('Malformed _json body');
     }
   }
 
@@ -96,7 +98,7 @@ class Notification {
 
     recipientSockets.forEach(((WebSocketChannel ws) {
       try {
-        String contentString = JSON.encode(content);
+        String contentString = _json.encode(content);
 
         ws.sink.add(contentString);
         _sendCountBuffer += contentString.codeUnits.length;
@@ -126,22 +128,22 @@ class Notification {
     }
     clientRegistry[uid].add(webSocket);
 
-    /// Listen for incoming data. We expect the data to be a JSON-encoded String.
+    /// Listen for incoming data. We expect the data to be a _json-encoded String.
     webSocket.stream.map((string) {
       try {
-        return JSON.decode(string);
+        return _json.decode(string);
       } catch (error) {
-        return {"status": "Malformed content - expected JSON string."};
+        return {"status": "Malformed content - expected _json string."};
       }
     }).listen((json) {
       _log.warning(
           'Client $uid tried to send us a message. This is not supported, echoing back.');
-      webSocket.sink.add(JSON.encode(json)); // Echo.
+      webSocket.sink.add(_json.encode(json)); // Echo.
     }, onError: (error, stackTrace) {
       _log.severe('Client $uid sent us a very malformed message. $error : ',
           stackTrace);
       clientRegistry[uid].remove(webSocket);
-      webSocket.sink.close(io.WebSocketStatus.UNSUPPORTED_DATA, "Bad request");
+      webSocket.sink.close(io.WebSocketStatus.unsupportedData, "Bad request");
     }, onDone: () {
       _log.info(
           'Disconnected WebSocket connection from uid $uid', "handleWebsocket");
@@ -180,22 +182,22 @@ class Notification {
   }
 
   /**
-   * Send primitive. Expects the request body to be a JSON string with a
+   * Send primitive. Expects the request body to be a _json string with a
    * list of recipients in the 'recipients' field.
    * The 'message' field is also mandatory for obvious reasons.
    */
   Future<shelf.Response> send(shelf.Request request) async {
     Map json;
     try {
-      json = JSON.decode(await request.readAsString());
+      json = _json.decode(await request.readAsString());
     } catch (error, stackTrace) {
       _log.warning('Bad client request', error, stackTrace);
-      return clientError('Malformed JSON body');
+      return clientError('Malformed _json body');
     }
 
     Map message;
     if (!json.containsKey("message")) {
-      return clientError("Malformed JSON body");
+      return clientError("Malformed _json body");
     }
     message = json['message'];
 
@@ -212,7 +214,7 @@ class Notification {
     _log.finest('Sending $message to ${channels.length} websocket clients');
 
     channels.forEach((ws) {
-      ws.sink.add(JSON.encode(message));
+      ws.sink.add(_json.encode(message));
     });
 
     return okJson({"status": "ok"});

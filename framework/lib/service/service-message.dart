@@ -131,6 +131,3 @@ class RESTMessageStore implements storage.Message {
     return this._backend.get(url).then(_json.decode).then(convertMaps);
   }
 }
-).then(convertMaps);
-  }
-}

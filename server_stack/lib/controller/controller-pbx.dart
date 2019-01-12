@@ -23,6 +23,8 @@ import 'package:orf/pbx-keys.dart';
 import 'package:ors/model.dart' as _model;
 import 'package:ors/configuration.dart';
 
+const _json = const JsonCodec();
+
 class PBXException implements Exception {
   final String message;
   const PBXException([this.message = ""]);
@@ -469,17 +471,17 @@ class PBX {
    * Loads the channel list from an [esl.Response].
    */
   Future _loadChannelListFromPacket(esl.Response response) {
-    Map responseBody = JSON.decode(response.content);
+    Map responseBody = _json.decode(response.content);
     Iterable<String> channelUUIDs = responseBody.containsKey('rows')
         ? new List.from(
-            JSON.decode(response.content)['rows'].map((Map m) => m['uuid']))
+            _json.decode(response.content)['rows'].map((Map m) => m['uuid']))
         : [];
 
     return Future.forEach(channelUUIDs, (String channelUUID) {
       return api('uuid_dump $channelUUID json').then((esl.Response response) {
         if (!response.isError) {
           Map<String, dynamic> value =
-              JSON.decode(response.content) as Map<String, dynamic>;
+              _json.decode(response.content) as Map<String, dynamic>;
 
           Map<String, String> fields = {};
           Map<String, dynamic> variables = {};

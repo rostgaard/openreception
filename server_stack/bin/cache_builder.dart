@@ -285,7 +285,7 @@ Future buildIvrMenuObjects(filestore.Ivr ivrStore,
  */
 Future buildUserObjects(filestore.User userStore,
     gzip_cache.UserCache userCache, String path) async {
-  await Future.forEach(await userStore.list(), (model.User user) async {
+  await Future.forEach(await userStore.list(), (model.UserReference user) async {
     new Directory('$path/user').createSync(recursive: true);
 
     File dataFile = new File('$path/user/${user.id}');

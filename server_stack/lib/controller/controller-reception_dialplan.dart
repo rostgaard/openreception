@@ -34,6 +34,8 @@ import 'package:ors/response_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
+const _json = const JsonCodec();
+
 /**
  * ReceptionDialplan controller class.
  */
@@ -91,7 +93,7 @@ class ReceptionDialplan {
    */
   Future<shelf.Response> create(shelf.Request request) async {
     final model.ReceptionDialplan rdp = new model.ReceptionDialplan.fromJson(
-        JSON.decode(await request.readAsString()) as Map<String, dynamic>);
+        _json.decode(await request.readAsString()) as Map<String, dynamic>);
 
     model.User user;
     try {
@@ -223,7 +225,7 @@ class ReceptionDialplan {
    */
   Future<shelf.Response> update(shelf.Request request) async {
     final model.ReceptionDialplan rdp = new model.ReceptionDialplan.fromJson(
-        JSON.decode(await request.readAsString()) as Map<String, dynamic>);
+        _json.decode(await request.readAsString()) as Map<String, dynamic>);
 
     model.User user;
     try {

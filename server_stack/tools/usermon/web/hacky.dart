@@ -22,6 +22,8 @@ import 'package:orf/service-html.dart' as transport;
 
 import 'package:usermon/view.dart' as view;
 
+const _json = const JsonCodec();
+
 class AgentStat {
   int uid;
   String username;
@@ -101,7 +103,7 @@ Map<int, view.AgentInfo> _userDataView = {};
 Future main() async {
   new Timer.periodic(new Duration(seconds: 1), (_) async {
     final client = new transport.Client();
-    CallSummary cs = CallSummary.fromJson(JSON.decode(await client
+    CallSummary cs = CallSummary.fromJson(_json.decode(await client
         .get(Uri.parse('http://orm.responsum.dk:8080/agentstats'))));
 
     final int totalcalls =

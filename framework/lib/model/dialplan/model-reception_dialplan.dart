@@ -45,10 +45,10 @@ class ReceptionDialplan {
       new ReceptionDialplan()
         ..extension = map['extension']
         ..open = new List<HourAction>.from(
-            List<Map<String, Object>>.from(map['open']).map(HourAction.parse))
+            new List<Map<String, Object>>.from(map['open']).map(HourAction.parse))
         ..extraExtensions =
-            List<Map<String,Object>>.from(map['extraExtensions']).map(
-                (Map<String, Object> map) => NamedExtension.fromJson(map)).toList()
+            new List<Map<String,Object>>.from(map['extraExtensions']).map(
+                (Map<String, Object> map) => new NamedExtension.fromJson(map)).toList()
         ..defaultActions =
             new List<Action>.from(map['closed'].map(Action.parse))
         ..note = map['note'];

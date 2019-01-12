@@ -3,6 +3,9 @@ part of ort.service.call;
 /**
  * Tests for the hangup interface on CallFlowControl server.
  */
+
+abstract class Caller extends Customer {}
+
 abstract class Hangup {
   static Logger log = new Logger('$_namespace.call.hangup');
 

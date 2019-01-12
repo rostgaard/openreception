@@ -22,7 +22,8 @@ import 'package:orf/exceptions.dart';
 import 'package:orf/model.dart' as model;
 import 'package:path/path.dart' as path;
 
-TokenVault vault = new TokenVault();
+final TokenVault vault = new TokenVault();
+const _json = const JsonCodec();
 
 const String libraryName = 'AuthServer.TokenVault';
 
@@ -100,7 +101,7 @@ class TokenVault {
         try {
           String text = load(item.path);
           String token = path.basenameWithoutExtension(item.path);
-          Map data = JSON.decode(text);
+          Map data = _json.decode(text);
           _serverTokens[token] = data;
           log.finest('Loaded ${_serverTokens[token]}');
         } catch (e, s) {

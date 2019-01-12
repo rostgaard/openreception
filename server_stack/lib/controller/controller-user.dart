@@ -28,6 +28,8 @@ import 'package:ors/response_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart' as shelf_route;
 
+const _json = const JsonCodec();
+
 class User {
   static final Logger log = new Logger('server.controller.user');
 
@@ -100,7 +102,7 @@ class User {
     try {
       user = await request
           .readAsString()
-          .then((String buffer) => JSON.decode(buffer))
+          .then((String buffer) => _json.decode(buffer))
           .then((Map<String, dynamic> map) => new model.User.fromJson(map));
     } on FormatException catch (error) {
       Map response = {
@@ -138,7 +140,7 @@ class User {
     try {
       user = await request
           .readAsString()
-          .then(JSON.decode)
+          .then(_json.decode)
           .then((Map<String, dynamic> map) => new model.User.fromJson(map));
     } on FormatException catch (error) {
       Map response = {

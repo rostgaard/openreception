@@ -24,6 +24,8 @@ import 'package:orf/model.dart' as model;
 import 'package:ors/model.dart' as model;
 import 'package:orf/event.dart' as event;
 
+const _json = const JsonCodec();
+
 class UserState {
   final model.UserStatusList _userStateList;
   final Map<int, event.WidgetSelect> _userUIState;
@@ -36,7 +38,7 @@ class UserState {
    */
   shelf.Response uiStates(shelf.Request request) {
     return new shelf.Response.ok(
-        JSON.encode(_userUIState.values.toList(growable: false)));
+        _json.encode(_userUIState.values.toList(growable: false)));
   }
 
   /**
@@ -49,11 +51,11 @@ class UserState {
       return notFound('No UIState for uid:$uid');
     }
 
-    return new shelf.Response.ok(JSON.encode(_userUIState[uid]));
+    return new shelf.Response.ok(_json.encode(_userUIState[uid]));
   }
 
   shelf.Response list(shelf.Request request) {
-    return new shelf.Response.ok(JSON.encode(_userStateList));
+    return new shelf.Response.ok(_json.encode(_userStateList));
   }
 
   shelf.Response get(shelf.Request request) {
@@ -63,7 +65,7 @@ class UserState {
       return new shelf.Response.notFound('{}');
     }
 
-    return new shelf.Response.ok(JSON.encode(_userStateList.get(userID)));
+    return new shelf.Response.ok(_json.encode(_userStateList.get(userID)));
   }
 
   shelf.Response set(shelf.Request request) {
@@ -71,9 +73,9 @@ class UserState {
     final String newState = shelf_route.getPathParameter(request, 'state');
 
     if (newState == model.UserState.paused) {
-      return new shelf.Response.ok(JSON.encode(_userStateList.pause(userID)));
+      return new shelf.Response.ok(_json.encode(_userStateList.pause(userID)));
     } else if (newState == model.UserState.ready) {
-      return new shelf.Response.ok(JSON.encode(_userStateList.ready(userID)));
+      return new shelf.Response.ok(_json.encode(_userStateList.ready(userID)));
     } else {
       return serverError('Unknown state $newState');
     }

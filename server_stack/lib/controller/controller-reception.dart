@@ -27,6 +27,8 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart' as shelf_route;
 import 'package:logging/logging.dart';
 
+const _json = const JsonCodec();
+
 class Reception {
   final filestore.Reception _rStore;
   final service.Authentication _authservice;
@@ -66,7 +68,7 @@ class Reception {
     model.Reception reception;
     model.User creator;
     try {
-      reception = await request.readAsString().then(JSON.decode).then(
+      reception = await request.readAsString().then(_json.decode).then(
           (Map<String, dynamic> map) => new model.Reception.fromJson(map));
     } on FormatException catch (error) {
       Map response = {
@@ -104,7 +106,7 @@ class Reception {
     model.Reception reception;
     model.User modifier;
     try {
-      reception = await request.readAsString().then(JSON.decode).then(
+      reception = await request.readAsString().then(_json.decode).then(
           (Map<String, dynamic> map) => new model.Reception.fromJson(map));
     } on FormatException catch (error) {
       Map response = {

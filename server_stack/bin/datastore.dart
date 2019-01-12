@@ -44,9 +44,6 @@ import 'package:ors/router/router-datastore.dart' as router;
 import 'package:ors/router/router-dialplan.dart' as router;
 import 'package:ors/router/router-reception.dart' as router;
 
-ArgResults _parsedArgs;
-ArgParser _parser = new ArgParser();
-
 Future main(List<String> args) async {
   ///Init logging.
   Logger.root.level = config.calendarServer.log.level;

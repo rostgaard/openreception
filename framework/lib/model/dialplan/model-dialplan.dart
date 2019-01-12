@@ -38,23 +38,21 @@ part 'model-transfer.dart';
 part 'model-voicemail.dart';
 part 'parsing_utils.dart';
 
-const String _libaryName = 'model.dialplan';
-
 ///Converts a Dart DateTime WeekDay into a [WeekDay].
 WeekDay toWeekDay(int weekday) {
-  if (weekday == DateTime.monday) {
+  if (weekday == 1) {
     return WeekDay.mon;
-  } else if (weekday == DateTime.tuesday) {
+  } else if (weekday == 2) {
     return WeekDay.tue;
-  } else if (weekday == DateTime.wednesday) {
+  } else if (weekday == 3) {
     return WeekDay.wed;
-  } else if (weekday == DateTime.thursday) {
+  } else if (weekday == 4) {
     return WeekDay.thur;
-  } else if (weekday == DateTime.friday) {
+  } else if (weekday == 5) {
     return WeekDay.fri;
-  } else if (weekday == DateTime.saturday) {
+  } else if (weekday == 6) {
     return WeekDay.sat;
-  } else if (weekday == DateTime.sunday) {
+  } else if (weekday == 7) {
     return WeekDay.sun;
   }
 

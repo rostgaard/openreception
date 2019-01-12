@@ -16,6 +16,8 @@ library ors.router.response_utils;
 import 'dart:convert';
 import 'package:shelf/shelf.dart' as shelf;
 
+const _json = const JsonCodec();
+
 const Map<String, String> corsHeaders = const {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, PUT, POST, DELETE'
@@ -24,7 +26,7 @@ const Map<String, String> corsHeaders = const {
 /**
  *
  */
-shelf.Response okJson(dynamic body) => ok(JSON.encode(body));
+shelf.Response okJson(dynamic body) => ok(_json.encode(body));
 
 /**
  *
@@ -43,7 +45,7 @@ shelf.Response okGzip(dynamic body) => new shelf.Response.ok(body, headers: {
  *
  */
 shelf.Response notFoundJson(dynamic body) =>
-    new shelf.Response.notFound(JSON.encode(body));
+    new shelf.Response.notFound(_json.encode(body));
 
 /**
      *
@@ -60,7 +62,7 @@ shelf.Response clientError(String reason) =>
  *
  */
 shelf.Response clientErrorJson(dynamic reason) =>
-    new shelf.Response(400, body: JSON.encode(reason));
+    new shelf.Response(400, body: _json.encode(reason));
 
 /**
  *
