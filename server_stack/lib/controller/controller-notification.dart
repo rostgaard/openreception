@@ -138,16 +138,16 @@ class Notification {
           'Disconnected WebSocket connection from uid $uid', "handleWebsocket");
       clientRegistry[uid].remove(webSocket);
 
-      model.ClientConnection conn = model.ClientConnection.empty()
-        ..userID = uid
+      model.ClientConnection conn = model.ClientConnection()
+        ..userId = uid
         ..connectionCount = clientRegistry[uid].length;
       event.ClientConnectionState e = event.ClientConnectionState(conn);
 
       _sendToAll(e.toJson());
     });
 
-    model.ClientConnection conn = model.ClientConnection.empty()
-      ..userID = uid
+    model.ClientConnection conn = model.ClientConnection()
+      ..userId = uid
       ..connectionCount = clientRegistry[uid].length;
     event.ClientConnectionState e = event.ClientConnectionState(conn);
 
@@ -205,13 +205,15 @@ class Notification {
       ws.sink.add(json.encode(message));
     });
 
-    return okJson({"status": "ok"});
+    return okJson(<String, dynamic>{
+      "status": {"success": -1, "failed": -1}
+    });
   }
 
   Future<Response> connectionList(Request request) async {
     Iterable<model.ClientConnection> connections =
-        clientRegistry.keys.map((int uid) => model.ClientConnection.empty()
-          ..userID = uid
+        clientRegistry.keys.map((int uid) => model.ClientConnection()
+          ..userId = uid
           ..connectionCount = clientRegistry[uid].length);
 
     return okJson(connections.toList(growable: false));
@@ -221,8 +223,8 @@ class Notification {
     int uid = int.parse(userId);
 
     if (clientRegistry.containsKey(uid)) {
-      model.ClientConnection conn = model.ClientConnection.empty()
-        ..userID = uid
+      model.ClientConnection conn = model.ClientConnection()
+        ..userId = uid
         ..connectionCount = clientRegistry[uid].length;
 
       return okJson(conn);

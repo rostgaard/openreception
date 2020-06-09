@@ -64,7 +64,7 @@ CircularCounter _networkPortCounter = CircularCounter(9000, 11000);
 
 class TestEnvironment {
   Logger _log = Logger('TestEnvironment');
-  model.User _user = model.User.empty()
+  model.User _user = model.User()
     ..id = 0
     ..name = 'System User'
     ..address = 'openreception@localhost';
@@ -650,7 +650,7 @@ class TestEnvironment {
   Future<ServiceAgent> createsServiceAgent([model.User user]) async {
     await userStore.ready;
     model.User sa = (user == null ? Randomizer.randomUser() : user)
-      ..groups = [model.UserGroups.serviceAgent].toSet();
+      ..groups = [model.UserGroups.serviceAgent];
 
     if (user == null) {
       sa.id = (await _userStore.create(sa, _user)).id;

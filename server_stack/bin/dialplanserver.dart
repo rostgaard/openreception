@@ -155,9 +155,6 @@ Future main(List<String> args) async {
       'all calls to ${compiler.option.testNumber}'}');
   _log.fine('Deploying generated xml files to $fsConfPath subdirs');
 
-  gzip_cache.DialplanCache _cache =
-      new gzip_cache.DialplanCache(_dpStore, _dpStore.onChange);
-
   final controller.Ivr ivrHandler =
       new controller.Ivr(_ivrStore, compiler, _authentication, fsConfPath);
 

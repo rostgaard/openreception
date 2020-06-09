@@ -32,8 +32,8 @@ class MessageHistory {
 
   /// Creates a new [MessageHistory] log entry from a decoded map.
   factory MessageHistory.fromJson(Map<String, dynamic> map) {
-    final int mid = map['mid'] != null ? map['mid'] : Message.noId;
-    final int uid = map['uid'] != null ? map['uid'] : User.noId;
+    final int mid = map['mid'] != null ? map['mid'] : noId;
+    final int uid = map['uid'] != null ? map['uid'] : noId;
 
     final DateTime createdAt = DateTime.parse(map['created']);
 

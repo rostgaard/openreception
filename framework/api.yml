@@ -1,0 +1,2809 @@
+openapi: 3.0.1
+
+info:
+  title: OpenReceptionAPI
+  description: The OpenReception API
+  version: "0.0.1"
+
+security:
+  - ApiKeyAuth: []
+
+
+paths:
+  ###
+  # Authentication/token endpoints
+  #
+  /token/create:
+    get:
+      tags:
+        - Authentication
+      operationId: login
+      responses:
+        '302':
+          description: Redirect to OAuth service
+
+  /token/oauth2callback:
+    get:
+      tags:
+        - Authentication
+      operationId: oauthCallback
+      responses:
+        '302':
+          description: Redirect to local OAuth token provider
+
+  /token/{token}:
+    get:
+      tags:
+        - Authentication
+      operationId: userinfo
+      parameters:
+        - in: path
+          name: token
+          schema:
+            type: string
+          required: true
+          description: The token to fetch userinfo for
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /token/portraits:
+    get:
+      tags:
+        - Authentication
+      operationId: userportraits
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+
+  /token/{token}/validate:
+    get:
+      tags:
+        - Authentication
+      operationId: validateToken
+      parameters:
+        - in: path
+          name: token
+          schema:
+            type: string
+          required: true
+          description: The token to fetch userinfo for
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+
+  /token/{token}/invalidate:
+    post:
+      tags:
+        - Authentication
+      operationId: invalidateToken
+      parameters:
+        - in: path
+          name: token
+          schema:
+            type: string
+          required: true
+          description: The token to invalidate
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+
+  /token/{token}/refresh:
+    get:
+      tags:
+        - Authentication
+      operationId: refresh
+      parameters:
+        - in: path
+          name: token
+          schema:
+            type: string
+          required: true
+          description: The token to refresh
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: pong
+
+  ###
+  # User-related services
+  #
+  /user/{userId}:
+    get:
+      tags:
+        - User
+      operationId: user
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    put:
+      tags:
+        - User
+      operationId: updateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to update
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserReference"
+    delete:
+      tags:
+        - User
+      operationId: deleteUser
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to remove
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
+  /user-by-identity/{identity}:
+    get:
+      tags:
+        - User
+      operationId: userByIdentity
+      parameters:
+        - in: path
+          name: identity
+          schema:
+            type: string
+          required: true
+          description: Identity of the user to get
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /peeraccount/{peerId}:
+    get:
+      tags:
+        - PeerAccount
+      operationId: peerAccount
+      parameters:
+        - in: path
+          name: peerId
+          schema:
+            type: string
+          required: true
+          description: Id of the peer to get
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PeerAccount"
+    delete:
+      tags:
+        - PeerAccount
+      operationId: deletePeerAccount
+      parameters:
+        - in: path
+          name: peerId
+          schema:
+            type: string
+          required: true
+          description: Id of the peer account to remove
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
+  /peeraccount/{peerId}/deploy:
+    get:
+      tags:
+        - PeerAccount
+      operationId: deployPeerAccount
+      parameters:
+        - in: path
+          name: peerId
+          schema:
+            type: string
+          required: true
+          description: Id of the peer to deploy
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  example: pong
+
+  /peeraccount:
+    post:
+      tags:
+        - PeerAccount
+      summary: Add a new PeerAccount
+      operationId: addPeerAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeerAccount'
+      responses:
+        '201':
+          description: Created
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PeerAccount"
+    get:
+      tags:
+        - PeerAccount
+      operationId: peerAccounts
+      description: List the current available peerAccounts in the system
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PeerAccount'
+  /user:
+    post:
+      tags:
+        - User
+      summary: Add a new User
+      operationId: addUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: Created
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserReference"
+    get:
+      tags:
+        - User
+      operationId: list
+      description: List the current available users in the system
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserReference'
+
+  /changes/user:
+    get:
+      tags:
+        - User
+      summary: Gets the users current histories
+      operationId: userHistories
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+
+  /changes/user/{uid}:
+    get:
+      tags:
+        - User
+      summary: Gets the users current histories
+      operationId: userHistory
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: integer
+          required: true
+          description: Identity of the user to get
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+  /changes/user/{uid}/changelog:
+    get:
+      tags:
+        - User
+      summary: Gets the users current histories
+      operationId: userChangelog
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: integer
+          required: true
+          description: Identity of the user to get
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /user-state:
+    get:
+      tags:
+        - User
+      summary: Gets the users current states
+      operationId: userStates
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserStatus'
+
+  /user-state/{userId}:
+    get:
+      tags:
+        - User
+      summary: Gets the users current state
+      operationId: userState
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to fetch status for
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserStatus"
+    post:
+      tags:
+        - User
+      summary: Gets the users current state
+      operationId: updateUserStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserStatus'
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to fetch status for
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserStatus"
+  /group:
+    get:
+      tags:
+        - Group
+      operationId: groups
+      description: List the current available groups in the system
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+
+  /manage/state-reload:
+    post:
+      tags:
+        - Call
+      summary: Reload server state from PBX
+      operationId: reloadCallState
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommandSuccessResponse"
+
+  ###
+  # Call-recording-related services
+  #
+  /agentstatistics:
+    get:
+      tags:
+        - Call
+      summary: Get a list of AgentStatistics
+      operationId: listAgentStatistics
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentStatistics"
+
+  /agentstatistics/{uid}:
+    get:
+      tags:
+        - Call
+      summary: Get an AgentStatistics
+      operationId: getAgentStatistics
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: integer
+          required: true
+          description: The user id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentStatistics"
+  ###
+  # Peer-related services
+  #
+  /peer:
+    get:
+      tags:
+        - Call
+      summary: Get a list of peers
+      operationId: listPeers
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Peer"
+
+  /peer/{peerid}:
+    get:
+      tags:
+        - Call
+      summary: Get a peer
+      operationId: getPeer
+      parameters:
+        - in: path
+          name: peerid
+          schema:
+            type: string
+          required: true
+          description: The peer identifier
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Peer"
+
+  ###
+  # Call-recording-related services
+  #
+  /activerecording:
+    get:
+      tags:
+        - Call
+      summary: Get a list of active recordings
+      operationId: listActiveRecordings
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActiveRecording"
+
+  /activerecording/{channelId}:
+    get:
+      tags:
+        - Call
+      summary: Get an active recording
+      operationId: getActiveRecording
+      parameters:
+        - in: path
+          name: channelId
+          schema:
+            type: string
+          required: true
+          description: The channel identifier
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveRecording"
+
+  ###
+  # Call-related services
+  #
+  /call/{callId}:
+    get:
+      tags:
+        - Call
+      summary: Get a call by ID
+      operationId: getCall
+      parameters:
+        - in: path
+          name: callId
+          schema:
+            type: string
+          required: true
+          description: Numeric ID of the call to get
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Call"
+
+  /call/{callId}/hangup:
+    post:
+      tags:
+        - Call
+      summary: Get a call by ID
+      operationId: hangupCall
+      parameters:
+        - in: path
+          name: callId
+          schema:
+            type: string
+          required: true
+          description: Numeric ID of the call to hangup
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
+  /call/{callId}/pickup:
+    post:
+      tags:
+        - Call
+      summary: Pick up a call by ID
+      operationId: pickupCall
+      parameters:
+        - in: path
+          name: callId
+          schema:
+            type: string
+          required: true
+          description: Numeric ID of the call to hangup
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Call"
+
+  /call/{callId}/Transfer:
+    post:
+      tags:
+        - Call
+      summary: Transfer a call by ID
+      operationId: transferCall
+      parameters:
+        - in: path
+          name: callId
+          schema:
+            type: string
+          required: true
+          description: Numeric ID of the call to park
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CallTransferRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Call"
+
+  /call/{callId}/park:
+    post:
+      tags:
+        - Call
+      summary: Park a call by ID
+      operationId: parkCall
+      parameters:
+        - in: path
+          name: callId
+          schema:
+            type: string
+          required: true
+          description: Numeric ID of the call to park
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Call"
+
+  /call:
+    get:
+      tags:
+        - Call
+      summary: Get a call by ID
+      operationId: listCalls
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Call"
+
+    post:
+      tags:
+        - Call
+      summary: Originate a new call
+      operationId: originateCall
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OriginationRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Call"
+
+  ###
+  # Configuration-related services
+  #
+  /configuration:
+    get:
+      tags:
+        - ClientConfiguration
+      description: "Get the current configuration"
+      operationId: config
+      security: [] # Is callable without valid token.
+      responses:
+        "200":
+          description: "the current configuration"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Configuration"
+    patch:
+      tags:
+        - ClientConfiguration
+      description: "Set an endpoint of a server type"
+      operationId: setServer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServerConfiguration'
+      responses:
+        "200":
+          description: "the current configuration"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Configuration"
+
+  ###
+  # Notification-related services
+  #
+  /notifications:
+    get:
+      tags:
+        - Notification
+      description: "Set an endpoint of a server type"
+      operationId: connection
+      responses:
+        "101":
+          description: "Switching Protocols - upgrade to websocket"
+    post:
+      tags:
+        - Notification
+      description: "Set an endpoint of a server type"
+      operationId: broadcast
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: {}
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationSendResponse"
+
+  /send: # TODO: merge with notifications as specialized case of post
+    post:
+      tags:
+        - Notification
+      operationId: send
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationSendRequest"
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationSendResponse"
+
+  /connection:
+    get:
+      tags:
+        - Notification
+      operationId: allConnections
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClientConnection"
+
+  /connection/{userId}:
+    get:
+      tags:
+        - Notification
+      operationId: connectionsByUser
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to fetch status for
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientConnection"
+    #  /stats:
+    #    get:
+    #      tags:
+    #        - Notification
+    #      operationId: connections
+
+    ##
+    # Data object related endpoints
+
+    #    ..get('/contact/history', _contactController.history)
+    #    ..post(
+    #    '/contact/<cid>/reception/<rid>', _contactController.addToReception)
+    #    ..put('/contact/<cid>/reception/<rid>',
+    #    _contactController.updateInReception)
+    #    ..delete('/contact/<cid>/reception/<rid>',
+    #    _contactController.removeFromReception)
+    ##    ..get('/contact/<cid>/reception/<rid>/history',
+    ##   _contactController.receptionHistory)
+    #  ..get('/contact/<cid>/reception/changelog',
+    #  _contactController.receptionChangelog)
+    #   ..get('/contact/<cid>/reception', _contactController.receptions)
+    #   ..get('/contact/<cid>/organization', _contactController.organizations)
+    ##    ..get('/contact/<cid>/history', _contactController.objectHistory)
+    #   ..get('/contact/<cid>/changelog', _contactController.changelog)
+
+  /contact/list/reception/{rid}:
+    get:
+      tags:
+        - Contact
+      operationId: contactsByReception
+      parameters:
+        - in: path
+          name: rid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReceptionContact"
+
+  /contact/{cid}/reception/{rid}:
+    put:
+      tags:
+        - Contact
+      operationId: updateReceptionData
+      parameters:
+        - in: path
+          name: cid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+        - in: path
+          name: rid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReceptionAttributes"
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseContact"
+    delete:
+      tags:
+        - Contact
+      operationId: removeFromReception
+      parameters:
+        - in: path
+          name: cid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+        - in: path
+          name: rid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+    post:
+      tags:
+        - Contact
+      operationId: addToReception
+      parameters:
+        - in: path
+          name: cid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+        - in: path
+          name: rid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReceptionAttributes"
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseContact"
+    get:
+      tags:
+        - Contact
+      operationId: receptionContact
+      parameters:
+        - in: path
+          name: cid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+        - in: path
+          name: rid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceptionAttributes"
+
+  /contact/reception/{rid}:
+    get:
+      tags:
+        - Contact
+      operationId: listByReception
+      parameters:
+        - in: path
+          name: rid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceptionContact"
+
+  /contact/{cid}/reception:
+    get:
+      tags:
+        - Contact
+      operationId: contactReceptions
+      parameters:
+        - in: path
+          name: cid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReceptionReference"
+
+  /contact/{cid}/organization:
+    get:
+      tags:
+        - Contact
+      operationId: contactOrganizations
+      parameters:
+        - in: path
+          name: cid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrganizationReference"
+
+  /contact/organization/{oid}:
+    get:
+      tags:
+        - Contact
+      operationId: listByOrganization
+      parameters:
+        - in: path
+          name: oid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BaseContact"
+  /contact/{cid}:
+    get:
+      tags:
+        - Contact
+      operationId: getBaseContact
+      parameters:
+        - in: path
+          name: cid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseContact"
+    put:
+      tags:
+        - Contact
+      operationId: updateBaseContact
+      parameters:
+        - in: path
+          name: cid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BaseContact"
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseContact"
+
+    delete:
+      tags:
+        - Contact
+      operationId: removeBaseContact
+      parameters:
+        - in: path
+          name: cid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
+  /contact:
+    get:
+      tags:
+        - Contact
+      operationId: getBaseContacts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BaseContact'
+    post:
+      tags:
+        - Contact
+      operationId: createBaseContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BaseContact"
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseContact"
+
+  /calendar/{owner}:
+    get:
+      tags:
+        - Calendar
+      operationId: listCalendarEntries
+      parameters:
+        - in: path
+          name: owner
+          schema:
+            type: string
+          required: true
+          description: TODO
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CalendarEntry'
+    post:
+      tags:
+        - Calendar
+      operationId: createCalendarEntry
+      parameters:
+        - in: path
+          name: owner
+          schema:
+            type: string
+          required: true
+          description: TODO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalendarEntry"
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarEntry"
+
+  /calendar/{owner}/{eid}:
+    get:
+      tags:
+        - Calendar
+      operationId: getCalendarEntry
+      parameters:
+        - in: path
+          name: owner
+          schema:
+            type: string
+          required: true
+          description: TODO
+        - in: path
+          name: eid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarEntry"
+    put:
+      tags:
+        - Calendar
+      operationId: updateCalendarEntry
+      parameters:
+        - in: path
+          name: owner
+          schema:
+            type: string
+          required: true
+          description: TODO
+        - in: path
+          name: eid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalendarEntry"
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarEntry"
+
+    delete:
+      tags:
+        - Calendar
+      operationId: deleteCalendarEntry
+      parameters:
+        - in: path
+          name: owner
+          schema:
+            type: string
+          required: true
+          description: TODO
+        - in: path
+          name: eid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
+  /organization:
+    get:
+      tags:
+        - Organization
+      operationId: orgs
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganizationReference'
+    post:
+      tags:
+        - Organization
+      operationId: createOrg
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Organization"
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationReference"
+
+  /organization/{oid}:
+    get:
+      tags:
+        - Organization
+      operationId: fetch
+      parameters:
+        - in: path
+          name: oid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+    put:
+      tags:
+        - Organization
+      operationId: update
+      parameters:
+        - in: path
+          name: oid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Organization"
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationReference"
+
+    delete:
+      tags:
+        - Organization
+      operationId: delete
+      parameters:
+        - in: path
+          name: oid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
+  /organization/{oid}/contact:
+    get:
+      tags:
+        - Organization
+      summary: Gets the organization current contacts
+      operationId: organizationContacts
+      parameters:
+        - in: path
+          name: oid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BaseContact'
+
+  /organization/{oid}/reception:
+    get:
+      tags:
+        - Organization
+      summary: Gets the organization current receptions
+      operationId: organizationReceptions
+      parameters:
+        - in: path
+          name: oid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReceptionReference'
+
+  /changes/organization:
+    get:
+      tags:
+        - Organization
+      summary: Gets the organization current histories
+      operationId: organizationHistories
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+
+  /changes/organization/{oid}:
+    get:
+      tags:
+        - Organization
+      summary: Gets the organization current histories
+      operationId: organizationHistory
+      parameters:
+        - in: path
+          name: oid
+          schema:
+            type: integer
+          required: true
+          description: Identity of the organization to get
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+
+  /changes/organization/{oid}/changelog:
+    get:
+      tags:
+        - Organization
+      summary: Gets the organization current histories
+      operationId: organizationChangelog
+      parameters:
+        - in: path
+          name: oid
+          schema:
+            type: integer
+          required: true
+          description: Identity of the organization to get
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+
+
+  /message-listing/drafts:
+    post:
+      tags:
+        - Message
+      operationId: listDrafts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageFilter'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+
+
+  /message-listing/by-date/{day}:
+    post:
+      tags:
+        - Message
+      operationId: listByDay
+      parameters:
+        - in: path
+          name: day
+          schema:
+            type: string
+          required: true
+          description: ISO 8601-formatted date to fetch messages for.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageFilter'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+
+  /message-listing/by-id:
+    post:
+      tags:
+        - Message
+      operationId: getByIds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+  /message:
+    get:
+      tags:
+        - Message
+      operationId: listToday
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+    post:
+      tags:
+        - Message
+      operationId: createMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+
+  /message/{mid}:
+    get:
+      tags:
+        - Message
+      operationId: getMessage
+      parameters:
+        - in: path
+          name: mid
+          schema:
+            type: integer
+          required: true
+          description: Message ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+    put:
+      tags:
+        - Message
+      operationId: updateMessage
+      parameters:
+        - in: path
+          name: mid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Message"
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+    delete:
+      tags:
+        - Message
+      operationId: deleteMessage
+      parameters:
+        - in: path
+          name: mid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
+  /message/{mid}/enqueue:
+    get:
+      tags:
+        - Message
+      operationId: enqueueMessage
+      parameters:
+        - in: path
+          name: mid
+          schema:
+            type: integer
+          required: true
+          description: Message ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageQueueEntry'
+
+  #      ..get('/message/history', _msgController.history)
+  #      ..get('/message/<mid>/history', _msgController.objectHistory)
+
+
+  /reception:
+    get:
+      tags:
+        - Reception
+      operationId: receptions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReceptionReference'
+    post:
+      tags:
+        - Reception
+      operationId: createReception
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Reception"
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceptionReference"
+
+  /reception/{rid}:
+    get:
+      tags:
+        - Reception
+      operationId: getReception
+      parameters:
+        - in: path
+          name: rid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reception"
+    put:
+      tags:
+        - Reception
+      operationId: updateReception
+      parameters:
+        - in: path
+          name: rid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Reception"
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceptionReference"
+
+    delete:
+      tags:
+        - Reception
+      operationId: removeReception
+      parameters:
+        - in: path
+          name: rid
+          schema:
+            type: integer
+          required: true
+          description: TODO
+      responses:
+        "200":
+          description: "TODO"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
+  /changes/message:
+    get:
+      tags:
+        - Message
+      summary: Gets the message current histories
+      operationId: messageHistories
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+
+  /changes/message/{mid}:
+    get:
+      tags:
+        - Message
+      summary: Gets the message current histories
+      operationId: messageHistory
+      parameters:
+        - in: path
+          name: mid
+          schema:
+            type: integer
+          required: true
+          description: Identity of the mid to get
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+
+  /changes/reception:
+    get:
+      tags:
+        - Reception
+      summary: Gets the reception current histories
+      operationId: receptionHistories
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+
+  /changes/reception/{rid}:
+    get:
+      tags:
+        - Reception
+      summary: Gets the reception current histories
+      operationId: receptionHistory
+      parameters:
+        - in: path
+          name: rid
+          schema:
+            type: integer
+          required: true
+          description: Identity of the reception to get
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+
+
+  /changes/reception/{rid}/changelog:
+    get:
+      tags:
+        - Reception
+      summary: Gets the reception current histories
+      operationId: receptionChangelog
+      parameters:
+        - in: path
+          name: rid
+          schema:
+            type: integer
+          required: true
+          description: Identity of the reception to get
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /changes/contact:
+    get:
+      tags:
+        - Contact
+      summary: Gets the contact current histories
+      operationId: contactHistories
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+
+  /changes/contact/{cid}:
+    get:
+      tags:
+        - Contact
+      summary: Gets the contact current histories
+      operationId: contactHistory
+      parameters:
+        - in: path
+          name: cid
+          schema:
+            type: integer
+          required: true
+          description: Identity of the contact to get
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+
+  /changes/contact/{cid}/reception/{rid}:
+    get:
+      tags:
+        - Contact
+      summary: Gets the contact current histories
+      operationId: contactReceptionHistory
+      parameters:
+        - in: path
+          name: cid
+          schema:
+            type: integer
+          required: true
+          description: Identity of the contact to get
+        - in: path
+          name: rid
+          schema:
+            type: integer
+          required: true
+          description: Identity of the reception to get
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+
+  /changes/contact/{cid}/changelog:
+    get:
+      tags:
+        - Contact
+      summary: Gets the contact current histories
+      operationId: contactChangelog
+      parameters:
+        - in: path
+          name: cid
+          schema:
+            type: integer
+          required: true
+          description: Identity of the contact to get
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /changes/contact/{cid}/reception/changelog:
+    get:
+      tags:
+        - Contact
+      summary: Gets the contact current histories
+      operationId: contactReceptionChangelog
+      parameters:
+        - in: path
+          name: cid
+          schema:
+            type: integer
+          required: true
+          description: Identity of the contact to get
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: query
+      name: token
+
+  schemas:
+    Call:
+      type: object
+      properties:
+        id:
+          description: The call id
+          type: string
+          example: 34125
+        state:
+          description: The current state of the call
+          $ref: '#/components/schemas/CallState'
+        b_leg:
+          description: The other channel/leg of the call
+          type: string
+          example: <uuid>
+        locked:
+          description: Indicates whether the call is locked
+          type: boolean
+          example: false
+        inbound:
+          type: boolean
+        destination:
+          type: string
+        caller_id:
+          type: string
+        greeting_played:
+          type: boolean
+        __or__rid:
+          type: integer
+        __or__cid:
+          type: integer
+        assigned_to:
+          type: integer
+        channel:
+          type: string
+        arrival_time:
+          type: string
+          format: date-time
+        answered_at:
+          type: string
+          format: date-time
+
+    CallState:
+      type: string
+      example: "ringing"
+      enum:
+        - unknown
+        - created
+        - ringing
+        - queued
+        - unparked
+        - hungup
+        - transferring
+        - transferred
+        - speaking
+        - parked
+
+    Group:
+      type: string
+
+    UserReference:
+      type: object
+      properties:
+        id:
+          description: ID of the user (uid)
+          type: integer
+          example: 9834
+        name:
+          description: Name of the user
+          type: string
+
+    User:
+      type: object
+      properties:
+        address:
+          description: Primary email address
+          type: string
+          example: "someone@domain.com"
+        id:
+          description: ID of the user (uid)
+          type: integer
+          example: 9834
+        name:
+          description: Name of the user
+          type: string
+        extension:
+          type: string
+          description: The current phone extension
+        portrait:
+          description: User portrait URI
+          type: string
+        groups:
+          description: The current groups that the user is member of
+          type: array
+          items:
+            type: string
+        identities:
+          description: Authentication identities
+          type: array
+          items:
+            type: string
+
+    UserStatus:
+      type: object
+      properties:
+        paused:
+          type: boolean
+        userId:
+          type: integer
+
+    PeerAccount:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        context:
+          type: string
+
+    ServerConfiguration:
+      type: object
+      properties:
+        auth:
+          type: string
+        calendar:
+          type: string
+        callflow:
+          type: string
+        cdr:
+          type: string
+        notification:
+          type: string
+        contact:
+          type: string
+        dialplan:
+          type: string
+        message:
+          type: string
+        notificationSocket:
+          type: string
+        reception:
+          type: string
+        user:
+          type: string
+
+    NotificationSendPayload:
+      type: object
+      properties:
+        type:
+          type: string
+      additionalProperties: {}
+
+    NotificationSendResponse:
+      type: object
+      properties:
+        status:
+          type: object
+          properties:
+            success:
+              type: integer
+            failed:
+              type: integer
+
+    NotificationSendRequest:
+      type: object
+      properties:
+        recipients:
+          type: array
+          items:
+            type: integer
+        message:
+          $ref: '#/components/schemas/NotificationSendPayload'
+
+    Commit:
+      type: object
+      properties:
+        changedAt:
+          type: string
+          format: date-time
+        authorIdentity:
+          type: string
+        commitHash:
+          type: string
+        uid:
+          type: integer
+        changes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObjectChange'
+
+    ObjectChange:
+      type: object
+      properties:
+        changeType:
+          $ref: '#/components/schemas/ChangeType'
+        objectType:
+          $ref: '#/components/schemas/ObjectType'
+
+    DeleteResponse:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/ResponseCode'
+        description:
+          type: string
+
+    CommandSuccessResponse:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/ResponseCode'
+        operations-requested:
+          type: array
+          items:
+            type: string
+        operations-succeeded:
+          type: array
+          items:
+            type: string
+        operations-failed:
+          type: array
+          items:
+            type: string
+
+    ResponseCode:
+      type: string
+      enum:
+        - ok
+        - error
+
+    ClientConnection:
+      type: object
+      properties:
+        userId:
+          type: integer
+        connectionCount:
+          type: integer
+
+    OrganizationReference:
+      type: object
+      properties:
+        id:
+          type: integer
+          default: 0
+        name:
+          type: string
+
+    Organization:
+      type: object
+      properties:
+        id:
+          type: integer
+          default: 0
+        name:
+          type: string
+        notes:
+          type: array
+          items:
+            type: string
+
+    PhoneNumber:
+      type: object
+      properties:
+        destination:
+          type: string
+          default: ""
+        confidential:
+          type: boolean
+          default: false
+        note:
+          type: string
+          default: ""
+
+    ReceptionReference:
+      type: object
+      properties:
+        id:
+          type: integer
+          default: 0
+        name:
+          type: string
+          default: ""
+        oid:
+          type: integer
+          default: 0
+
+    Reception:
+      type: object
+      properties:
+        id:
+          type: integer
+          default: 0
+        name:
+          type: string
+          default: ""
+        oid:
+          type: integer
+          default: 0
+        addresses:
+          type: array
+          items:
+            type: string
+        alternateNames:
+          type: array
+          items:
+            type: string
+        bankingInformation:
+          type: array
+          items:
+            type: string
+        salesMarketingHandling:
+          type: array
+          items:
+            type: string
+        emailAddresses:
+          type: array
+          items:
+            type: string
+        handlingInstructions:
+          type: array
+          items:
+            type: string
+        openingHours:
+          type: array
+          items:
+            type: string
+        vatNumbers:
+          type: array
+          items:
+            type: string
+        websites:
+          type: array
+          items:
+            type: string
+        customerTypes:
+          type: array
+          items:
+            type: string
+        miniWiki:
+          type: string
+          default: ""
+        dialplan:
+          type: string
+          default: ""
+        greeting:
+          type: string
+          default: ""
+        otherData:
+          type: string
+          default: ""
+        shortGreeting:
+          type: string
+          default: ""
+        product:
+          type: string
+          default: ""
+        enabled:
+          type: boolean
+          default: false
+        phoneNumbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneNumber'
+
+    Configuration:
+      type: object
+      properties:
+        authServerUri:
+          type: string
+        calendarServerUri:
+          type: string
+        callFlowServerUri:
+          type: string
+        cdrServerUri:
+          type: string
+        contactServerUri:
+          type: string
+        dialplanServerUri:
+          type: string
+        hideInboundCallerId:
+          type: boolean
+        messageServerUri:
+          type: string
+        myIdentifiers:
+          type: array
+          items:
+            type: string
+        notificationServerUri:
+          type: string
+        notificationSocketUri:
+          type: string
+        receptionServerUri:
+          type: string
+        systemLanguage:
+          type: string
+        userServerUri:
+          type: string
+
+    CalendarEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        lastAuthorId:
+          type: integer
+        touched:
+          type: string
+          format: date-time
+        content:
+          type: string
+        start:
+          type: string
+          format: date-time
+        stop:
+          type: string
+          format: date-time
+    Peer:
+      type: object
+      properties:
+        name:
+          type: string
+        channelCount:
+          type: integer
+          default: 0
+        inTransition:
+          type: boolean
+          default: false
+        registered:
+          type: boolean
+          default: false
+
+    MessageState:
+      type: string
+      enum:
+        - unknown
+        - draft
+        - sent
+        - closed
+      description: >
+        Message State:
+         * `unknown` - Default initialized state, without anything other specified.
+         * `draft` - Message is current a draft in composition.
+         * `sent` - Message has been sent.
+         * `closed` - Message has been closed manually
+
+    MessageFlag:
+      type: object
+      properties:
+        pleaseCall:
+          type: boolean
+          default: false
+        willCallBack:
+          type: boolean
+          default: false
+        called:
+          type: boolean
+          default: false
+        urgent:
+          type: boolean
+          default: false
+
+    MessageFilter:
+      type: object
+      properties:
+        userId:
+          type: integer
+          default: 0
+        receptionId:
+          type: integer
+          default: 0
+        contactId:
+          type: integer
+          default: 0
+        limitCount:
+          type: integer
+          default: 100
+
+    ChangeType:
+      type: string
+      enum:
+        - add
+        - delete
+        - modify
+
+    ObjectType:
+      type: string
+      enum:
+        - user
+        - calendar
+        - reception
+        - organization
+        - contact
+        - receptionAttribute
+        - dialplan
+        - ivrMenu
+        - message
+
+    BaseContact:
+      type: object
+      properties:
+        id:
+          type: integer
+          default: 0
+        name:
+          type: string
+          default: ''
+        type:
+          type: string
+          default: ''
+        enabled:
+          type: boolean
+          default: true
+
+
+    MessageContext:
+      type: object
+      properties:
+        cid:
+          type: integer
+          default: 0
+        rid:
+          type: integer
+          default: 0
+        contactName:
+          type: string
+          default: ''
+        receptionName:
+          type: string
+          default: ''
+
+    MessageEndpoint:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/MessageEndpointType'
+        name:
+          type: string
+          default: ''
+        address:
+          type: string
+          default: ''
+        note:
+          type: string
+          default: ''
+
+    MessageEndpointType:
+      type: string
+      enum:
+        - sms
+        - email-to
+        - email-cc
+        - email-bcc
+
+    Message:
+      type: object
+      properties:
+        recipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageEndpoint'
+        id:
+          type: integer
+          default: 0
+        context:
+          $ref: '#/components/schemas/MessageContext'
+        flag:
+          $ref: '#/components/schemas/MessageFlag'
+        state:
+          $ref: '#/components/schemas/MessageState'
+        callerInfo:
+          $ref: '#/components/schemas/CallerInfo'
+        createdAt:
+          type: string
+          format: date-time
+        body:
+          type: string
+          default: ''
+        callId:
+          type: string
+          default: ''
+        sender:
+          $ref: '#/components/schemas/User'
+
+    ReceptionAttributes:
+      type: object
+      properties:
+        cid:
+          type: integer
+          default: 0
+        receptionId:
+          type: integer
+          default: 0
+        phoneNumbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneNumber'
+        endpoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageEndpoint'
+        backupContacts:
+          type: array
+          items:
+            type: string
+        messagePrerequisites:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        emailaddresses:
+          type: array
+          items:
+            type: string
+        handling:
+          type: array
+          items:
+            type: string
+        workhours:
+          type: array
+          items:
+            type: string
+        titles:
+          type: array
+          items:
+            type: string
+        responsibilities:
+          type: array
+          items:
+            type: string
+        relations:
+          type: array
+          items:
+            type: string
+        departments:
+          type: array
+          items:
+            type: string
+        infos:
+          type: array
+          items:
+            type: string
+        whenWhats:
+          type: array
+          items:
+            type: string
+
+    ReceptionContact:
+      type: object
+      properties:
+        contact:
+          $ref: '#/components/schemas/BaseContact'
+        attr:
+          $ref: '#/components/schemas/ReceptionAttributes'
+
+    ActiveRecording:
+      type: object
+      properties:
+        agentChannel:
+          type: string
+          description: The name of the agent channel currently being recorded.
+        path:
+          type: string
+          description: The filesystem path to the recording file.
+        started:
+          type: string
+          format: date-time
+          description: The time the recording was started.
+
+    AgentStatistics:
+      type: object
+      properties:
+        uid:
+          type: integer
+          description: The uid of the agent
+        recent:
+          type: integer
+          description: The number of call that was recently answered by the agent
+        total:
+          type: integer
+          description: The total number of calls answered by the agent.
+
+    CallTransferRequest:
+      type: object
+      properties:
+        destination:
+          type: string
+
+    OriginationRequest:
+      type: object
+      properties:
+        extension:
+          type: string
+        context:
+          $ref: '#/components/schemas/OriginationContext'
+
+    OriginationContext:
+      type: object
+      properties:
+        contactId:
+          type: integer
+          default: 0
+        receptionId:
+          type: integer
+          default: 0
+        dialplan:
+          type: string
+          default: ''
+        callId:
+          type: string
+          default: ''
+
+    MessageQueueEntry:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        handledRecipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageEndpoint'
+        unhandledRecipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageEndpoint'
+        id:
+          type: integer
+        tries:
+          type: integer
+        message:
+          $ref: '#/components/schemas/Message'
+
+    CallerInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          default: '?'
+        company:
+          type: string
+          default: '?'
+        phone:
+          type: string
+          default: '?'
+        cellPhone:
+          type: string
+          default: '?'
+        localExtension:
+          type: string
+          default: '?'

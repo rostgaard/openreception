@@ -84,13 +84,11 @@ class AgentHistory {
   /// object. Throws [NotFound] if the agent has no statistics associated.
   model.AgentStatistics sumUp(int uid) => !_recentCalls.containsKey(uid)
       ? throw new NotFound()
-      : new model.AgentStatistics(
-          uid,
-          _recentCalls[uid].length,
-          _recentCalls[uid].length +
-              (_callsHandledToday.containsKey(uid)
-                  ? _callsHandledToday[uid]
-                  : 0));
+      : new model.AgentStatistics()
+    ..uid = uid
+    ..recent = _recentCalls[uid].length
+    ..total = _recentCalls[uid].length +
+        (_callsHandledToday.containsKey(uid) ? _callsHandledToday[uid] : 0);
 
   /// Signal that a call has been handled by an agent.
   void callHandledByAgent(int userId) => _recentCalls.containsKey(userId)

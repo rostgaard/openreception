@@ -48,7 +48,6 @@ class Datastore {
   final controller.ReceptionDialplan _rdpController;
   final service.Authentication _authService;
 
-
   /// Validate a token by looking it up on the authentication server.
   Future<shelf.Response> _lookupToken(shelf.Request request) async {
     var token = request.requestedUri.queryParameters['token'];
@@ -113,8 +112,7 @@ class Datastore {
    */
   Future<io.HttpServer> listen(
       {String hostname: '0.0.0.0', int port: 4060}) async {
-
-     // Authentication middleware.
+    // Authentication middleware.
     shelf.Middleware checkAuthentication = shelf.createMiddleware(
         requestHandler: _lookupToken, responseHandler: null);
 
@@ -123,7 +121,7 @@ class Datastore {
 
     final handler = const shelf.Pipeline()
         .addMiddleware(
-        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(checkAuthentication)
         .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);

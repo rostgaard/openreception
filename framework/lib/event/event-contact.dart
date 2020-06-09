@@ -22,7 +22,7 @@ class ContactChange implements Event {
   ContactChange.create(this.cid, [int uid])
       : timestamp = DateTime.now(),
         state = Change.created,
-        modifierUid = uid != null ? uid : model.User.noId;
+        modifierUid = uid != null ? uid : 0;
 
   /// Create a [ContactChange] object from serialized data stored in [map].
   ContactChange.fromJson(Map<String, dynamic> map)
@@ -35,13 +35,13 @@ class ContactChange implements Event {
   ContactChange.update(this.cid, [int uid])
       : timestamp = DateTime.now(),
         state = Change.updated,
-        modifierUid = uid != null ? uid : model.User.noId;
+        modifierUid = uid != null ? uid : 0;
 
   /// Create a deletion event.
   ContactChange.delete(this.cid, [int uid])
       : timestamp = DateTime.now(),
         state = Change.deleted,
-        modifierUid = uid != null ? uid : model.User.noId;
+        modifierUid = uid != null ? uid : 0;
 
   @override
   final DateTime timestamp;

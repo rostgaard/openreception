@@ -16,14 +16,10 @@ library ors.router.dialplan;
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'package:ors/configuration.dart';
-import 'package:shelf_router/shelf_router.dart';
-import 'package:shelf/shelf.dart';
-import 'package:shelf/shelf_io.dart' as io;
-
 import 'package:logging/logging.dart';
 import 'package:orf/exceptions.dart';
 import 'package:orf/service.dart' as service;
+import 'package:ors/configuration.dart';
 import 'package:ors'
     '/controller/controller-ivr.dart' as controller;
 import 'package:ors'
@@ -31,7 +27,10 @@ import 'package:ors'
 import 'package:ors'
     '/controller/controller-reception_dialplan.dart' as controller;
 import 'package:ors/response_utils.dart';
+import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
+import 'package:shelf_router/shelf_router.dart';
 
 /// Dialplan router class.
 class Dialplan {

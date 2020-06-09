@@ -138,7 +138,7 @@ abstract class Calendar {
     expect(commits.first.changes.length, equals(1));
     final model.CalendarChange change = commits.first.changes.first;
 
-    expect(change.changeType, model.ChangeType.add);
+    expect(change.changeType, model.ChangeType.add_);
     expect(change.eid, created.id);
   }
 
@@ -164,7 +164,7 @@ abstract class Calendar {
 
     final model.CalendarChange change = latestCommit.changes.first;
 
-    expect(change.changeType, model.ChangeType.add);
+    expect(change.changeType, model.ChangeType.add_);
     expect(change.eid, created.id);
   }
 
@@ -206,10 +206,10 @@ abstract class Calendar {
     final model.CalendarChange latestChange = commits.first.changes.first;
     final model.CalendarChange oldestChange = commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.modify);
+    expect(latestChange.changeType, model.ChangeType.modify_);
     expect(latestChange.eid, created.id);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
+    expect(oldestChange.changeType, model.ChangeType.add_);
     expect(oldestChange.eid, created.id);
   }
 
@@ -239,7 +239,7 @@ abstract class Calendar {
 
     final model.CalendarChange change = latestCommit.changes.first;
 
-    expect(change.changeType, model.ChangeType.modify);
+    expect(change.changeType, model.ChangeType.modify_);
     expect(change.eid, created.id);
   }
 
@@ -278,10 +278,10 @@ abstract class Calendar {
     final model.CalendarChange latestChange = commits.first.changes.first;
     final model.CalendarChange oldestChange = commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.delete);
+    expect(latestChange.changeType, model.ChangeType.delete_);
     expect(latestChange.eid, created.id);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
+    expect(oldestChange.changeType, model.ChangeType.add_);
     expect(oldestChange.eid, created.id);
   }
 
@@ -311,7 +311,7 @@ abstract class Calendar {
 
     final model.CalendarChange change = latestCommit.changes.first;
 
-    expect(change.changeType, model.ChangeType.delete);
+    expect(change.changeType, model.ChangeType.delete_);
     expect(change.eid, created.id);
   }
 }

@@ -16,7 +16,7 @@ part of ors.model;
 /// Holds a list of currently active recordings based on events from FreeSWITCH.
 class ActiveRecordings extends IterableBase<model.ActiveRecording> {
   ///Internal logger.
-  Logger _log = new Logger('ors.model.ActiveRecordings');
+  Logger _log = Logger('ors.model.ActiveRecordings');
 
   /// Active recordings are, internally, stored as maps to enable easy lookup.
   final Map<String, model.ActiveRecording> _recordings = {};
@@ -28,7 +28,7 @@ class ActiveRecordings extends IterableBase<model.ActiveRecording> {
   /// Retrive a specific recording identified by its channel [uuid].
   Future<model.ActiveRecording> get(String uuid) async => _recordings.containsKey(uuid)
       ? _recordings[uuid]
-      : throw new NotFound('No active recordings on uuid');
+      : throw NotFound('No active recordings on uuid');
 
   /// Handle an incoming [esl.Event] packet
   void handleEvent(esl.Event event) {
@@ -39,7 +39,7 @@ class ActiveRecordings extends IterableBase<model.ActiveRecording> {
           final String path = event.fields['Record-File-Path'];
 
           _log.finest('Starting recording of channel $uuid at path $path');
-          _recordings[uuid] = new model.ActiveRecording(uuid, path);
+          _recordings[uuid] = model.ActiveRecording()..path = path..agentChannel = uuid;
 
           break;
 

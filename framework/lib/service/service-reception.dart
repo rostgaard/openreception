@@ -19,86 +19,88 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class RESTReceptionStore implements storage.Reception {
-  final WebService _backend;
 
-  /// The uri of the connected backend.
-  final Uri host;
+  RESTReceptionStore(Uri host, String token, dynamic _backend) : _client =
+  api.ReceptionApi(api.ApiClient(basePath: host.toString())) {
+    _client.apiClient.getAuthentication<api.ApiKeyAuth>('ApiKeyAuth').apiKey =
+        token;
+  }
 
-  /// The token used for authenticating with the backed.
-  final String token;
-
-  RESTReceptionStore(Uri this.host, String this.token, this._backend);
+  final api.ReceptionApi _client;
 
   @override
   Future<model.ReceptionReference> create(
-      model.Reception reception, model.User modifier) {
-    Uri url = resource.Reception.root(this.host);
-    url = _appendToken(url, this.token);
-
-    return _backend
-        .post(url, _json.encode(reception))
-        .then(_json.decode)
-        .then((map) => new model.ReceptionReference.fromJson(map));
+      model.Reception reception, model.User modifier) async {
+    try {
+      return await _client.createReception(reception);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<model.Reception> get(int receptionID) {
-    Uri url = resource.Reception.single(this.host, receptionID);
-    url = _appendToken(url, this.token);
-
-    return this._backend.get(url).then((String response) =>
-        new model.Reception.fromJson(
-            _json.decode(response) as Map<String, dynamic>));
+  Future<model.Reception> get(int rid) async {
+    try {
+      return await _client.getReception(rid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<model.ReceptionReference>> list() {
-    Uri url = resource.Reception.list(this.host);
-    url = _appendToken(url, this.token);
-
-    return this._backend.get(url).then((String response) =>
-        (_json.decode(response) as Iterable<Map<String, dynamic>>).map(
-            (Map<String, dynamic> map) =>
-                new model.ReceptionReference.fromJson(map)));
+  Future<List<model.ReceptionReference>> list() async {
+    try {
+      return await _client.receptions();
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<Null> remove(int rid, model.User modifier) async {
-    Uri url = resource.Reception.single(this.host, rid);
-    url = _appendToken(url, this.token);
-
-    await _backend.delete(url);
+    try {
+      return await _client.removeReception(rid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<model.ReceptionReference> update(
-      model.Reception reception, model.User modifier) {
-    Uri url = resource.Reception.single(this.host, reception.id);
-    url = _appendToken(url, this.token);
-
-    String data = _json.encode(reception);
-
-    return this
-        ._backend
-        .put(url, data)
-        .then(_json.decode)
-        .then((map) => new model.ReceptionReference.fromJson(map));
+      model.Reception reception, model.User modifier) async {
+    try {
+      return await _client.updateReception(reception.id, reception);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([int rid]) async {
-    Uri url = resource.Reception.changeList(host, rid);
-    url = _appendToken(url, this.token);
+  Future<List<model.Commit>> changes([int rid]) async {
+    try {
+      if (rid != 0 ) {
+        return await _client.receptionHistory(rid);
 
-    final String response = await _backend.get(url);
-    final Iterable<Map> maps = _json.decode(response);
-    return maps.map((map) => new model.Commit.fromJson(map));
+      } else {
+        return await _client.receptionHistories();
+      }
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
-  Future<String> changelog(int rid) {
-    Uri url = resource.Reception.changelog(host, rid);
-    url = _appendToken(url, this.token);
-
-    return _backend.get(url);
+  Future<String> changelog(int rid) async {
+    try {
+      return await _client.receptionChangelog(rid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 }

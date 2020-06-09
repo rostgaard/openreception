@@ -87,7 +87,7 @@ class Call {
       _command.fire(CallCommand.dialSuccess);
 
       return call;
-    }).catchError((error, stackTrace) {
+    }).catchError((Error error, StackTrace stackTrace) {
       _log.severe(error, stackTrace);
       _command.fire(CallCommand.dialFailure);
 
@@ -134,11 +134,11 @@ class Call {
     return _service
         .hangup(call.id)
         .then((_) => _command.fire(CallCommand.hangupSuccess))
-        .catchError((error, stackTrace) {
+        .catchError((Error error, StackTrace stackTrace) {
       _log.severe(error, stackTrace);
       _command.fire(CallCommand.hangupFailure);
 
-      return new Future.error(new ControllerError(error.toString()));
+      return Future<ControllerError>.error(ControllerError(error.toString()));
     }).whenComplete(() => _busy = false);
   }
 
@@ -164,7 +164,7 @@ class Call {
       _log.info('Parking $parkedCall');
 
       return parkedCall;
-    }).catchError((error, stackTrace) {
+    }).catchError((Error error, StackTrace stackTrace) {
       _log.severe(error, stackTrace);
       _command.fire(CallCommand.parkFailure);
 
@@ -191,7 +191,7 @@ class Call {
       _command.fire(CallCommand.pickupSuccess);
 
       return call;
-    }).catchError((error, stackTrace) {
+    }).catchError((Error error, StackTrace stackTrace) {
       _log.severe(error, stackTrace);
       _command.fire(CallCommand.pickupFailure);
 
@@ -245,15 +245,16 @@ class Call {
     _busy = true;
     _command.fire(CallCommand.transfer);
 
-    return await _service
-        .transfer(source.id, destination.id)
-        .then((_) => _command.fire(CallCommand.transferSuccess))
-        .catchError((error, stackTrace) {
-      _log.severe(error, stackTrace);
-      _command.fire(CallCommand.transferFailure);
+    try {
+      await _service.transfer(source.id, destination.id);
+      _command.fire(CallCommand.transferSuccess);
 
-      return new ControllerError(error.toString());
-    }).whenComplete(() => _busy = false);
+    } catch (error, stackTrace) {
+    _log.severe(error, stackTrace);
+    _command.fire(CallCommand.transferFailure);
+    } finally {
+     _busy = false;
+    }
   }
 
   /**
@@ -266,13 +267,9 @@ class Call {
   /**
    * Tries to transfer [source] to the first parked call.
    */
-  Future transferToFirstParkedCall(model.Call source) {
-    return _firstParkedCall().then((model.Call parkedCall) {
-      if (parkedCall != null) {
-        return _transfer(source, parkedCall);
-      }
+  Future<void> transferToFirstParkedCall(model.Call source) async {
+    final model.Call parkedCall = await _firstParkedCall();
 
-      return null;
-    });
+    await _transfer(source, parkedCall);
   }
 }

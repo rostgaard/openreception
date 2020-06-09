@@ -13,7 +13,7 @@ abstract class UserState {
     log.info('Receptionist tries to hunt down the next call');
     final model.Call firstCall = await receptionist.huntNextCall();
     expect(firstCall, isNotNull);
-    expect(firstCall.id, isNot(model.Call.noId));
+    expect(firstCall.id, isNot(model.noId));
 
     log.info('Receptionist tries to orignate a call to $callee');
     expect(receptionist.originate(callee.extension, context),

@@ -89,7 +89,7 @@ class Reception implements storage.Reception {
   /// sequencer object.
   int get _nextId => _sequencer.nextInt();
 
-  Future<Iterable<model.ReceptionReference>> _receptionsOfOrg(int oid) async {
+  Future<List<model.ReceptionReference>> _receptionsOfOrg(int oid) async {
     final Iterable<FileSystemEntity> dirs = Directory(path)
         .listSync()
         .where((FileSystemEntity fse) =>
@@ -113,7 +113,7 @@ class Reception implements storage.Reception {
   Future<model.ReceptionReference> create(
       model.Reception reception, model.User modifier,
       {bool enforceId: false}) async {
-    reception.id = reception.id != model.Reception.noId && enforceId
+    reception.id = reception.id != 0 && enforceId
         ? reception.id
         : _nextId;
 
@@ -167,7 +167,7 @@ class Reception implements storage.Reception {
   }
 
   @override
-  Future<Iterable<model.ReceptionReference>> list() async {
+  Future<List<model.ReceptionReference>> list() async {
     final Iterable<FileSystemEntity> dirs = Directory(path)
         .listSync()
         .where((FileSystemEntity fse) =>
@@ -213,7 +213,7 @@ class Reception implements storage.Reception {
   @override
   Future<model.ReceptionReference> update(
       model.Reception rec, model.User modifier) async {
-    if (rec.id == model.Reception.noId) {
+    if (rec.id == 0) {
       throw ClientError('id may not be "noId"');
     }
     final File file = File('$path/${rec.id}/reception.json');
@@ -242,7 +242,7 @@ class Reception implements storage.Reception {
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([int rid]) async {
+  Future<List<model.Commit>> changes([int rid]) async {
     if (this._git == null) {
       throw UnsupportedError(
           'Filestore is instantiated without git support');
@@ -260,7 +260,7 @@ class Reception implements storage.Reception {
 
     int extractUid(String message) => message.startsWith('uid:')
         ? int.parse(message.split(' ').first.replaceFirst('uid:', ''))
-        : model.User.noId;
+        : 0;
 
     model.ReceptionChange convertFilechange(FileChange fc) {
       String filename = fc.filename;

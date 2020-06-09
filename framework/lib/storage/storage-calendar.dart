@@ -17,7 +17,7 @@ part of orf.storage;
 abstract class Calendar {
   /// List calendar entry changes for [owner], optionally for a single [eid] as
   /// well.
-  Future<Iterable<model.Commit>> changes(model.Owner owner, [int eid]);
+  Future<List<model.Commit>> changes(model.Owner owner, [int eid]);
 
   /// Creates and stores a new [model.CalendarEntry] object persistently
   /// using [entry] data and [owner].
@@ -33,7 +33,7 @@ abstract class Calendar {
   Future<model.CalendarEntry> get(int eid, model.Owner owner);
 
   /// List all [model.CalendarEntry] of [owner].
-  Future<Iterable<model.CalendarEntry>> list(model.Owner owner);
+  Future<List<model.CalendarEntry>> list(model.Owner owner);
 
   /// Permanently removes the previously stored [model.CalendarEntry] object
   /// identified by [eid].

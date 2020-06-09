@@ -59,19 +59,19 @@ abstract class CallList {
 
     log.info('Receptionist ${receptionist.user.name} waits for call.');
     final model.Call call = await receptionist.nextOfferedCall();
-    expect(call.rid, equals(rec.id));
+    expect(call.orRid, equals(rec.id));
     //expect (call.destination, equals(reception));
-    expect(call.assignedTo, equals(model.User.noId));
+    expect(call.assignedTo, equals(model.noId));
     expect(call.bLeg, isNull);
     expect(call.channel, isNotNull);
     expect(call.channel, isNotEmpty);
-    expect(call.cid, equals(model.BaseContact.noId));
+    expect(call.orCid, equals(model.noId));
     expect(call.greetingPlayed, equals(false));
     expect(call.id, isNotNull);
     expect(call.id, isNotEmpty);
     expect(call.inbound, equals(true));
     expect(call.locked, equals(false));
-    expect(call.arrived.difference(DateTime.now()).inMilliseconds.abs(),
+    expect(call.arrivalTime.difference(DateTime.now()).inMilliseconds.abs(),
         lessThan(1000));
 
     log.info('Call is present in call list, asserting call list.');
@@ -114,13 +114,13 @@ abstract class CallList {
     {
       Iterable<model.Call> calls =
           await receptionist.callFlowControl.callList();
-      expect(calls.first.state, equals(model.CallState.queued));
+      expect(calls.first.state, equals(model.CallState.queued_));
     }
     await receptionist.pickup(inboundCall, waitForEvent: true);
     {
       Iterable<model.Call> calls =
           await receptionist.callFlowControl.callList();
-      expect(calls.first.state, isNot(model.CallState.queued));
+      expect(calls.first.state, isNot(model.CallState.queued_));
     }
 
     await receptionist.waitForQueueLeave(inboundCall.id);
@@ -156,7 +156,7 @@ abstract class CallList {
     {
       final Iterable<model.Call> calls =
           await receptionist.callFlowControl.callList();
-      expect(calls.first.state, equals(model.CallState.queued));
+      expect(calls.first.state, equals(model.CallState.queued_));
     }
 
     log.info('Caller hangs up call $inboundCall');

@@ -95,8 +95,8 @@ abstract class Ivr {
     expect(commits.first.changes.length, equals(1));
     final model.IvrChange change = commits.first.changes.first;
 
-    expect(change.changeType, model.ChangeType.add);
-    expect(change.menuName, created.name);
+    expect(change.changeType, model.ChangeType.add_);
+    expect(change.ivrName, created.name);
   }
 
   /**
@@ -129,11 +129,11 @@ abstract class Ivr {
     final model.IvrChange latestChange = commits.first.changes.first;
     final model.IvrChange oldestChange = commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.modify);
-    expect(latestChange.menuName, created.name);
+    expect(latestChange.changeType, model.ChangeType.modify_);
+    expect(latestChange.ivrName, created.name);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
-    expect(oldestChange.menuName, created.name);
+    expect(oldestChange.changeType, model.ChangeType.add_);
+    expect(oldestChange.ivrName, created.name);
   }
 
   /**
@@ -166,10 +166,10 @@ abstract class Ivr {
     final model.IvrChange latestChange = commits.first.changes.first;
     final model.IvrChange oldestChange = commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.delete);
-    expect(latestChange.menuName, created.name);
+    expect(latestChange.changeType, model.ChangeType.delete_);
+    expect(latestChange.ivrName, created.name);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
-    expect(oldestChange.menuName, created.name);
+    expect(oldestChange.changeType, model.ChangeType.add_);
+    expect(oldestChange.ivrName, created.name);
   }
 }

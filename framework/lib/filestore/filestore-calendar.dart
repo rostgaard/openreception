@@ -87,7 +87,7 @@ class Calendar implements storage.Calendar {
   }
 
   @override
-  Future<Iterable<model.Commit>> changes(model.Owner owner, [int eid]) async {
+  Future<List<model.Commit>> changes(model.Owner owner, [int eid]) async {
     if (this._git == null) {
       throw UnsupportedError(
           'Filestore is instantiated without git support');
@@ -107,7 +107,7 @@ class Calendar implements storage.Calendar {
 
     int extractUid(String message) => message.startsWith('uid:')
         ? int.parse(message.split(' ').first.replaceFirst('uid:', ''))
-        : model.User.noId;
+        : 0;
 
     model.CalendarChange convertFilechange(FileChange fc) {
       String filename = fc.filename;
@@ -149,7 +149,7 @@ class Calendar implements storage.Calendar {
       model.CalendarEntry entry, model.Owner owner, model.User modifier,
       {bool enforceId: false}) async {
     entry.id =
-        entry.id != model.CalendarEntry.noId && enforceId ? entry.id : _nextId;
+        entry.id != 0 && enforceId ? entry.id : _nextId;
 
     entry.lastAuthorId = modifier.id;
     entry.touched = DateTime.now();
@@ -215,7 +215,7 @@ class Calendar implements storage.Calendar {
   }
 
   @override
-  Future<Iterable<model.CalendarEntry>> list(model.Owner owner) async {
+  Future<List<model.CalendarEntry>> list(model.Owner owner) async {
     String ownerPath = '$path/${owner.id}/calendar';
 
     if (!Directory(ownerPath).existsSync()) {

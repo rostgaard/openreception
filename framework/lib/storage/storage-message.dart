@@ -19,13 +19,13 @@ abstract class Message {
   Future<model.Message> get(int mid);
 
   /// Get messages with [ids].
-  Future<Iterable<model.Message>> getByIds(Iterable<int> ids);
+  Future<List<model.Message>> getByIds(List<int> ids);
 
   /// List all messages that was created on given [day].
-  Future<Iterable<model.Message>> listDay(DateTime day);
+  Future<List<model.Message>> listDay(DateTime day);
 
   /// List all draft messages currently stored in this message store.
-  Future<Iterable<model.Message>> listDrafts();
+  Future<List<model.Message>> listDrafts();
 
   /// Creates and stores a new [model.Message] object persistently
   /// using [message] data.
@@ -49,5 +49,5 @@ abstract class Message {
   Future<Null> remove(int mid, model.User modifier);
 
   /// List message object changes for the store, optionally for a single [mid].
-  Future<Iterable<model.Commit>> changes([int mid]);
+  Future<List<model.Commit>> changes([int mid]);
 }

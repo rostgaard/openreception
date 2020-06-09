@@ -17,8 +17,8 @@ abstract class StateReload {
 
       expect(originalCall.toJson(), equals(updatedCall.toJson()));
       expect(
-          originalCall.arrived
-              .difference(updatedCall.arrived)
+          originalCall.arrivalTime
+              .difference(updatedCall.arrivalTime)
               .inMilliseconds
               .abs(),
           lessThan(1000));
@@ -26,14 +26,13 @@ abstract class StateReload {
       expect(originalCall.bLeg, equals(updatedCall.bLeg));
       expect(originalCall.callerId, equals(updatedCall.callerId));
       expect(originalCall.channel, equals(updatedCall.channel));
-      expect(originalCall.cid, equals(updatedCall.cid));
+      expect(originalCall.orCid, equals(updatedCall.orCid));
       expect(originalCall.destination, equals(updatedCall.destination));
       expect(originalCall.greetingPlayed, equals(updatedCall.greetingPlayed));
       expect(originalCall.id, equals(updatedCall.id));
       expect(originalCall.inbound, equals(updatedCall.inbound));
-      expect(originalCall.isActive, equals(updatedCall.isActive));
       expect(originalCall.locked, equals(updatedCall.locked));
-      expect(originalCall.rid, equals(updatedCall.rid));
+      expect(originalCall.orRid, equals(updatedCall.orRid));
       expect(originalCall.state, equals(updatedCall.state));
     });
   }
@@ -51,16 +50,15 @@ abstract class StateReload {
 
     await receptionist.waitForQueueJoin(call.id);
     log.info('Fetching call list');
-    final Iterable<model.Call> orignalCallQueue =
+    final Iterable<model.Call> originalCallQueue =
         await receptionist.callFlowControl.callList();
-    expect(orignalCallQueue.length, equals(1));
-    expect(orignalCallQueue.first.assignedTo, equals(model.User.noId));
-
     await receptionist.callStateReload();
     log.info('Comparing reloaded list with original list');
     Iterable<model.Call> reloadedList =
         await receptionist.callFlowControl.callList();
-    _validateCallLists(orignalCallQueue, reloadedList);
+    _validateCallLists(originalCallQueue, reloadedList);
+    expect(originalCallQueue.length, equals(1));
+    expect(originalCallQueue.first.assignedTo, equals(model.noId));
     log.info('Test Succeeded');
   }
 
@@ -139,7 +137,7 @@ abstract class StateReload {
         await receptionist.callFlowControl.callList();
     expect(orignalCallQueue.length, equals(1));
     expect(orignalCallQueue.first.assignedTo, equals(receptionist.user.id));
-    expect(orignalCallQueue.first.state, equals(model.CallState.speaking));
+    expect(orignalCallQueue.first.state, equals(model.CallState.speaking_));
 
     await receptionist.callStateReload();
     log.info('Comparing reloaded list with original list');

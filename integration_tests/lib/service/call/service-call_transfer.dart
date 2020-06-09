@@ -31,7 +31,7 @@ abstract class Transfer {
     await callee.waitForInboundCall();
     await callee.pickupCall();
     log.info('$receptionist picked up outbound call: $outboundCall');
-    expect(outboundCall.rid, equals(context.receptionId));
+    expect(outboundCall.orRid, equals(context.receptionId));
     expect(outboundCall.assignedTo, equals(receptionist.user.id));
 
     log.info('$receptionist transfers call $outboundCall to $inboundCall.');
@@ -80,7 +80,7 @@ abstract class Transfer {
     final model.Call outboundCall =
         await receptionist.originate(callee.extension, context);
     log.info('Outbound call: $outboundCall');
-    expect(outboundCall.rid, equals(context.receptionId));
+    expect(outboundCall.orRid, equals(context.receptionId));
     expect(outboundCall.assignedTo, equals(receptionist.user.id));
     await callee.waitForInboundCall();
     await callee.pickupCall();

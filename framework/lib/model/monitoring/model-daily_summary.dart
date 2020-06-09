@@ -45,7 +45,7 @@ class DailySummary {
     {
       Map<int, UserStateHistory> lastStates = <int, UserStateHistory>{};
       for (UserStateHistory ush in report.userStateHistory) {
-        if (ush.uid != User.noId && !seenUids.contains(ush.uid)) {
+        if (ush.uid != noId && !seenUids.contains(ush.uid)) {
           seenUids.add(ush.uid);
         }
 
@@ -72,7 +72,7 @@ class DailySummary {
     Map<int, int> messageCounts = <int, int>{};
 
     for (MessageHistory mh in report.messageHistory) {
-      if (mh.uid != User.noId && !seenUids.contains(mh.uid)) {
+      if (mh.uid != noId && !seenUids.contains(mh.uid)) {
         seenUids.add(mh.uid);
       }
 
@@ -84,7 +84,7 @@ class DailySummary {
     }
 
     for (HistoricCall history in report.callHistory) {
-      if (history.uid != User.noId && !seenUids.contains(history.uid)) {
+      if (history.uid != noId && !seenUids.contains(history.uid)) {
         seenUids.add(history.uid);
       }
 

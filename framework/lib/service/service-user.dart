@@ -19,103 +19,93 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class RESTUserStore implements storage.User {
-  final WebService _backend;
+  RESTUserStore(Uri host, String token, dynamic backend)
+      : _client = api.UserApi(api.ApiClient(basePath: host.toString())),
+        _groupsClient = api.GroupApi(api.ApiClient(basePath: host.toString())) {
+    _client.apiClient.getAuthentication<api.ApiKeyAuth>('ApiKeyAuth').apiKey =
+        token;
+    _groupsClient.apiClient
+        .getAuthentication<api.ApiKeyAuth>('ApiKeyAuth')
+        .apiKey = token;
+  }
 
-  /// The uri of the connected backend.
-  final Uri host;
-
-  /// The token used for authenticating with the backed.
-  final String token;
-
-  RESTUserStore(Uri this.host, String this.token, this._backend);
+  final api.UserApi _client;
+  final api.GroupApi _groupsClient;
 
   @override
-  Future<Iterable<model.UserReference>> list() async {
-    Uri url = resource.User.list(host);
-    url = _appendToken(url, this.token);
-
-    final List<dynamic> maps =
-    _json.decode(await _backend.get(url)) as List<dynamic>;
-
-    return maps.map(
-            (dynamic map) => model.UserReference.fromJson(map as Map<String, dynamic>));
+  Future<List<model.UserReference>> list() async {
+    try {
+      return await _client.list();
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<model.User> get(int userId) {
-    Uri url = resource.User.single(host, userId);
-    url = _appendToken(url, this.token);
-
-    return this
-        ._backend
-        .get(url)
-        .then((String reponse) => _json.decode(reponse))
-        .then(((userMap) => new model.User.fromJson(userMap)));
+  Future<model.User> get(int userId) async {
+    try {
+      return model.User.fromJson((await _client.user(userId)).toJson());
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<model.User> getByIdentity(String identity) {
-    Uri url = resource.User.singleByIdentity(host, identity);
-    url = _appendToken(url, this.token);
-
-    return _backend
-        .get(url)
-        .then(_json.decode)
-        .then(((userMap) => new model.User.fromJson(userMap)));
+  Future<model.User> getByIdentity(String identity) async {
+    try {
+      return model.User.fromJson(
+          (await _client.userByIdentity(identity)).toJson());
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<String>> groups() async {
-    Uri url = resource.User.group(host);
-    url = _appendToken(url, this.token);
-
-    final List<dynamic> maps =
-    _json.decode(await _backend.get(url)) as List<dynamic>;
-
-    return maps.cast<String>();
-  }
+  Future<List<String>> groups() async => _groupsClient.groups();
 
   @override
-  Future<model.UserReference> create(model.User user, model.User creator) {
-    Uri url = resource.User.root(host);
-    url = _appendToken(url, this.token);
-
-    return this
-        ._backend
-        .post(url, _json.encode(user))
-        .then((String reponse) => _json.decode(reponse))
-        .then(((map) => new model.UserReference.fromJson(map)));
+  Future<model.UserReference> create(
+      model.User user, model.User creator) async {
+    try {
+      return  await _client.addUser(user);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<model.UserReference> update(
       model.User user, model.User creator) async {
-    Uri url = resource.User.single(host, user.id);
-    url = _appendToken(url, this.token);
-
-    final Map<String, dynamic> response =
-        _json.decode(await _backend.put(url, _json.encode(user)));
-
-    return model.UserReference.fromJson(response);
+    try {
+      return await _client.updateUser(user.id, user);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<Null> remove(int userId, model.User creator) async {
-    Uri url = resource.User.single(host, userId);
-    url = _appendToken(url, this.token);
-
-    await _backend.delete(url);
+    try {
+      await _client.deleteUser(userId);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "DELETE", null, e.message);
+      throw e;
+    }
   }
 
   /// Returns the [model.UserStatus] object associated with [uid].
-  Future<model.UserStatus> userStatus(int uid) {
-    Uri uri = resource.User.userState(host, uid);
-    uri = _appendToken(uri, token);
-
-    return _backend
-        .get(uri)
-        .then(_json.decode)
-        .then((map) => new model.UserStatus.fromJson(map));
+  Future<model.UserStatus> userStatus(int uid) async {
+    try {
+      return await _client.userState(uid);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   /// Updates the [model.UserStatus] object associated with [uid] to
@@ -123,78 +113,72 @@ class RESTUserStore implements storage.User {
   ///
   /// The update is conditioned by the server and phone state and may throw
   /// [ClientError] exeptions.
-  Future<model.UserStatus> userStateReady(int uid) {
-    Uri uri = resource.User.setUserState(host, uid, model.UserState.ready);
-    uri = _appendToken(uri, token);
+  Future<model.UserStatus> userStateReady(int uid) async {
+    try {
+      final model.UserStatus pausedState = model.UserStatus()..paused = false ..userId=  uid;
 
-    return _backend
-        .post(uri, '')
-        .then(_json.decode)
-        .then((map) => new model.UserStatus.fromJson(map));
+      return await _client.updateUserStatus(uid, pausedState);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "POST", null, e.message);
+      throw e;
+    }
   }
 
-  /// Returns an Iterable representation of the all the [model.UserStatus]
+  /// Returns an List representation of the all the [model.UserStatus]
   /// objects currently known to the CallFlowControl server.
-  Future<Iterable<model.UserStatus>> userStatusList() async {
-    Uri uri = resource.User.userStateAll(host);
-    uri = _appendToken(uri, token);
-
-    final String response = await _backend.get(uri);
-    final Iterable<Map> maps = _json.decode(response);
-
-    return maps.map((map) => new model.UserStatus.fromJson(map));
+  Future<List<model.UserStatus>> userStatusList() async {
+    try {
+      final List<api.UserStatus> users = (await _client.userStates());
+      return users;
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
-  /// Updates the [model.UserStatus] object associated with [userId] to
+  /// Updates the [model.UserStatus] object associated with [uid] to
   /// state paused.
   ///
   /// The update is conditioned by the server and phone state and may throw
-  /// [ClientError] exeptions.
-  Future<model.UserStatus> userStatePaused(int userId) {
-    Uri uri = resource.User.setUserState(host, userId, model.UserState.paused);
-    uri = _appendToken(uri, token);
+  /// [ClientError] exceptions.
+  Future<model.UserStatus> userStatePaused(int uid) async {
+    try {
+      final model.UserStatus pausedState = model.UserStatus()..paused = true..userId= uid;
 
-    return _backend
-        .post(uri, '')
-        .then(_json.decode)
-        .then((map) => new model.UserStatus.fromJson(map));
+      return await _client.updateUserStatus(uid, pausedState);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "POST", null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([int uid]) async {
-    Uri url = resource.User.change(host, uid);
-    url = _appendToken(url, this.token);
-
-    final List<dynamic> maps =
-    _json.decode(await _backend.get(url)) as List<dynamic>;
-
-    return maps.map(
-            (dynamic map) => model.Commit.fromJson(map as Map<String, dynamic>));
+  Future<List<model.Commit>> changes([int uid]) async {
+    try {
+      final List<api.Commit> changes = uid != null
+          ? (await _client.userHistories())
+          : (await _client.userHistory(uid));
+      return changes;
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
-  Future<String> changelog(int uid) {
-    Uri url = resource.User.changelog(host, uid);
-    url = _appendToken(url, this.token);
-
-    return _backend.get(url);
+  Future<String> changelog(int uid) async {
+    try {
+      return await _client.userChangelog(uid);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
-  Future<model.DailyReport> dailyReport(DateTime day) {
-    Uri url = resource.User.dailyReport(host, day);
-    url = _appendToken(url, this.token);
-
-    return _backend
-        .get(url)
-        .then((String reponse) => _json.decode(reponse))
-        .then(((userMap) => new model.DailyReport.fromJson(userMap)));
-  }
-
-  Future<model.DailySummary> dailySummary(DateTime day) async {
-    Uri url = resource.User.dailySummary(host, day);
-    url = _appendToken(url, this.token);
-
-    final String body = await _backend.get(url);
-
-    return new model.DailySummary.fromJson(_json.decode(body));
-  }
+//  Future<model.DailyReport> dailyReport(DateTime day) {
+//    throw new UnsupportedError("Currently unsupported");
+//  }
+//
+//  Future<model.DailySummary> dailySummary(DateTime day) async {
+//    throw new UnsupportedError("Currently unsupported");
+//  }
 }

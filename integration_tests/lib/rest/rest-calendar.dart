@@ -29,9 +29,7 @@ void _runCalendarTests() {
 
     test(
         'CORS headers present (existingUri)',
-        () async => isCORSHeadersPresent(
-            resource.Calendar.ownerBase(
-                (await env.requestCalendarserverProcess()).uri, owner),
+        () async => isCORSHeadersPresent(Uri.parse('${cProcess.uri}/ping'),
             log));
 
     test(

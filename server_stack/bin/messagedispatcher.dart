@@ -22,13 +22,14 @@ import 'package:emailer/emailer.dart';
 import 'package:logging/logging.dart';
 import 'package:orf/filestore.dart' as filestore;
 import 'package:orf/model.dart' as model;
+import 'package:orf/message_templating.dart' as templating;
 import 'package:orf/storage.dart' as storage;
 import 'package:ors/configuration.dart';
 
 ///Logger
-final Logger _log = new Logger('MessageDispatcher');
+final Logger _log = Logger('MessageDispatcher');
 
-SmtpOptions _options = new SmtpOptions()
+SmtpOptions _options = SmtpOptions()
   ..hostName = config.messageDispatcher.smtp.hostname
   ..port = config.messageDispatcher.smtp.port
   ..secure = config.messageDispatcher.smtp.secure
@@ -43,7 +44,7 @@ void main(List<String> args) {
   Logger.root.level = config.messageDispatcher.log.level;
   Logger.root.onRecord.listen(config.messageDispatcher.log.onRecord);
 
-  ArgParser parser = new ArgParser()
+  ArgParser parser = ArgParser()
     ..addFlag('help', abbr: 'h', help: 'Output this help', negatable: false)
     ..addOption('filestore', abbr: 'f', help: 'Path to the filestore backend')
     ..addOption('httpport',
@@ -64,7 +65,7 @@ void main(List<String> args) {
   }
 
   _messageQueue =
-      new filestore.MessageQueue(parsedArgs['filestore'] + '/message_queue');
+      filestore.MessageQueue(parsedArgs['filestore'] + '/message_queue');
 }
 
 /**
@@ -74,9 +75,9 @@ void main(List<String> args) {
 Iterable<model.MessageEndpoint> emailRecipients(
         Iterable<model.MessageEndpoint> rcps) =>
     rcps.where((model.MessageEndpoint rcp) => [
-          model.MessageEndpointType.emailTo,
-          model.MessageEndpointType.emailCc,
-          model.MessageEndpointType.emailBcc
+          model.MessageEndpointType.emailTo_,
+          model.MessageEndpointType.emailCc_,
+          model.MessageEndpointType.emailBcc_
         ].contains(rcp.type));
 
 /**
@@ -85,19 +86,19 @@ Iterable<model.MessageEndpoint> emailRecipients(
 Iterable<model.MessageEndpoint> smsRecipients(
         Iterable<model.MessageEndpoint> rcps) =>
     rcps.where((model.MessageEndpoint rcp) =>
-        rcp.type == model.MessageEndpointType.sms);
+        rcp.type == model.MessageEndpointType.sms_);
 
 /**
  * The Periodic task that passes emails on to the SMTP server.
  * As of now, this is done by an external mailer script.
  */
 void periodicEmailSend() {
-  DateTime start = new DateTime.now();
+  DateTime start = DateTime.now();
 
   _messageQueue.list().then((Iterable<model.MessageQueueEntry> queuedMessages) {
     Future.forEach(queuedMessages, tryDispatch).whenComplete(() {
       _log.info('Processed ${queuedMessages.length} messages in '
-          '${(new DateTime.now().difference(start)).inMilliseconds} milliseconds.'
+          '${(DateTime.now().difference(start)).inMilliseconds} milliseconds.'
           ' Sleeping for ${config.messageDispatcher.mailerPeriod} seconds');
       reSchedule();
     });
@@ -112,7 +113,7 @@ void periodicEmailSend() {
  *
  */
 Timer reSchedule() =>
-    new Timer(config.messageDispatcher.mailerPeriod, periodicEmailSend);
+    Timer(config.messageDispatcher.mailerPeriod, periodicEmailSend);
 
 /**
  *
@@ -141,22 +142,22 @@ Future tryDispatch(model.MessageQueueEntry queueItem) async {
   Iterable<model.MessageEndpoint> currentRecipients =
       emailRecipients(queueItem.unhandledRecipients);
 
-  List<Address> to = new List<Address>.from(currentRecipients
-      .where((mr) => mr.type == model.MessageEndpointType.emailTo)
-      .map((mrto) => new Address(mrto.address.trim(), mrto.name)));
+  List<Address> to = List<Address>.from(currentRecipients
+      .where((mr) => mr.type == model.MessageEndpointType.emailTo_)
+      .map((mrto) => Address(mrto.address.trim(), mrto.name)));
 
-  List<Address> cc = new List<Address>.from(currentRecipients
-      .where((mr) => mr.type == model.MessageEndpointType.emailCc)
-      .map((mrto) => new Address(mrto.address.trim(), mrto.name)));
+  List<Address> cc = List<Address>.from(currentRecipients
+      .where((mr) => mr.type == model.MessageEndpointType.emailCc_)
+      .map((mrto) => Address(mrto.address.trim(), mrto.name)));
 
-  List<Address> bcc = new List<Address>.from(currentRecipients
-      .where((mr) => mr.type == model.MessageEndpointType.emailBcc)
-      .map((mrto) => new Address(mrto.address.trim(), mrto.name)));
+  List<Address> bcc = List<Address>.from(currentRecipients
+      .where((mr) => mr.type == model.MessageEndpointType.emailBcc_)
+      .map((mrto) => Address(mrto.address.trim(), mrto.name)));
 
   if (currentRecipients.isNotEmpty) {
-    model.TemplateEmail templateEmail =
-        new model.TemplateEmail(message, queueItem.message.sender);
-    Email email = new Email(new Address(senderAddress, senderName),
+    templating.TemplateEmail templateEmail =
+        templating.TemplateEmail(message, queueItem.message.sender);
+    Email email = Email(Address(senderAddress, senderName),
         config.messageDispatcher.smtp.hostname)
       ..to = to
       ..cc = cc
@@ -165,7 +166,7 @@ Future tryDispatch(model.MessageQueueEntry queueItem) async {
       ..partText = templateEmail.bodyText
       ..partHtml = templateEmail.bodyHtml;
 
-    await new SmtpClient(_options).send(email).then((_) {
+    await SmtpClient(_options).send(email).then((_) {
       /// Update the handled recipient set.
       queueItem.handledRecipients = currentRecipients;
     }).catchError((error, stackTrace) {
@@ -182,14 +183,14 @@ Future tryDispatch(model.MessageQueueEntry queueItem) async {
   currentRecipients = smsRecipients(queueItem.unhandledRecipients);
 
   if (currentRecipients.isNotEmpty) {
-    model.Template templateSMS = new model.TemplateSMS(message);
-    Email sms = new Email(new Address(senderAddress, senderName),
+    templating.Template templateSMS = templating.TemplateSMS(message);
+    Email sms = Email(Address(senderAddress, senderName),
         config.messageDispatcher.smtp.hostname)
-      ..to = new List<Address>.from(currentRecipients.map((mrto) => new Address(
+      ..to = List<Address>.from(currentRecipients.map((mrto) => Address(
           mrto.address + config.messageDispatcher.smsKey.trim(), '')))
       ..partText = templateSMS.bodyText;
 
-    await new SmtpClient(_options).send(sms).then((_) {
+    await SmtpClient(_options).send(sms).then((_) {
       queueItem.handledRecipients = currentRecipients;
     }).catchError((error, stackTrace) {
       _log.shout(

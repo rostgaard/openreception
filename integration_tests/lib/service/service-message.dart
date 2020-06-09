@@ -18,7 +18,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = model.MessageContext.empty()
+    final context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -45,7 +45,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = model.MessageContext.empty()
+    final context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -73,7 +73,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = model.MessageContext.empty()
+    final context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name

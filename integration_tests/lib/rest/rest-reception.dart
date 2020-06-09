@@ -22,8 +22,8 @@ void _runReceptionTests() {
 
     test(
         'CORS headers present (existingUri)',
-        () => isCORSHeadersPresent(
-            resource.ReceptionDialplan.list(rProcess.uri), log));
+            () async => isCORSHeadersPresent(Uri.parse('${(await env.requestReceptionserverProcess()).uri}/ping'),
+            log));
 
     test(
         'CORS headers present (non-existingUri)',

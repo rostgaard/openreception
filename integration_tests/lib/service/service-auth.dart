@@ -27,7 +27,7 @@ abstract class AuthService {
     expect(user.id, equals(sa.user.id));
     expect(user.name, sa.user.name);
     expect(user.address, sa.user.address);
-    expect(user.extension, sa.user.extension);
+    expect(user.extension_, sa.user.extension_);
     expect(user.groups, sa.user.groups);
     expect(user.identities, sa.user.identities);
 

@@ -43,27 +43,39 @@ class UserState {
     return okJson(_userUIState[uid]);
   }
 
-  Future<Response> list(Request request) async => okJson(json.encode(_userStateList));
+  Future<Response> list(Request request) async =>
+      okJson(json.encode(_userStateList));
 
   Future<Response> get(Request request, String uidParam) async {
     final int uid = int.parse(uidParam);
 
     if (!_userStateList.has(uid)) {
-      return notFoundJson( const {});
+      return notFoundJson(const {});
     }
 
     return Response.ok(json.encode(_userStateList.get(uid)));
   }
 
-  Response set(Request request, String uidParam, String newState) {
+  Future<Response> set(Request request, String uidParam) async {
     final int uid = int.parse(uidParam);
 
-    if (newState == model.UserState.paused) {
-      return Response.ok(json.encode(_userStateList.pause(uid)));
-    } else if (newState == model.UserState.ready) {
-      return Response.ok(json.encode(_userStateList.ready(uid)));
-    } else {
-      return serverError('Unknown state $newState');
+    try {
+      final map = json.decode(await request.readAsString());
+      final user = model.UserStatus.fromJson(map);
+
+      if (user.paused) {
+        return Response.ok(json.encode(_userStateList.pause(uid)));
+      } else {
+        return Response.ok(json.encode(_userStateList.ready(uid)));
+      }
+    } on FormatException catch (error) {
+      Map response = <String, String>{
+        'status': 'bad request',
+        'description': 'passed object argument '
+            'is too long, missing or invalid',
+        'error': error.toString()
+      };
+      return clientErrorJson(response);
     }
   }
 }

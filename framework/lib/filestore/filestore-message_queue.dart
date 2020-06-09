@@ -47,7 +47,7 @@ class MessageQueue implements storage.MessageQueue {
     final int mqId = _nextId;
 
     final model.MessageQueueEntry queueEntry =
-        model.MessageQueueEntry.empty()
+        model.MessageQueueEntry()
           ..id = mqId
           ..unhandledRecipients = message.recipients
           ..message = message;
@@ -86,7 +86,7 @@ class MessageQueue implements storage.MessageQueue {
   }
 
   @override
-  Future<Iterable<model.MessageQueueEntry>> list() async => Directory(path)
+  Future<List<model.MessageQueueEntry>> list() async => Directory(path)
       .listSync()
       .where(
           (FileSystemEntity fse) => fse is File && fse.path.endsWith('.json'))

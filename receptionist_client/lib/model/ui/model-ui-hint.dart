@@ -32,8 +32,8 @@ class UIHint {
       hint.classes.toggle('hidden');
 
       if (!hint.classes.contains('hidden')) {
-        final double parentWidth = hint.parent.getClientRects().first.width;
-        final double hintWidth = hint.getClientRects().first.width;
+        final num parentWidth = hint.parent.getClientRects().first.width;
+        final num hintWidth = hint.getClientRects().first.width;
 
         hint.style.left = '${(parentWidth - hintWidth)~/2}px';
       }

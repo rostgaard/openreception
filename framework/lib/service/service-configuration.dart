@@ -81,29 +81,22 @@ String _encodeServerType(ServerType type) {
 /// and stores location identifiers for other services.
 class RESTConfiguration {
   /// Create a new [RESTConfiguration] client.
-  RESTConfiguration(Uri this.host, this._backend);
+  factory RESTConfiguration(Uri host, WebService _backend) => RESTConfiguration.withHost(host);
 
-  final WebService _backend;
+  RESTConfiguration.withHost(Uri host) :
+        _client = api.ClientConfigurationApi(api.ApiClient(basePath: host.toString()));
 
-  /// The uri of the connected backend.
-  final Uri host;
+  final api.ClientConfigurationApi _client;
+
+  Uri get host => Uri.parse(_client.apiClient.basePath);
 
   /// Returns a [model.ClientConfiguration] object.
-  Future<model.ClientConfiguration> clientConfig() {
-    final Uri uri = resource.Config.get(this.host);
-
-    return _backend.get(uri).then((String response) =>
-        new model.ClientConfiguration.fromJson(
-            _json.decode(response) as Map<String, dynamic>));
-  }
+  Future<model.Configuration> clientConfig() async => await _client.config();
 
   ///Registers a server in the config server registry.
   Future<Null> register(ServerType type, Uri registerUri) async {
-    final Uri uri = resource.Config.root(this.host);
-    final Map<String, dynamic> body = <String, dynamic>{
-      _encodeServerType(type): registerUri.toString()
-    };
-
-    await _backend.put(uri, _json.encode(body));
+    await _client.setServer(api.ServerConfiguration.fromJson(<String, dynamic>{
+    _encodeServerType(type): registerUri.toString() }
+    ));
   }
 }

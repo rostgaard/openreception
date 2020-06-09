@@ -27,10 +27,26 @@ import 'package:orf/event.dart' as event;
 import 'package:orf/model.dart' as model;
 import 'package:orf/service.dart' as service;
 import 'package:orf/service-html.dart' as transport;
+import 'package:openapi_dart_common/openapi.dart';
+import 'package:testapi/api.dart';
 
 part 'configuration_url.dart';
 
 const String libraryName = 'orc';
+class ConfigClient {
+  ApiClient _apiClient;
+  CounterServiceApi _counterServiceApi;
+  CounterServiceApi get counterServiceApi => _counterServiceApi;
+  ConfigClient _configClient;
+  ConfigClient get configClient => _configClient;
+
+  ConfigClient() {
+    _apiClient = ApiClient(
+        basePath: 'http://localhost:4080',
+        deserializeDelegate: LocalApiClient());
+    _counterServiceApi = CounterServiceApi(_apiClient);
+  }
+}
 
 ui_model.UIORCDisaster uiDisaster = new ui_model.UIORCDisaster('orc-disaster');
 ui_model.UIORCLoading uiLoading = new ui_model.UIORCLoading('orc-loading');
@@ -63,6 +79,11 @@ Future main() async {
   } else {
     configUri = defaultConfigUri;
   }
+
+  final client = ConfigClient();
+
+  final config = await client.counterServiceApi.config();
+  print(config);
 
   /// Hang here until the client configuration has been loaded from the server.
   final model.ClientConfiguration clientConfig =
@@ -144,10 +165,10 @@ Future main() async {
 
         Future lCS = loadCallState(callFlowControl, appState);
 
-        Future.wait([rRV, lCS]).then((_) async {
-          await new Future.delayed(new Duration(seconds: 1));
+        Future.wait<dynamic>([rRV, lCS]).then((_) async {
+          await new Future<void>.delayed(new Duration(seconds: 1));
           appState.changeState(ui_model.AppState.ready);
-        }).catchError((error) {
+        }).catchError((Exception error) {
           log.shout('Loading of app failed with $error');
           appState.changeState(ui_model.AppState.error);
         });
@@ -235,10 +256,12 @@ Future<model.User> getUser(Uri authServerUri, String token) {
 /**
  * Load call state for current user.
  */
-Future loadCallState(
-    service.CallFlowControl callFlowControl, ui_model.AppClientState appState) {
-  return callFlowControl.callList().then((Iterable<model.Call> calls) {
-    model.Call myActiveCall = calls.firstWhere(
+Future<void> loadCallState(
+    service.CallFlowControl callFlowControl, ui_model.AppClientState appState) async {
+
+  final calls = await callFlowControl.callList();
+
+  final model.Call myActiveCall = calls.firstWhere(
         (model.Call call) =>
             call.assignedTo == appState.currentUser.id &&
             call.state == model.CallState.speaking,
@@ -247,7 +270,6 @@ Future loadCallState(
     if (myActiveCall != null) {
       appState.activeCall = myActiveCall;
     }
-  });
 }
 
 /**
@@ -263,7 +285,7 @@ void observers(
   /// "ignoreclickfocus" attribute and ignoring mousedown events for those
   /// elements.
   document.onMouseDown.listen((MouseEvent event) {
-    final HtmlElement element = event.target;
+    final HtmlElement element = event.target as HtmlElement;
 
     if (element.attributes.keys.contains('ignoreclickfocus')) {
       event.preventDefault();
@@ -271,7 +293,7 @@ void observers(
   });
 
   windowOnBeforeUnload = window.onBeforeUnload.listen((Event event) {
-    final BeforeUnloadEvent bfuEvent = event;
+    final BeforeUnloadEvent bfuEvent = event as BeforeUnloadEvent;
 
     bfuEvent.returnValue = '';
   });
@@ -323,7 +345,7 @@ Future registerReadyView(
     controller.Notification notification,
     Map<String, String> langMap,
     String token,
-    transport.WebSocketClient webSocketClient) {
+    transport.WebSocketClient webSocketClient) async {
   ui_model.UIORCReady uiReady = new ui_model.UIORCReady('orc-ready');
 
   service.RESTCalendarStore calendarStore = new service.RESTCalendarStore(
@@ -349,15 +371,13 @@ Future registerReadyView(
       new Uri.file('/images/popup_success.png'));
 
   controller.Sound sound =
-      new controller.Sound(querySelector('audio.sound-pling'));
+      new controller.Sound(querySelector('audio.sound-pling') as AudioElement);
 
   observers(controllerUser, appState, webSocketClient, notification);
 
-  return receptionController
-      .list()
-      .then((Iterable<model.ReceptionReference> receptions) {
-    Iterable<model.ReceptionReference> sortedReceptions = receptions.toList()
+  final sortedReceptions = (await receptionController.list()).toList(growable: false)
       ..sort((x, y) => x.name.toLowerCase().compareTo(y.name.toLowerCase()));
+
 
     appReady = new view.ORCReady(
         appState,
@@ -376,12 +396,10 @@ Future registerReadyView(
         langMap);
 
     //simulation.start(callController, appState);
-  });
+
 }
 
-/**
- * Tries to reload the application at [appUri] in 10 seconds.
- */
+/// Tries to reload the application at [appUri] in 10 seconds.
 Future restartAppInTenSeconds(Uri appUri) async {
   if (windowOnBeforeUnload != null) {
     await windowOnBeforeUnload.cancel();
@@ -391,15 +409,13 @@ Future restartAppInTenSeconds(Uri appUri) async {
     await windowOnUnload.cancel();
   }
 
-  await new Future.delayed(new Duration(seconds: 10)).then((_) {
-    appUri = Uri.parse(window.location.href);
-    window.location.replace('${appUri.origin}${appUri.path}');
-  });
+  await Future<void>.delayed(Duration(seconds: 10));
+
+  appUri = Uri.parse(window.location.href);
+  window.location.replace('${appUri.origin}${appUri.path}');
 }
 
-/**
- * Worlds most simple method to translate widget labels to supported languages.
- */
+/// Worlds most simple method to translate widget labels to supported languages.
 void translate(Map<String, String> langMap) {
   querySelectorAll('[data-lang-text]').forEach((Element element) {
     element.text = langMap[element.dataset['lang-text']];

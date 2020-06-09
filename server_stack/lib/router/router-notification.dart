@@ -18,7 +18,6 @@ import 'dart:io' as io;
 
 import 'package:logging/logging.dart';
 import 'package:orf/exceptions.dart';
-import 'package:orf/service-io.dart' as service;
 import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
 import 'package:ors/controller/controller-notification.dart' as controller;
@@ -32,7 +31,6 @@ const String libraryName = "notificationserver.router";
 final Logger _log = Logger(libraryName);
 
 class Notification {
-
   Notification(this._authService) {
     _notificationController = controller.Notification(_authService);
   }
@@ -40,14 +38,13 @@ class Notification {
   final service.Authentication _authService;
   controller.Notification _notificationController;
 
-
   /**
    *
    */
   void bindRoutes(dynamic router) {
     router
       ..get('/notifications', _notificationController.handleWsConnect)
-      ..post('/broadcast', _notificationController.broadcast)
+      ..post('/notifications', _notificationController.broadcast)
       ..post('/send', _notificationController.send)
       ..get('/connection', _notificationController.connectionList)
       ..get('/stats', _notificationController.statistics)
@@ -84,15 +81,15 @@ class Notification {
       return null;
     }
 
-    final Middleware checkAuthentication = createMiddleware(
-        requestHandler: _lookupToken, responseHandler: null);
+    final Middleware checkAuthentication =
+        createMiddleware(requestHandler: _lookupToken, responseHandler: null);
 
     var router = Router();
     bindRoutes(router);
 
     var handler = const Pipeline()
         .addMiddleware(
-        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(checkAuthentication)
         .addMiddleware(logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);

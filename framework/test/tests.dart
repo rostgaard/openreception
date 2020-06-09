@@ -66,7 +66,6 @@ part 'src/model/model-reception.dart';
 part 'src/model/model-reception_attributes.dart';
 part 'src/model/model-user.dart';
 part 'src/model/model-user_status.dart';
-part 'src/resource/resource-authentication.dart';
 part 'src/resource/resource-calendar.dart';
 part 'src/resource/resource-call_flow_control.dart';
 part 'src/resource/resource-cdr.dart';
@@ -133,7 +132,6 @@ void main() {
   _testModelUserStatus();
   _testModelUser();
 
-  _testResourceAuthentication();
   _testResourceCalendar();
   _testResourceCallFlowControl();
   _testResourceCDR();

@@ -69,8 +69,8 @@ class MessageChange implements Event {
     final int mid = map[_Key._mid];
     final String state = map[_Key._state];
     final model.MessageState messageState = map.containsKey(_Key._messageState)
-        ? model.MessageState.values[map[_Key._messageState]]
-        : model.MessageState.unknown;
+        ? model.MessageState.fromJson([map[_Key._messageState]] as String)
+        : model.MessageState.unknown_;
     final DateTime timestamp =
         util.unixTimestampToDateTime(map[_Key._timestamp]);
     final DateTime createdAt = map.containsKey(_Key._createdAt)
@@ -96,7 +96,7 @@ class MessageChange implements Event {
         : util.never;
 
     return MessageChange._internalDecoder(timestamp, mid, modifierUid,
-        state, model.MessageState.unknown, createdAt);
+        state, model.MessageState.unknown_, createdAt);
   }
 
   MessageChange._internalDecoder(this.timestamp, this.mid, this.modifierUid,
@@ -121,7 +121,7 @@ class MessageChange implements Event {
         _Key._modifierUid: this.modifierUid,
         _Key._mid: this.mid,
         _Key._state: this.state,
-        _Key._messageState: this.messageState.index,
+        _Key._messageState: model.MessageStateTypeTransformer().encode(messageState),
         _Key._createdAt: util.dateTimeToUnixTimestamp(createdAt)
       });
 

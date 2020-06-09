@@ -177,7 +177,7 @@ class AgentHistory {
         _eventDumpDir.listSync().where((FileSystemEntity fse) => fse is File);
 
     files.forEach((FileSystemEntity f) {
-      final File file = f;
+      final File file = f as File;
       _log.info('Reading event dump from ${file.path}');
       try {
         List<String> lines = file.readAsLinesSync();
@@ -288,7 +288,7 @@ class AgentHistory {
     Map<String, dynamic> deserialized;
     try {
       deserialized =
-          _json.decode(await _uidMapFile.readAsString());
+          _json.decode(await _uidMapFile.readAsString()) as  Map<String, dynamic> ;
     } on FormatException {
       _log.shout('Corrupt format for uid -> name mappings in '
           'file ${_uidMapFile.path}');
@@ -299,7 +299,7 @@ class AgentHistory {
     deserialized.forEach((String uidString, dynamic userName) {
       try {
         final int uid = int.parse(uidString);
-        _uidNameCache[uid] = userName;
+        _uidNameCache[uid] = userName as String;
       } on FormatException {
         _log.warning('Bad key value $uidString');
       }

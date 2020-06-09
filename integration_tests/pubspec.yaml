@@ -7,7 +7,7 @@ dependencies:
   esl:
     path: ../../libesl-dart
   orf:
-    path: ../framework
+    path: ../../dart_api
   phonio:
     git:
       ref: dart-2.0

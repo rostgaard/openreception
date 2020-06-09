@@ -13,117 +13,77 @@
 
 part of orf.service;
 
-class _NotificationRequest {
-  _NotificationRequest(Uri this.resource, Map<String, dynamic> this.body);
-
-  final Map<String, dynamic> body;
-  final Uri resource;
-  final Completer<String> response = new Completer<String>();
-}
-
 /// Client for Notification sending.
 class NotificationService {
   NotificationService(
-      Uri this.host, String this._clientToken, this._httpClient);
+      Uri this.host, String this._clientToken, WebService oldClient)
+      : _client =
+            api.NotificationApi(api.ApiClient(basePath: host.toString())) {
+    _client.apiClient.getAuthentication<api.ApiKeyAuth>('ApiKeyAuth').apiKey =
+        _clientToken;
+  }
 
-  static Queue<_NotificationRequest> _requestQueue =
-      new Queue<_NotificationRequest>();
-  static bool _busy = false;
+  final api.NotificationApi _client;
 
-  final WebService _httpClient;
   final Uri host;
   final String _clientToken;
 
   /// Performs a broadcast via the notification server.
-  Future<String> broadcastEvent(event.Event event) {
-    Uri uri = resource.Notification.broadcast(host);
-    uri = _appendToken(uri, _clientToken);
-
-    return _enqueue(new _NotificationRequest(uri, event.toJson()));
+  Future<api.NotificationSendResponse> broadcastEvent(event.Event event) async {
+    try {
+      return await _client.broadcast(event.toJson());
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   /// Retrieves the [model.ClientConnection]'s currently active on the server.
-  Future<Iterable<model.ClientConnection>> clientConnections() async {
-    Uri uri = resource.Notification.clientConnections(host);
-    uri = _appendToken(uri, _clientToken);
-
-    final String response = await _httpClient.get(uri);
-    final Iterable maps = _json.decode(response);
-
-    return maps.map((map) => new model.ClientConnection.fromJson(map));
+  Future<List<api.ClientConnection>> clientConnections() async {
+    try {
+      return (await _client.allConnections());
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
-  /// Retrieves the [model.ClientConnection] currently associated with [uid].
-  Future<model.ClientConnection> clientConnection(int uid) {
-    Uri uri = resource.Notification.clientConnection(host, uid);
-    uri = _appendToken(uri, _clientToken);
-
-    return _httpClient
-        .get(uri)
-        .then(_json.decode)
-        .then((map) => new model.ClientConnection.fromJson(map));
+  /// Retrieves the [api.ClientConnection] currently associated with [uid].
+  Future<api.ClientConnection> clientConnection(int uid) async {
+    try {
+      return model.ClientConnection.fromJson(
+          (await _client.connectionsByUser(uid)).toJson());
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   /// Sends an event via the notification server to [recipients]
-  Future<Null> send(Iterable<int> recipients, event.Event event) async {
-    Uri uri = resource.Notification.send(host);
-    uri = _appendToken(uri, _clientToken);
-
-    final Map<String, dynamic> payload = <String, dynamic>{
-      'recipients': recipients.toList(),
-      'message': event.toJson()
-    };
-
-    await _httpClient.post(uri, _json.encode(payload));
-  }
-
-  /// Every request sent to the phone is enqueued and executed in-order
-  /// without the possibility to pipeline requests.
-  ///
-  /// This is done to enforce strict ordering of notifications, so that
-  /// they are received in-order.
-  Future<String> _enqueue(_NotificationRequest request) {
-    if (!_busy) {
-      _busy = true;
-      return _performRequest(request);
-    } else {
-      _requestQueue.add(request);
-      return request.response.future;
+  Future<api.NotificationSendResponse> send(
+      Iterable<int> recipients, event.Event event) async {
+    try {
+      return await _client.send(api.NotificationSendRequest()
+        ..recipients = recipients.toList()
+        ..message = api.NotificationSendPayload.fromJson(event.toJson()));
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
     }
-  }
-
-  /// Performs the actual backend post operation.
-  Future<String> _performRequest(_NotificationRequest request) async {
-    void dispatchNext() {
-      if (_requestQueue.isNotEmpty) {
-        _NotificationRequest currentRequest = _requestQueue.removeFirst();
-
-        _performRequest(currentRequest)
-            .then((_) => currentRequest.response.complete())
-            .catchError(currentRequest.response.completeError);
-      } else {
-        _busy = false;
-      }
-    }
-
-    return await _httpClient
-        .post(request.resource, _json.encode(request.body))
-        .whenComplete(dispatchNext);
   }
 
   /// Factory shortcut for opening a [NotificationSocket] client connection.
   static Future<NotificationSocket> socket(
       WebSocket notificationBackend, Uri host, String serverToken) {
     return notificationBackend
-        .connect(_appendToken(
-            resource.Notification.notifications(host), serverToken))
-        .then((WebSocket ws) => new NotificationSocket(ws));
+        .connect(Uri.parse(host.toString() + '/notifications?token='+ serverToken))
+        .then((WebSocket ws) => NotificationSocket(ws));
   }
 }
 
 /// Notification listener socket client.
 class NotificationSocket {
-  /// Creates a new [NotificationSocket]. The [_websocket] parameter object needs
+  /// Creates a [NotificationSocket]. The [_websocket] parameter object needs
   /// to be connected manually. Otherwise, the notification socket will remain
   /// silent.
   NotificationSocket(WebSocket this._websocket) {
@@ -143,28 +103,24 @@ class NotificationSocket {
   final WebSocket _websocket;
 
   // Chuck-o'-busses.
-  Bus<event.Event> _eventBus = new Bus<event.Event>();
-  Bus<event.CallEvent> _callEventBus = new Bus<event.CallEvent>();
-  Bus<event.CalendarChange> _calenderChangeBus =
-      new Bus<event.CalendarChange>();
+  Bus<event.Event> _eventBus = Bus<event.Event>();
+  Bus<event.CallEvent> _callEventBus = Bus<event.CallEvent>();
+  Bus<event.CalendarChange> _calenderChangeBus = Bus<event.CalendarChange>();
   Bus<event.ClientConnectionState> _clientConnectionBus =
-      new Bus<event.ClientConnectionState>();
-  Bus<event.ContactChange> _contactChangeBus = new Bus<event.ContactChange>();
-  Bus<event.ReceptionData> _receptionDataChangeBus =
-      new Bus<event.ReceptionData>();
-  Bus<event.ReceptionChange> _receptionChangeBus =
-      new Bus<event.ReceptionChange>();
-  Bus<event.MessageChange> _messageChangeBus = new Bus<event.MessageChange>();
+      Bus<event.ClientConnectionState>();
+  Bus<event.ContactChange> _contactChangeBus = Bus<event.ContactChange>();
+  Bus<event.ReceptionData> _receptionDataChangeBus = Bus<event.ReceptionData>();
+  Bus<event.ReceptionChange> _receptionChangeBus = Bus<event.ReceptionChange>();
+  Bus<event.MessageChange> _messageChangeBus = Bus<event.MessageChange>();
   Bus<event.OrganizationChange> _organizationChangeBus =
-      new Bus<event.OrganizationChange>();
-  Bus<event.DialplanChange> _dialplanChangeBus =
-      new Bus<event.DialplanChange>();
-  Bus<event.IvrMenuChange> _ivrMenuChangeBus = new Bus<event.IvrMenuChange>();
-  Bus<event.PeerState> _peerStateBus = new Bus<event.PeerState>();
-  Bus<event.UserChange> _userChangeBus = new Bus<event.UserChange>();
-  Bus<event.UserState> _userStateBus = new Bus<event.UserState>();
-  Bus<event.WidgetSelect> _widgetSelectBus = new Bus<event.WidgetSelect>();
-  Bus<event.FocusChange> _focusChangeBus = new Bus<event.FocusChange>();
+      Bus<event.OrganizationChange>();
+  Bus<event.DialplanChange> _dialplanChangeBus = Bus<event.DialplanChange>();
+  Bus<event.IvrMenuChange> _ivrMenuChangeBus = Bus<event.IvrMenuChange>();
+  Bus<event.PeerState> _peerStateBus = Bus<event.PeerState>();
+  Bus<event.UserChange> _userChangeBus = Bus<event.UserChange>();
+  Bus<event.UserState> _userStateBus = Bus<event.UserState>();
+  Bus<event.WidgetSelect> _widgetSelectBus = Bus<event.WidgetSelect>();
+  Bus<event.FocusChange> _focusChangeBus = Bus<event.FocusChange>();
 
   /// Global event stream. Receive all events broadcast or sent to uid of
   /// subscriber.
@@ -291,7 +247,7 @@ class NotificationSocket {
   /// encoded event object.
   void _parseAndDispatch(String buffer) {
     Map<String, dynamic> map = _json.decode(buffer) as Map<String, dynamic>;
-    event.Event newEvent = new event.Event.parse(map);
+    event.Event newEvent = event.Event.parse(map);
 
     if (newEvent != null) {
       _eventBus.fire(newEvent);

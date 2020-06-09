@@ -30,8 +30,7 @@ import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
 import 'package:shelf_router/shelf_router.dart' as shelf_route;
 
 class User {
-
-  User(this._notification, this._userController, this._statsController,
+   User(this._notification, this._userController, this._statsController,
       this._userStateController);
 
   final Logger _log = Logger('server.router.user');
@@ -41,7 +40,6 @@ class User {
   final controller.User _userController;
   final controller.AgentStatistics _statsController;
   final controller.UserState _userStateController;
-
 
   /**
    *
@@ -58,15 +56,16 @@ class User {
       ..get('/user/<uid>/changelog', _userController.changelog)
       ..put('/user/<uid>', _userController.update)
       ..delete('/user/<uid>', _userController.remove)
-      ..get('/user/all/state', _userStateController.list)
-      ..get('/user/<uid>/state', _userStateController.get)
+      ..get('/user-state', _userStateController.list)
+      ..get('/user-state/<uid>', _userStateController.get)
       ..get('/user/<uid>/widget', _userStateController.uiState)
-      ..post('/user/<uid>/state/<state>', _userStateController.set)
+      ..post('/user-state/<uid>', _userStateController.set)
       ..post('/user', _userController.create)
       ..get('/user/identity/<identity>', _userController.userIdentity)
-      ..get('/group', _userController.groups)     ..all('/<catch-all|.*>', (shelf.Request request) {
-      return shelf.Response.notFound('Page not found');
-    });
+      ..get('/group', _userController.groups)
+      ..all('/<catch-all|.*>', (shelf.Request request) {
+        return shelf.Response.notFound('Page not found');
+      });
   }
 
   /// Start the router.
@@ -76,7 +75,7 @@ class User {
 
     var handler = const shelf.Pipeline()
         .addMiddleware(
-        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);
 

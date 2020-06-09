@@ -46,6 +46,6 @@ class ClientConnectionState implements Event {
   /// Returns a brief string-represented summary of the event, suitable for
   /// logging or debugging purposes.
   @override
-  String toString() => '$timestamp-$eventName uid:${conn.userID}, '
+  String toString() => '$timestamp-$eventName uid:${conn.userId}, '
       'connections:${conn.connectionCount}';
 }

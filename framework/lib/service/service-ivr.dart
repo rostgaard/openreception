@@ -19,92 +19,84 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class RESTIvrStore implements storage.Ivr {
-  RESTIvrStore(Uri this.host, String this.token, this._backend);
+  RESTIvrStore(Uri host, String token, dynamic backend)
+      : _client = api.ApiClient(basePath: host.toString()) {
+    _client.getAuthentication<api.ApiKeyAuth>('ApiKeyAuth').apiKey = token;
+  }
 
-  final WebService _backend;
-
-  /// The uri of the connected backend.
-  final Uri host;
-
-  /// The token used for authenticating with the backed.
-  final String token;
+  final api.ApiClient _client;
 
   @override
   Future<model.IvrMenu> create(model.IvrMenu menu, [model.User user]) async {
-    Uri url = resource.Ivr.list(host);
-    url = _appendToken(url, token);
-    print(menu.toJson());
+    final response = await _client.client
+        .post("/ivr-menu", body: _json.encode(menu));
+    if (response.statusCode >= 400) {
+      WebService.checkResponse(
+          response.statusCode, "POST", null, response.body);
 
-    final String response = await _backend.post(url, _json.encode(menu));
-
-    return model.IvrMenu.fromJson(
-        _json.decode(response) as Map<String, dynamic>);
+      return model.IvrMenu.fromJson(_json.decode(response.body));
+    }
   }
 
   Future<Iterable<String>> deploy(String menuName) async {
-    Uri url = resource.Ivr.deploy(host, menuName);
-    url = _appendToken(url, token);
+    final response = await _client.client
+        .post('/ivr-menu/${menuName}/deploy');
+    if (response.statusCode >= 400) {
+      WebService.checkResponse(response.statusCode, "GET", null, response.body);
 
-    return _json.decode(await _backend.post(url, '')) as Iterable<String>;
+      return _json.decode(response.body) as List<String>;
+    }
   }
 
   @override
   Future<Null> remove(String menuName, model.User modifier) async {
-    Uri url = resource.Ivr.single(host, menuName);
-    url = _appendToken(url, token);
+    final response =
+    await _client.client.delete("/ivr-menu/" + menuName);
+    if (response.statusCode >= 400) {
+      WebService.checkResponse(response.statusCode, "GET", null, response.body);
 
-    await _backend.delete(url);
+      return null;
+    }
   }
 
   @override
   Future<model.IvrMenu> get(String menuName) async {
-    Uri url = resource.Ivr.single(host, menuName);
-    url = _appendToken(url, token);
+    final response =
+    await _client.client.get("/ivr-menu/" + menuName);
+    if (response.statusCode >= 400) {
+      WebService.checkResponse(response.statusCode, "GET", null, response.body);
 
-    final String response = await _backend.get(url);
-    return model.IvrMenu.fromJson(
-        _json.decode(response) as Map<String, dynamic>);
+      return model.IvrMenu.fromJson(_json.decode(response.body));
+    }
   }
 
   @override
-  Future<Iterable<model.IvrMenu>> list() async {
-    Uri url = resource.Ivr.list(host);
-    url = _appendToken(url, token);
+  Future<List<model.IvrMenu>> list() async {
+    final response = await _client.client.get("/ivr-menu");
+    WebService.checkResponse(response.statusCode, "GET", null, response.body);
 
-    final String response = await _backend.get(url);
-    final List<Map<String, dynamic>> maps =
-        (_json.decode(response) as List<dynamic>).cast<Map<String, dynamic>>();
-
-    return maps.map((Map<String, dynamic> map) => model.IvrMenu.fromJson(map));
+    return (_json.decode(response.body) as List)
+        .map((e) => model.IvrMenu.fromJson(e))
+        .toList();
   }
 
   @override
   Future<model.IvrMenu> update(model.IvrMenu menu, [model.User user]) async {
-    Uri url = resource.Ivr.single(host, menu.name);
-    url = _appendToken(url, token);
+    final response = await _client.client
+        .put('/ivr-menu/${menu.name}', body: _json.encode(menu));
+    WebService.checkResponse(response.statusCode, "GET", null, response.body);
 
-    final String response = await _backend.put(url, _json.encode(menu));
-
-    return model.IvrMenu.fromJson(
-        _json.decode(response) as Map<String, dynamic>);
-    ;
+    return model.IvrMenu.fromJson(_json.decode(response.body));
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([String menuName]) async {
-    Uri url = resource.Ivr.changeList(host, menuName);
-    url = _appendToken(url, token);
+  Future<List<model.Commit>> changes([String menuName]) async {
+    throw UnimplementedError();
 
-    final String response = await _backend.get(url);
-    final List<Map<String, dynamic>> maps =
-        (_json.decode(response) as List<dynamic>).cast<Map<String, dynamic>>();
-    return maps.map((Map<String, dynamic> map) => model.Commit.fromJson(map));
   }
 
   Future<String> changelog(String menuName) {
-    Uri url = resource.Ivr.changelog(host, menuName);
-    url = _appendToken(url, token);
+    throw UnimplementedError();
 
-    return _backend.get(url);
   }
 }

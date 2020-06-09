@@ -37,11 +37,11 @@ class UIAgentInfo extends UIModel {
   @override
   HtmlElement get _root => _myRoot;
 
-  TableCellElement get _activeCount => _root.querySelector('.active-count');
-  ImageElement get _agentState => _root.querySelector('.agent-state');
-  ImageElement get _alertState => _root.querySelector('.alert-state');
-  TableCellElement get _pausedCount => _root.querySelector('.paused-count');
-  ImageElement get _portrait => _root.querySelector('.portrait');
+  TableCellElement get _activeCount => _root.querySelector('.active-count') as TableCellElement;
+  ImageElement get _agentState => _root.querySelector('.agent-state') as ImageElement;
+  ImageElement get _alertState => _root.querySelector('.alert-state') as ImageElement;
+  TableCellElement get _pausedCount => _root.querySelector('.paused-count') as TableCellElement;
+  ImageElement get _portrait => _root.querySelector('.portrait') as ImageElement;
 
   /**
    * Set the ::active:: count.

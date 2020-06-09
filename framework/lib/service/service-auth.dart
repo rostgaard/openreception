@@ -21,30 +21,39 @@ part of orf.service;
 class Authentication {
   /// Default constructor. Needs a [host] for backend uri, a user [token]
   /// and a [WebService] HTTP client for handling the transport.
-  Authentication(Uri this.host, String this.token, this._httpClient);
+  factory Authentication(Uri host, String token, WebService _httpClient) =>
+      Authentication.withHost(host, token);
 
-  final WebService _httpClient;
+  Authentication.withHost(Uri host, String token)
+      : _client =
+            api.AuthenticationApi(api.ApiClient(basePath: host.toString())) {
+    _client.apiClient.getAuthentication<api.ApiKeyAuth>('ApiKeyAuth').apiKey =
+        token;
+  }
 
-  /// The uri of the connected backend.
-  final Uri host;
+  String get host => _client.apiClient.basePath;
 
-  /// The token used for authenticating with the backed.
-  final String token;
+  final api.AuthenticationApi _client;
 
   /// Performs a lookup of the user on the notification server from the
   /// supplied [token].
   Future<model.User> userOf(String token) async {
-    final Uri uri = resource.Authentication.tokenToUser(this.host, token);
-    final Map<String, dynamic> json = _json.decode(await _httpClient.get(uri)) as Map<String, dynamic>;
-
-    return model.User.fromJson(json);
+    try {
+      return model.User.fromJson((await _client.userinfo(token)).toJson());
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   /// Validate [token]. Throws [NotFound] exception if the token is not
   /// valid.
   Future<Null> validate(String token) async {
-    Uri uri = resource.Authentication.validate(this.host, token);
-
-    await _httpClient.get(uri);
+    try {
+      await _client.validateToken(token);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 }

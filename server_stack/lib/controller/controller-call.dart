@@ -80,21 +80,21 @@ class Call {
     model.Call call = _callList.firstWhere(
         (model.Call call) =>
             call.assignedTo == user.id &&
-            call.state == model.CallState.speaking,
-        orElse: () => model.Call.noCall);
+            call.state == model.CallState.speaking_,
+        orElse: () => null);
 
     /// The agent currently has no call assigned.
-    if (call == model.Call.noCall) {
+    if (call == null) {
       return shelf.Response.notFound({});
     }
 
     ///There is an active call, update the peer state.
-    _peerlist.get(user.extension).inTransition = true;
+    _peerlist.get(user.extension_).inTransition = true;
 
-    ///Perfrom the hangup
+    ///Perform the hangup
     try {
       await _pbxController.killChannel(call.channel);
-      _peerlist.get(user.extension).inTransition = false;
+      _peerlist.get(user.extension_).inTransition = false;
 
       return shelf.Response.ok('{}');
     } catch (error, stackTrace) {
@@ -102,7 +102,7 @@ class Call {
       _log.severe(msg, error, stackTrace);
 
       /// We can no longer assume anything about the users' state.
-      _peerlist.get(user.extension).inTransition = false;
+      _peerlist.get(user.extension_).inTransition = false;
 
       return serverError(msg);
     }
@@ -147,7 +147,7 @@ class Call {
       return notFoundJson({'call_id': callID});
     }
 
-    model.Peer peer = _peerlist.get(user.extension);
+    model.Peer peer = _peerlist.get(user.extension_);
 
     /// Update peer state.
     peer.inTransition = true;
@@ -233,12 +233,12 @@ class Call {
     }
 
     /// Retrieve peer information.
-    peer = _peerlist.get(user.extension);
+    peer = _peerlist.get(user.extension_);
 
     /// The user has not registered its peer to transfer the call to. Abort.
     if (peer == null || !peer.registered) {
       return clientError('User with id ${user.id} has no peer '
-          '(peer: ${user.extension}) available');
+          '(peer: ${user.extension_}) available');
     }
 
     /// The user has no reachable phone to transfer the call to. Abort.
@@ -249,7 +249,7 @@ class Call {
     /// Update the peer state
     peer.inTransition = true;
 
-    bool isSpeaking(model.Call call) => call.state == model.CallState.speaking;
+    bool isSpeaking(model.Call call) => call.state == model.CallState.speaking_;
 
     Future parkIt(model.Call call) => _pbxController.park(call, user);
 
@@ -318,12 +318,12 @@ class Call {
       ..assignedTo = user.id
       ..callerId = config.callFlowControl.callerIdNumber
       ..destination = extension
-      ..rid = receptionID
-      ..cid = contactID
+      ..orRid = receptionID
+      ..orCid = contactID
       ..bLeg = agentChannel;
 
     /// Update call and peer state information.
-    call.changeState(model.CallState.ringing);
+    _callList.changeState(call,model.CallState.ringing_);
 
     try {
       await _pbxController.setVariable(
@@ -412,7 +412,7 @@ class Call {
     model.Peer peer;
     model.Call assignedCall;
     String agentChannel;
-    int originallyAssignedTo = model.User.noId;
+    int originallyAssignedTo = model.noId;
 
     /// Parameter check.
     if (callID == null || callID == "") {
@@ -430,7 +430,7 @@ class Call {
     }
 
     /// Retrieve peer information.
-    peer = _peerlist.get(user.extension);
+    peer = _peerlist.get(user.extension_);
 
     /// The user has not registered its peer to transfer the call to. Abort.
     if (peer == null) {
@@ -540,7 +540,7 @@ class Call {
       return clientError( 'Empty call_id in path.');
     }
 
-    ///Check valitity of the call. (Will raise exception on invalid).
+    ///Check validity of the call. (Will raise exception on invalid).
     try {
       [sourceCallID, destinationCallID].forEach(validateCallId);
     } on FormatException catch (_) {
@@ -561,7 +561,7 @@ class Call {
 
     /// Sanity check - are any of the calls already bridged?
     if ([sourceCall, destinationCall]
-        .every((model.Call call) => call.state != model.CallState.parked)) {
+        .every((model.Call call) => call.state != model.CallState.parked_)) {
       _log.warning('Potential invalid state detected; trying to bridge a '
           'non-parked call in an attended transfer. uuids:'
           '($sourceCall => $destinationCall)');
@@ -579,7 +579,7 @@ class Call {
       return serverError(msg);
     }
 
-    model.Peer peer = _peerlist.get(user.extension);
+    model.Peer peer = _peerlist.get(user.extension_);
 
     /// Update peer state.
     peer.inTransition = true;

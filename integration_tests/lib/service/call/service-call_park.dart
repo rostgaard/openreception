@@ -17,7 +17,7 @@ abstract class CallPark {
         await receptionist.park(targetedCall, waitForEvent: true);
     receptionist.waitForPhoneHangup();
     expect(parkedCall.assignedTo, equals(receptionist.user.id));
-    expect(parkedCall.state, equals(model.CallState.parked));
+    expect(parkedCall.state, equals(model.CallState.parked_));
 
     log.info('Caller hangs up all calls');
     await caller.hangupAll();
@@ -51,14 +51,14 @@ abstract class CallPark {
     receptionist.waitForPhoneHangup();
 
     expect(parkedCall.assignedTo, equals(receptionist.user.id));
-    expect(parkedCall.state, equals(model.CallState.parked));
+    expect(parkedCall.state, equals(model.CallState.parked_));
 
     receptionist.eventStack.clear();
     log.info('Receptionist pickup call $targetedCall again');
     parkedCall = await receptionist.pickup(targetedCall, waitForEvent: true);
 
     expect(parkedCall.assignedTo, equals(receptionist.user.id));
-    expect(parkedCall.state, equals(model.CallState.speaking));
+    expect(parkedCall.state, equals(model.CallState.speaking_));
 
     receptionist.eventStack.clear();
 
@@ -67,7 +67,7 @@ abstract class CallPark {
     receptionist.waitForPhoneHangup();
 
     expect(parkedCall.assignedTo, equals(receptionist.user.id));
-    expect(parkedCall.state, equals(model.CallState.parked));
+    expect(parkedCall.state, equals(model.CallState.parked_));
 
     receptionist.eventStack.clear();
 
@@ -75,7 +75,7 @@ abstract class CallPark {
     parkedCall = await receptionist.pickup(targetedCall, waitForEvent: true);
 
     expect(parkedCall.assignedTo, equals(receptionist.user.id));
-    expect(parkedCall.state, equals(model.CallState.speaking));
+    expect(parkedCall.state, equals(model.CallState.speaking_));
 
     log.info('Caller hangs up all calls');
     await caller.hangupAll();
@@ -98,7 +98,7 @@ abstract class CallPark {
         await receptionist.park(targetedCall, waitForEvent: true);
     receptionist.waitForPhoneHangup();
     expect(parkedCall.assignedTo, equals(receptionist.user.id));
-    expect(parkedCall.state, equals(model.CallState.parked));
+    expect(parkedCall.state, equals(model.CallState.parked_));
 
     log.info('Checking call list length');
 

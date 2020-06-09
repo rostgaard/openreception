@@ -157,18 +157,18 @@ class Receptionist {
               .inMilliseconds
               .abs(),
           lessThan(500));
-      expect(call.arrived.difference(parkedCall.arrived).inMilliseconds.abs(),
+      expect(call.arrivalTime.difference(parkedCall.arrivalTime).inMilliseconds.abs(),
           lessThan(500));
       expect(call.assignedTo, parkedCall.assignedTo);
       expect(call.callerId, parkedCall.callerId);
       expect(call.channel, parkedCall.channel);
-      expect(call.cid, parkedCall.cid);
+      expect(call.orCid, parkedCall.orCid);
       expect(call.destination, parkedCall.destination);
       expect(call.greetingPlayed, parkedCall.greetingPlayed);
       expect(call.inbound, parkedCall.inbound);
       //expect(call.locked, parkedCall.locked);
-      expect(call.rid, parkedCall.rid);
-      expect(parkedCall.state, equals(model.CallState.parked));
+      expect(call.orRid, parkedCall.orRid);
+      expect(parkedCall.state, equals(model.CallState.parked_));
 
       return parkedCall;
     }
@@ -236,7 +236,7 @@ class Receptionist {
     log.finest('$this waits for call $callId to hangup');
 
     return await _waitFor(
-        type: event.CallHangup(model.Call.noCall).runtimeType, callID: callId);
+        type: event.CallHangup(model.noCall).runtimeType, callID: callId);
   }
 
   /// Returns a Future that completes when [callId] is parked.
@@ -244,7 +244,7 @@ class Receptionist {
     log.finest('$this waits for call $callId to park');
 
     return await _waitFor(
-        type: event.CallPark(model.Call.noCall).runtimeType, callID: callId);
+        type: event.CallPark(model.noCall).runtimeType, callID: callId);
   }
 
   /// Returns a Future that completes when [callId] is parked.
@@ -252,7 +252,7 @@ class Receptionist {
     log.finest('$this waits for call $callId to park');
 
     return await _waitFor(
-        type: event.CallUnpark(model.Call.noCall).runtimeType, callID: callId);
+        type: event.CallUnpark(model.noCall).runtimeType, callID: callId);
   }
 
   /// Returns a Future that completes when [callId] is parked.
@@ -260,7 +260,7 @@ class Receptionist {
     log.finest('$this waits for call $callId to park');
 
     return await _waitFor(
-        type: event.CallLock(model.Call.noCall).runtimeType, callID: callId);
+        type: event.CallLock(model.noCall).runtimeType, callID: callId);
   }
 
   /// Returns a Future that completes when [callId] is parked.
@@ -268,7 +268,7 @@ class Receptionist {
     log.finest('$this waits for call $callId to park');
 
     return await _waitFor(
-        type: event.CallUnlock(model.Call.noCall).runtimeType, callID: callId);
+        type: event.CallUnlock(model.noCall).runtimeType, callID: callId);
   }
 
   /// Returns a Future that completes when [callId] is picked up.
@@ -276,7 +276,7 @@ class Receptionist {
     log.finest('$this waits for call $callId to be picked up');
 
     return await _waitFor(
-        type: event.CallPickup(model.Call.noCall).runtimeType, callID: callId);
+        type: event.CallPickup(model.noCall).runtimeType, callID: callId);
   }
 
   /// Returns a Future that completes when [callId] is enqueued.
@@ -284,7 +284,7 @@ class Receptionist {
     log.finest('$this waits for call $callId to leave queue');
 
     return await _waitFor(
-            type: event.QueueLeave(model.Call.noCall).runtimeType,
+            type: event.QueueLeave(model.noCall).runtimeType,
             callID: callId)
         .timeout(Duration(seconds: 10));
   }
@@ -294,7 +294,7 @@ class Receptionist {
     log.finest('$this waits for call $callId to join queue');
 
     return await _waitFor(
-            type: event.QueueJoin(model.Call.noCall).runtimeType,
+            type: event.QueueJoin(model.noCall).runtimeType,
             callID: callId)
         .timeout(Duration(seconds: 10));
   }
@@ -304,7 +304,7 @@ class Receptionist {
     log.finest('$this waits for call $callId to join queue');
 
     return await _waitFor(
-            type: event.CallTransfer(model.Call.noCall).runtimeType,
+            type: event.CallTransfer(model.noCall).runtimeType,
             callID: callId)
         .timeout(Duration(seconds: 10));
   }
@@ -378,7 +378,7 @@ class Receptionist {
       }
 
       if (receptionID != null && e is event.CallEvent) {
-        result = result && e.call.rid == receptionID;
+        result = result && e.call.orRid == receptionID;
       }
       return result;
     }
@@ -480,7 +480,7 @@ class Receptionist {
   Future<event.CallOffer> waitForCallOffer() async {
     log.finest('$this waits for next call offer');
 
-    return await _waitFor(type: event.CallOffer(model.Call.noCall).runtimeType);
+    return await _waitFor(type: event.CallOffer(model.noCall).runtimeType);
   }
 
   /// Event handler for events coming from the notification server.

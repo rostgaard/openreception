@@ -35,41 +35,41 @@ import 'package:ors/controller/controller-state_reload.dart' as controller;
 import 'package:ors/model.dart' as _model;
 import 'package:ors/router/router-call.dart' as router;
 
-Logger _log = new Logger('callflow');
+Logger _log = Logger('callflow');
 ArgResults _parsedArgs;
-ArgParser _parser = new ArgParser();
+ArgParser _parser = ArgParser();
 
 HttpServer _callflowChannel;
 
 Future _startService(conf.EslConfig eslConf) async {
-  final service.Authentication _authentication = new service.Authentication(
+  final service.Authentication _authentication = service.Authentication(
       Uri.parse(_parsedArgs['auth-uri']),
       config.userServer.serverToken,
-      new service.Client());
+      service.Client());
 
   final service.NotificationService _notification =
-      new service.NotificationService(
+      service.NotificationService(
           Uri.parse(_parsedArgs['notification-uri']),
           config.userServer.serverToken,
-          new service.Client());
+          service.Client());
 
   /// ESL clients.
   final esl.Connection eslClient = await _connectESLClient(eslConf);
 
-  final _model.ChannelList channelList = new _model.ChannelList();
+  final _model.ChannelList channelList = _model.ChannelList();
 
   // PBX controller
-  controller.PBX pbxController = new controller.PBX(eslClient, channelList);
+  controller.PBX pbxController = controller.PBX(eslClient, channelList);
 
   // Local model classes
   final _model.CallList callList =
-      new _model.CallList(pbxController, channelList);
+      _model.CallList(pbxController, channelList);
   final _model.PeerList peerList =
-      new _model.PeerList(_notification, channelList);
+      _model.PeerList(_notification, channelList);
   final _model.ActiveRecordings activeRecordings =
-      new _model.ActiveRecordings();
+      _model.ActiveRecordings();
 
-  controller.Channel _channelController = new controller.Channel(channelList);
+  controller.Channel _channelController = controller.Channel(channelList);
 
   // Load initial state.
   await pbxController.loadPeers(peerList);
@@ -81,19 +81,19 @@ Future _startService(conf.EslConfig eslConf) async {
   await eslClient.event(_model.PBXEvent.requiredSubscriptions,
       format: esl.EventFormat.json);
 
-  new controller.ClientNotifier(_notification, callList.onEvent);
+  controller.ClientNotifier(_notification, callList.onEvent);
   eslClient.eventStream.listen(channelList.handleEvent);
   eslClient.eventStream.listen(activeRecordings.handleEvent);
 
-  controller.Call _callController = new controller.Call(
+  controller.Call _callController = controller.Call(
       callList, channelList, peerList, pbxController, _authentication);
 
-  final callRouter = new router.Call(
+  final callRouter = router.Call(
       _callController,
       _channelController,
-      new controller.ActiveRecording(activeRecordings),
-      new controller.PhoneState(callList, peerList, pbxController),
-      new controller.Peer(peerList));
+      controller.ActiveRecording(activeRecordings),
+      controller.PhoneState(callList, peerList, pbxController),
+      controller.Peer(peerList));
 
   pbxController.eslClient.eventStream.listen(peerList.handlePacket);
 
@@ -127,11 +127,11 @@ Future main(List<String> args) async {
   final int port = int.parse(_parsedArgs['esl-port']);
 
   await _startService(
-      new conf.EslConfig(hostname: hostname, password: password, port: port));
+      conf.EslConfig(hostname: hostname, password: password, port: port));
 }
 
 Future<esl.Connection> _connectESLClient(conf.EslConfig eslConf) async {
-  final Duration reconnectPeriod = new Duration(seconds: 3);
+  final Duration reconnectPeriod = Duration(seconds: 3);
 
   Future<esl.Connection> tryConnect() async {
     _log.info('Connecting to ${eslConf.toDsn()}');
@@ -141,7 +141,7 @@ Future<esl.Connection> _connectESLClient(conf.EslConfig eslConf) async {
           await Socket.connect(eslConf.hostname, eslConf.port);
 
       final esl.Connection connection =
-          new esl.Connection(socket, onDisconnect: () async {
+          esl.Connection(socket, onDisconnect: () async {
         await _stopService();
         await socket.close();
 
@@ -156,13 +156,13 @@ Future<esl.Connection> _connectESLClient(conf.EslConfig eslConf) async {
       _log.severe('ESL Connection failed - reconnecting '
           'in ${reconnectPeriod.inSeconds} seconds');
 
-      await new Future.delayed(reconnectPeriod);
+      await Future.delayed(reconnectPeriod);
       return tryConnect();
     } on esl.AuthenticationFailure {
       _log.severe('ESL Connection failed - reconnecting '
           'in ${reconnectPeriod.inSeconds} seconds');
 
-      await new Future.delayed(reconnectPeriod);
+      await Future.delayed(reconnectPeriod);
       return tryConnect();
     }
   }

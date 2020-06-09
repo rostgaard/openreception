@@ -21,8 +21,10 @@ void _runMessageTests() {
       await env.clear();
     });
 
-    test('CORS headers present (existingUri)',
-        () => isCORSHeadersPresent(resource.Message.list(mProcess.uri), log));
+    test(
+        'CORS headers present (existingUri)',
+            () async => isCORSHeadersPresent(Uri.parse('${mProcess.uri}/ping'),
+            log));
 
     test(
         'CORS headers present (non-existingUri)',

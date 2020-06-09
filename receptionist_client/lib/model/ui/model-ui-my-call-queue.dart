@@ -48,8 +48,8 @@ class UIMyCallQueue extends UIModel {
   HtmlElement get _root => _myRoot;
 
   SpanElement get _queueLength =>
-      _root.querySelector('.generic-widget-headline span.queue-length');
-  OListElement get _list => _root.querySelector('.generic-widget-list');
+      _root.querySelector('.generic-widget-headline span.queue-length') as SpanElement;
+  OListElement get _list => _root.querySelector('.generic-widget-list') as OListElement;
 
   /**
    * Append [call] to the calls list.
@@ -184,7 +184,7 @@ class UIMyCallQueue extends UIModel {
    * list.
    */
   void markForTransfer(model.Call call) {
-    final LIElement li = _list.querySelector('[data-id="${call.id}"]');
+    final LIElement li = _list.querySelector('[data-id="${call.id}"]') as LIElement;
 
     _transferUUIDs.add(call.id);
 
@@ -231,7 +231,7 @@ class UIMyCallQueue extends UIModel {
    * transfer marks from the call list.
    */
   void removeCall(model.Call call) {
-    final LIElement li = _list.querySelector('[data-id="${call.id}"]');
+    final LIElement li = _list.querySelector('[data-id="${call.id}"]') as LIElement;
 
     if (li != null) {
       li.remove();
@@ -246,7 +246,7 @@ class UIMyCallQueue extends UIModel {
    * Removes the transfer attribute from the [call] li element.
    */
   void removeTransferMark(model.Call call) {
-    final LIElement li = _list.querySelector('[data-id="${call.id}"]');
+    final LIElement li = _list.querySelector('[data-id="${call.id}"]') as LIElement;
 
     if (li != null) {
       li.attributes.remove('transfer');
@@ -289,7 +289,7 @@ class UIMyCallQueue extends UIModel {
    * it is appended to the list.
    */
   void updateCall(model.Call call) {
-    final LIElement li = _list.querySelector('[data-id="${call.id}"]');
+    final LIElement li = _list.querySelector('[data-id="${call.id}"]') as LIElement;
 
     if (li != null) {
       final LIElement newLI = _buildCallElement(call);

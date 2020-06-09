@@ -23,20 +23,20 @@ class ActiveCall {
 
   /// Reception id of the call.
   int get rid => _events
-      .firstWhere((_event.CallEvent ce) => ce.call.rid != Reception.noId,
-          orElse: () => new _event.CallOffer(Call.noCall))
+      .firstWhere((_event.CallEvent ce) => ce.call.orRid != noId,
+          orElse: () => _event.CallOffer(Call()))
       .call
-      .rid;
+      .orRid;
 
   /// Contact id of the call.
   int get cid => _events
-      .firstWhere((_event.CallEvent ce) => ce.call.cid != BaseContact.noId,
-          orElse: () => new _event.CallOffer(Call.noCall))
+      .firstWhere((_event.CallEvent ce) => ce.call.orCid != noId,
+          orElse: () => _event.CallOffer(Call()))
       .call
-      .cid;
+      .orCid;
 
   /// Call id of the call.
-  String get callId => _events.isNotEmpty ? _events.first.call.id : Call.noId;
+  String get callId => _events.isNotEmpty ? _events.first.call.id : "<empty>";
 
   /// Add an event to the internal list of historic [_event.CallEvent]s
   /// that occurred with relevance to the [ActiveCall].
@@ -50,13 +50,13 @@ class ActiveCall {
   ///
   /// If the call was never assigned, returns [model.User.noId].
   int get assignee => _events
-      .firstWhere((_event.CallEvent ce) => ce.call.assignedTo != User.noId,
+      .firstWhere((_event.CallEvent ce) => ce.call.assignedTo != noId,
           orElse: () => _events.first)
       .call
       .assignedTo;
 
   /// Returns true if the call has not been assigned to an agent.
-  bool get unAssigned => assignee == User.noId;
+  bool get unAssigned => assignee == noId;
 
   /// Returns a log-friendly string visualizing the current event stack.
   String eventString() =>
@@ -105,12 +105,12 @@ class ActiveCall {
     _event.CallPickup pickupEvent;
     try {
       offerEvent =
-          _events.firstWhere((_event.CallEvent ce) => ce is _event.CallOffer);
+          _events.firstWhere((_event.CallEvent ce) => ce is _event.CallOffer) as _event.CallOffer;
 
       pickupEvent =
-          _events.firstWhere((_event.CallEvent ce) => ce is _event.CallPickup);
+          _events.firstWhere((_event.CallEvent ce) => ce is _event.CallPickup) as _event.CallPickup;
     } on StateError {
-      return new Duration(seconds: 2);
+      return Duration(seconds: 2);
     }
 
     return pickupEvent.timestamp.difference(offerEvent.timestamp);

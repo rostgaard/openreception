@@ -14,7 +14,7 @@ abstract class MessageQueue {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = model.MessageContext.empty()
+    final context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -49,7 +49,7 @@ abstract class MessageQueue {
     final con = await sa.createsContact();
     final attr = await sa.addsContactToReception(con, rec);
 
-    final context = model.MessageContext.empty()
+    final context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -63,7 +63,7 @@ abstract class MessageQueue {
       expect(listing.length, equals(1));
 
       final queueEntry = listing.first;
-      expect(queueEntry.id, greaterThan(model.MessageQueueEntry.noId));
+      expect(queueEntry.id, greaterThan(model.noId));
       expect(queueEntry.handledRecipients, isEmpty);
       expect(queueEntry.unhandledRecipients, equals(attr.endpoints));
       expect(queueEntry.tries, equals(0));
@@ -82,7 +82,7 @@ abstract class MessageQueue {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = model.MessageContext.empty()
+    final context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -113,7 +113,7 @@ abstract class MessageQueue {
     final con = await sa.createsContact();
     final attr = await sa.addsContactToReception(con, rec);
 
-    final context = model.MessageContext.empty()
+    final context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -141,7 +141,7 @@ abstract class MessageQueue {
       expect(listing.length, equals(1));
 
       final queueEntry = listing.first;
-      expect(queueEntry.id, greaterThan(model.MessageQueueEntry.noId));
+      expect(queueEntry.id, greaterThan(model.noId));
       expect(queueEntry.unhandledRecipients, isEmpty);
       expect(queueEntry.handledRecipients, equals(attr.endpoints.toSet()));
       expect(queueEntry.tries, equals(1));

@@ -25,11 +25,38 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
 import 'package:shelf_router/shelf_router.dart' as shelf_route;
 
+typedef Future<Response> ResponseHandler(Request request);
+
+class Route {
+  const Route._internal(this.method, this.path, this.handler);
+
+  factory Route.get(String path, ResponseHandler handler) =>
+      Route._internal("GET", path, handler);
+
+  factory Route.post(String path, ResponseHandler handler) =>
+      Route._internal("POST", path, handler);
+
+  factory Route.delete(String path, ResponseHandler handler) =>
+      Route._internal("DELETE", path, handler);
+
+  factory Route.put (String path, ResponseHandler handler) =>
+      Route._internal("PUT", path, handler);
+
+  factory Route.patch (String path, ResponseHandler handler) =>
+      Route._internal("PATCH", path, handler);
+
+  final String method;
+  final String path;
+  final ResponseHandler handler;
+
+  @override
+  String toString() => '${method.padRight("DELETE".length)} ${path}';
+}
+
 /**
  *
  */
 class Config {
-
   /**
    *
    */
@@ -38,14 +65,21 @@ class Config {
   final Logger _log = Logger('server.router.config');
   final controller.Config _configController;
 
+  List<Route> get routes => [
+  Route.get('/configuration', _configController.get),
+  Route.put('/configuration', _configController.register),
+  Route.patch('/configuration', _configController.register)
+  ];
 
   /**
    *
    */
-  void bindRoutes(dynamic router) {
+  void bindRoutes(shelf_route.Router router) {
+    for(Route r in routes) {
+      router.add(r.method, r.path, r.handler);
+    }
+
     router
-      ..get('/configuration', _configController.get)
-      ..post('/configuration/register', _configController.register)
       ..all('/<catch-all|.*>', (Request request) {
         return Response.notFound('Page not found');
       });
@@ -55,16 +89,17 @@ class Config {
    *
    */
   Future<HttpServer> listen({String hostname: '0.0.0.0', int port: 4080}) {
-    final router = shelf_route.Router();
+    final shelf_route.Router router = shelf_route.Router();
     bindRoutes(router);
-
     final handler = const Pipeline()
         .addMiddleware(logRequests(logger: config.accessLog.onAccess))
         .addMiddleware(
-        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addHandler(router.handler);
 
     _log.fine('Accepting incoming requests on $hostname:$port:');
+    _log.fine('Serving: \n${routes.join('\n')}');
+
 
     return shelf_io.serve(handler, hostname, port);
   }

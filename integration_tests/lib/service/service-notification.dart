@@ -32,18 +32,18 @@ abstract class NotificationService {
   static Future connectionStateList(
       Iterable<ServiceAgent> sas, service.NotificationService service) async {
     bool userHasConnection(
-            ServiceAgent sa, Iterable<model.ClientConnection> connections) =>
+            ServiceAgent sa, Iterable connections) =>
         connections
-            .where((model.ClientConnection connection) =>
-                connection.userID == sa.user.id &&
+            .where((connection) =>
+                connection.userId == sa.user.id &&
                 connection.connectionCount > 0)
             .length >
         0;
 
-    final Iterable<model.ClientConnection> connections =
+    final Iterable connections =
         await service.clientConnections();
     expect(sas.every((s) => userHasConnection(s, connections)), isTrue);
-    expect(connections.every((model.ClientConnection conn) => conn.userID > 0),
+    expect(connections.every(( conn) => conn.userId > 0),
         isTrue);
   }
 
@@ -53,11 +53,11 @@ abstract class NotificationService {
   static Future connectionState(Iterable<ServiceAgent> sas,
       service.NotificationService notificationService) async {
     await Future.forEach(sas, (ServiceAgent s) async {
-      final model.ClientConnection conn =
+      final conn =
           await notificationService.clientConnection(s.user.id);
 
       expect(conn.connectionCount, greaterThan(0));
-      expect(conn.userID, equals(s.user.id));
+      expect(conn.userId, equals(s.user.id));
     });
   }
 

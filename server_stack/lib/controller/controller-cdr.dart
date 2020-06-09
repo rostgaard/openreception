@@ -24,53 +24,53 @@ class Cdr {
   /// Constructor.
   Cdr();
 
-  final Logger _log = new Logger('cdr_server.controller.cdr');
+  final Logger _log = Logger('cdr_server.controller.cdr');
 
 
-  Future<Response> process(Request request) async {
+  Future<Response> process(Request request, String fromParam, String toParam, String kind) async {
     String direction = '';
     DateTime from;
     String kind;
-    List<String> rids = new List<String>();
+    List<String> rids = List<String>();
     DateTime to;
-    List<String> uids = new List<String>();
+    List<String> uids = List<String>();
 
     try {
       from =
-          DateTime.parse(Uri.decodeComponent(request.path.variables['from']));
-      to = DateTime.parse(Uri.decodeComponent(request.path.variables['to']));
+          DateTime.parse(Uri.decodeComponent(fromParam));
+      to = DateTime.parse(Uri.decodeComponent(toParam));
 
       if (from.isAtSameMomentAs(to) || from.isAfter(to)) {
-        throw new FormatException('Invalid timestamps. From must be before to');
+        throw FormatException('Invalid timestamps. From must be before to');
       }
 
-      kind = request.path.variables['kind'].toString().toLowerCase();
+      kind = kind.toLowerCase();
       if (!['list', 'summary'].contains(kind)) {
-        throw new FormatException('Invalid kind value');
+        throw FormatException('Invalid kind value');
       }
 
-      if (request.path.variables.containsKey('direction')) {
-        direction = request.path.variables['direction'].toLowerCase();
+      if (request.url.queryParameters.containsKey('direction')) {
+        direction = request.url.queryParameters['direction'].toLowerCase();
         if (!['both', 'inbound', 'outbound'].contains(direction)) {
-          throw new FormatException('Invalid direction value');
+          throw FormatException('Invalid direction value');
         }
       }
 
-      if (request.path.variables.containsKey('rids')) {
-        rids = request.path.variables['rids'].split(',');
+      if (request.url.queryParameters.containsKey('rids')) {
+        rids = request.url.queryParameters['rids'].split(',');
       }
 
-      if (request.path.variables.containsKey('uids')) {
-        uids = request.path.variables['uids'].split(',');
+      if (request.url.queryParameters.containsKey('uids')) {
+        uids = request.url.queryParameters['uids'].split(',');
       }
     } on FormatException catch (error) {
-      _log.warning('Bad request string: ${request.path}');
+      _log.warning('Bad request string: ${request.requestedUri}');
       _log.warning(error.message);
-      return new Response.serverError(
+      return Response.internalServerError(
           body: 'Cannot parse request string');
     }
 
-    final List<String> args = new List<String>()
+    final List<String> args = List<String>()
       ..add(config.cdrServer.pathToCdrCtl)
       ..add('report')
       ..add('-k')
@@ -98,6 +98,6 @@ class Cdr {
 
     final io.ProcessResult pr = await io.Process.run('dart', args);
     _log.info('Executing dart ${args.join(' ')}');
-    return new Response.ok(pr.stdout);
+    return Response.ok(pr.stdout);
   }
 }

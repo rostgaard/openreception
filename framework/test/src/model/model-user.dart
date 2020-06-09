@@ -59,7 +59,7 @@ abstract class _ModelUser {
     model.User builtObject = new model.User.empty()
       ..id = id
       ..address = address
-      ..groups = groups.toSet()
+      ..groups = groups
       ..name = name
       ..extension = peer
       ..portrait = picture;

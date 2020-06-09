@@ -19,169 +19,193 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class RESTContactStore implements storage.Contact {
-  RESTContactStore(Uri this.host, String this.token, this._backend);
 
-  final WebService _backend;
+  RESTContactStore(Uri host, String token, dynamic _backend) : _client =
+  api.ContactApi(api.ApiClient(basePath: host.toString())) {
+    _client.apiClient.getAuthentication<api.ApiKeyAuth>('ApiKeyAuth').apiKey =
+        token;
+  }
 
-  /// The uri of the connected backend.
-  final Uri host;
-
-  /// The token used for authenticating with the backed.
-  final String token;
+  final api.ContactApi _client;
 
   @override
-  Future<Iterable<model.ReceptionReference>> receptions(int id) async {
-    Uri url = resource.Contact.receptions(host, id);
-    url = _appendToken(url, token);
-
-    final List<dynamic> maps =
-        _json.decode(await _backend.get(url)) as List<dynamic>;
-
-    return maps.cast<Map<String, dynamic>>().map(
-        (Map<String, dynamic> map) => model.ReceptionReference.fromJson(map));
+  Future<List<model.ReceptionReference>> receptions(int cid) async {
+    try {
+      return _client.contactReceptions(cid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<model.OrganizationReference>> organizations(int id) async {
-    Uri url = resource.Contact.organizations(host, id);
-    url = _appendToken(url, token);
-
-    final Iterable<Map<String, dynamic>> maps = await _backend.get(url).then(
-        (String response) =>
-            _json.decode(response) as Iterable<Map<String, dynamic>>);
-
-    return maps.map((Map<String, dynamic> map) =>
-        model.OrganizationReference.fromJson(map));
+  Future<List<model.OrganizationReference>> organizations(int oid) async {
+    try {
+      return  _client.contactOrganizations(oid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<model.BaseContact> get(int id) {
-    Uri url = resource.Contact.single(host, id);
-    url = _appendToken(url, token);
-
-    return _backend.get(url).then((String response) =>
-        model.BaseContact.fromJson(
-            _json.decode(response) as Map<String, dynamic>));
+  Future<model.BaseContact> get(int id) async{
+    try {
+      return  _client.getBaseContact(id);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<model.BaseContact> create(
-      model.BaseContact contact, model.User modifier) {
-    Uri url = resource.Contact.root(host);
-    url = _appendToken(url, token);
-
-    return _backend
-        .post(url, _json.encode(contact))
-        .then(_json.decode)
-        .then((map) => model.BaseContact.fromJson(map));
+      model.BaseContact contact, model.User modifier) async {
+    try {
+      return  _client.createBaseContact(contact);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<Null> update(model.BaseContact contact, model.User modifier) async {
-    Uri url = resource.Contact.single(host, contact.id);
-    url = _appendToken(url, token);
-
-    await _backend.put(url, _json.encode(contact));
+    try {
+      return  _client.updateBaseContact(contact.id, contact);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<Null> remove(int id, model.User user) async {
-    Uri url = resource.Contact.single(host, id);
-    url = _appendToken(url, token);
-
-    await _backend.delete(url);
+    try {
+      return  _client.removeBaseContact(
+      id);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<model.BaseContact>> list() {
-    Uri url = resource.Contact.list(host);
-    url = _appendToken(url, token);
-
-    return _backend.get(url).then((String response) => (_json.decode(response)
-            as Iterable<Map<String, dynamic>>)
-        .map((Map<String, dynamic> map) => model.BaseContact.fromJson(map)));
+  Future<List<model.BaseContact>> list() {
+    try {
+      return  _client.getBaseContacts();
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<model.ReceptionAttributes> data(int id, int rid) {
-    Uri url = resource.Contact.singleByReception(host, id, rid);
-    url = _appendToken(url, token);
-
-    return _backend.get(url).then((String response) =>
-        model.ReceptionAttributes.fromJson(
-            _json.decode(response) as Map<String, dynamic>));
+  Future<model.ReceptionAttributes> data(int cid, int rid) async {
+    try {
+      return  _client.receptionContact(cid, rid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<model.ReceptionContact>> receptionContacts(int rid) {
-    Uri url = resource.Contact.listByReception(host, rid);
-    url = _appendToken(url, token);
-
-    return _backend.get(url).then((String response) =>
-        (_json.decode(response) as Iterable<Map<String, dynamic>>).map(
-            (Map<String, dynamic> map) =>
-                model.ReceptionContact.fromJson(map)));
+  Future<List<model.ReceptionContact>> receptionContacts(int rid) async {
+    try {
+      return  _client.contactsByReception(rid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<Null> addData(model.ReceptionAttributes attr, model.User user) async {
-    Uri url =
-        resource.Contact.singleByReception(host, attr.cid, attr.receptionId);
-    url = _appendToken(url, token);
-
-    await _backend.post(url, _json.encode(attr));
+    try {
+      return  _client.addToReception(attr.cid, attr.receptionId, attr);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<model.BaseContact>> organizationContacts(int oid) {
-    Uri url = resource.Contact.organizationContacts(host, oid);
-    url = _appendToken(url, token);
-
-    return _backend.get(url).then((String response) => (_json.decode(response)
-            as Iterable<Map<String, dynamic>>)
-        .map((Map<String, dynamic> map) => model.BaseContact.fromJson(map)));
+  Future<List<model.BaseContact>> organizationContacts(int oid)async {
+    try {
+      return  _client.listByOrganization(oid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<Null> removeData(int cid, int rid, model.User user) async {
-    Uri url = resource.Contact.singleByReception(host, cid, rid);
-    url = _appendToken(url, token);
-
-    await _backend.delete(url);
+    try {
+      return await _client.removeFromReception(cid, rid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<Null> updateData(
       model.ReceptionAttributes attr, model.User modifier) async {
-    Uri url =
-        resource.Contact.singleByReception(host, attr.cid, attr.receptionId);
-    url = _appendToken(url, token);
-
-    await _backend.put(url, _json.encode(attr));
+    try {
+      return await _client.updateReceptionData(attr.cid, attr.receptionId, attr);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([int cid, int rid]) async {
-    Uri url = resource.Contact.change(host, cid, rid);
-    url = _appendToken(url, this.token);
+  Future<List<model.Commit>> changes([int cid, int rid]) async {
+    try {
+      if (![null,0].contains(rid)) {
+        return  _client.contactReceptionHistory(cid, rid);
 
-    final String response = await _backend.get(url);
-    final Iterable<Map> maps = _json.decode(response);
-
-    return maps.map((map) => model.Commit.fromJson(map));
+      } else {
+        return  changelog(cid);
+      }
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
-  Future<String> changelog(int cid) {
-    Uri url = resource.Contact.changelog(host, cid);
-    url = _appendToken(url, this.token);
+  Future<String> contactChangeLog(int cid) {
+    try {
+        return  _client.contactChangelog(cid);
 
-    return _backend.get(url);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
+  }
+
+  Future<List<model.Commit>> changelog(int cid) {
+    try {
+      if (cid != 0 ) {
+        return  _client.contactHistory(cid);
+
+      } else {
+        return  _client.contactHistories();
+      }
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   Future<String> receptionChangelog(int cid) {
-    Uri url = resource.Contact.receptionChangelog(host, cid);
-    url = _appendToken(url, this.token);
-
-    return _backend.get(url);
+    try {
+      return  _client.contactReceptionChangelog(cid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 }

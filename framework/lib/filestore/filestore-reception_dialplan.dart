@@ -128,7 +128,7 @@ class ReceptionDialplan implements storage.ReceptionDialplan {
   }
 
   @override
-  Future<Iterable<model.ReceptionDialplan>> list() async {
+  Future<List<model.ReceptionDialplan>> list() async {
     final Iterable<FileSystemEntity> dirs = Directory(path)
         .listSync()
         .where((FileSystemEntity fse) =>
@@ -207,7 +207,7 @@ class ReceptionDialplan implements storage.ReceptionDialplan {
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([String extension]) async {
+  Future<List<model.Commit>> changes([String extension]) async {
     if (this._git == null) {
       throw UnsupportedError(
           'Filestore is instantiated without git support');
@@ -225,7 +225,7 @@ class ReceptionDialplan implements storage.ReceptionDialplan {
 
     int extractUid(String message) => message.startsWith('uid:')
         ? int.parse(message.split(' ').first.replaceFirst('uid:', ''))
-        : model.User.noId;
+        : 0;
 
     model.ObjectChange convertFilechange(FileChange fc) {
       String filename = fc.filename;

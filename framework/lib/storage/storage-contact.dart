@@ -36,15 +36,15 @@ abstract class Contact {
   Future<model.ReceptionAttributes> data(int cid, int rid);
 
   /// Retrieve a list of all [model.BaseContact] in the store.
-  Future<Iterable<model.BaseContact>> list();
+  Future<List<model.BaseContact>> list();
 
-  Future<Iterable<model.ReceptionContact>> receptionContacts(int rid);
+  Future<List<model.ReceptionContact>> receptionContacts(int rid);
 
-  Future<Iterable<model.BaseContact>> organizationContacts(int oid);
+  Future<List<model.BaseContact>> organizationContacts(int oid);
 
-  Future<Iterable<model.OrganizationReference>> organizations(int cid);
+  Future<List<model.OrganizationReference>> organizations(int cid);
 
-  Future<Iterable<model.ReceptionReference>> receptions(int cid);
+  Future<List<model.ReceptionReference>> receptions(int cid);
 
   /// Permanently removes the previously stored [model.BaseContact] object
   /// identified by [cid].
@@ -71,5 +71,5 @@ abstract class Contact {
 
   /// List contact and attribute set object changes for the store, optionally
   /// for a single [cid] or [cid] and [rid].
-  Future<Iterable<model.Commit>> changes([int cid, int rid]);
+  Future<List<model.Commit>> changes([int cid, int rid]);
 }

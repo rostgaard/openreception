@@ -19,16 +19,13 @@ import 'package:logging/logging.dart';
 import 'package:orf/event.dart' as event;
 import 'package:orf/service.dart' as service;
 
-/**
- * Controller class that is responsible for broadcasting an event to all
- * connected clients.
- */
+/// Controller class that is responsible for broadcasting an event to all
+/// connected clients.
 class ClientNotifier {
-  final StreamSubscription subscription;
 
   factory ClientNotifier(service.NotificationService notificationServer,
       Stream<event.Event> eventStream) {
-    Logger _log = new Logger('controller.ClientNotifier');
+    Logger _log = Logger('controller.ClientNotifier');
 
     void logError(dynamic error, StackTrace stackTrace) =>
         _log.shout('Failed to dispatch event', error, stackTrace);
@@ -37,10 +34,12 @@ class ClientNotifier {
       await notificationServer.broadcastEvent(e);
     }, onError: logError, onDone: () => subscription.cancel());
 
-    return new ClientNotifier._internal(subscription);
+    return ClientNotifier._internal(subscription);
   }
 
   ClientNotifier._internal(this.subscription);
+
+  final StreamSubscription subscription;
 
   Future close() async {
     await subscription.cancel();

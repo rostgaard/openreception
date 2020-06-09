@@ -33,7 +33,7 @@ class UIWelcomeMessage extends UIModel {
   @override
   HtmlElement get _root => _myRoot;
 
-  SpanElement get _greeting => _root.querySelector('.greeting');
+  SpanElement get _greeting => _root.querySelector('.greeting') as SpanElement;
 
   /**
    * Color the greeting box background when in active call.

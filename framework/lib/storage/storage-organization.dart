@@ -16,7 +16,7 @@ part of orf.storage;
 /// Storage interface for persistent storage of [model.Organization] objects.
 abstract class Organization {
   /// Return a list of [model.BaseContact]s associated with [oid].
-  Future<Iterable<model.BaseContact>> contacts(int oid);
+  Future<List<model.BaseContact>> contacts(int oid);
 
   /// Creates and stores a new [model.Organization] object persistently
   /// using [organization] data.
@@ -32,7 +32,7 @@ abstract class Organization {
 
   /// Retrieve a list of [model.OrganizationReference] to all available
   /// organization in the store.
-  Future<Iterable<model.OrganizationReference>> list();
+  Future<List<model.OrganizationReference>> list();
 
   /// Permanently removes the previously stored [model.Organization] object
   /// identified by [oid].
@@ -49,16 +49,10 @@ abstract class Organization {
       model.Organization organization, model.User modifier);
 
   /// Retrieve a list of [model.ReceptionReference]s associated with [oid].
-  Future<Iterable<model.ReceptionReference>> receptions(int oid);
+  Future<List<model.ReceptionReference>> receptions(int oid);
 
   /// List organization object changes for the store, optionally for a
   /// single [oid].
-  Future<Iterable<model.Commit>> changes([int oid]);
+  Future<List<model.Commit>> changes([int oid]);
 
-  /// Returns a map with int rid keys and organization / reception names in a
-  /// map as value.
-  ///
-  /// Example:
-  /// {"42": {'organization': "orgName", "reception": "recName"}
-  Future<Map<String, dynamic>> receptionMap();
 }

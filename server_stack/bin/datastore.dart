@@ -205,12 +205,13 @@ Future main(List<String> args) async {
   final router.Contact contactRouter =
       new router.Contact(authService, notificationService, contactController);
 
-  final receptionRouter = router.ReceptionChannel();
+  final receptionRouter = router.Reception(authService, notificationService, reception, organization);
 
   final dialplanRouter = new router.Dialplan(
       authService, ivrHandler, peerAccountHandler, receptionDialplanHandler);
 
-  await router.Datastore().start(null,
+  await router.Datastore
+    (authService, ivrHandler, peerAccountHandler, receptionDialplanHandler).listen(
       hostname: parsedArgs['host'], port: port);
 
   _log.info('Ready to handle requests');

@@ -36,7 +36,7 @@ class UIReceptionType extends UIModel {
   @override
   HtmlElement get _root => _myRoot;
 
-  OListElement get _list => _root.querySelector('.generic-widget-list');
+  OListElement get _list => _root.querySelector('.generic-widget-list') as OListElement;
 
   /**
    * Remove all entries from the list and clear the header.

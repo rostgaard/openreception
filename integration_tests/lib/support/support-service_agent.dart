@@ -241,7 +241,8 @@ class ServiceAgent {
     }
 
     final model.PeerAccount account =
-        model.PeerAccount(_nextExternalPeerName, '', 'public');
+        model.PeerAccount()..username = _nextExternalPeerName
+    ..password = '' .. context = 'public';
 
     _log.fine('Deploying account ${account.toJson()}');
     await paService.deployAccount(account, user.id);
@@ -281,16 +282,16 @@ class ServiceAgent {
     await authProcess.addTokens([authToken]);
 
     final rUser = Randomizer.randomUser()
-      ..extension = _nextInternalPeerName
-      ..groups = Set<String>.from([model.UserGroups.receptionist]);
+      ..extension_ = _nextInternalPeerName
+      ..groups = [model.UserGroups.receptionist];
     await userStore.create(rUser, user);
 
     final AuthToken userToken = AuthToken(rUser);
     _log.finest('Deploying receptionist token to ${authProcess.uri}');
     await authProcess.addTokens([userToken]);
 
-    final model.PeerAccount account = model.PeerAccount(
-        rUser.extension, rUser.name.hashCode.toString(), 'receptions');
+    final model.PeerAccount account = model.PeerAccount()..username =
+        rUser.extension_..password =  rUser.name.hashCode.toString()..context =  'receptions';
 
     _log.fine('Deploying account ${account.toJson()}');
     await paService.deployAccount(account, user.id);
@@ -317,7 +318,7 @@ class ServiceAgent {
     env.allocatedReceptionists.add(r);
     final registerEvent = (await notificationSocket).onEvent.firstWhere((e) =>
         e is event.PeerState &&
-        e.peer.name == r.user.extension &&
+        e.peer.name == r.user.extension_ &&
         e.peer.registered);
 
     await r.initialize(callflowProcess.uri, notificationProcess.notifyUri);
@@ -607,7 +608,7 @@ class ServiceAgent {
 
     msg
       ..context = context
-      ..recipients = contact.endpoints.toSet()
+      ..recipients = contact.endpoints
       ..sender = user;
 
     return messageStore.create(msg, user);

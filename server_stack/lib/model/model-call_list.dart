@@ -19,19 +19,19 @@ class CallList extends IterableBase<model.Call> {
   final controller.PBX _pbxController;
   final ChannelList _channelList;
 
-  static final Logger log = new Logger('ors.model.CallList');
+  static final Logger _log = Logger('ors.model.CallList');
 
-  Map<String, model.Call> _map = new Map<String, model.Call>();
+  Map<String, model.Call> _map = Map<String, model.Call>();
 
   @override
-  Iterator<model.Call> get iterator => this._map.values.iterator;
+  Iterator<model.Call> get iterator => _map.values.iterator;
 
-  Bus<event.Event> _callEvent = new Bus<event.Event>();
-  Stream<event.Event> get onEvent => this._callEvent.stream;
+  Bus<event.Event> _callEvent = Bus<event.Event>();
+  Stream<event.Event> get onEvent => _callEvent.stream;
 
-  List toJson() => this.toList(growable: false);
+  List toJson() => toList(growable: false);
 
-  bool containsID(String callID) => this._map.containsKey(callID);
+  bool containsID(String callID) => _map.containsKey(callID);
 
   void subscribe(Stream<esl.Event> eventStream) {
     eventStream.listen(_handleEvent);
@@ -52,7 +52,7 @@ class CallList extends IterableBase<model.Call> {
     for (model.Call call in calls) {
       _map[call.id] = call;
     }
-    _callEvent.fire(new event.CallStateReload());
+    _callEvent.fire(event.CallStateReload());
   }
 
   /// Reload the call list from an Iterable of channels.
@@ -62,11 +62,12 @@ class CallList extends IterableBase<model.Call> {
     for (esl.Channel channel in _channelList) {
       final int assignedTo = channel.variables.containsKey(ORPbxKey.userId)
           ? int.parse(channel.variables[ORPbxKey.userId])
-          : model.User.noId;
+          : model.noId;
 
       if (!channel.variables.containsKey(ORPbxKey.agentChannel)) {
-        calls[channel.uuid] = new model.Call.empty(channel.uuid)
-          ..arrived = new DateTime.fromMillisecondsSinceEpoch(
+        calls[channel.uuid] = model.Call()
+          ..channel = channel.uuid
+          ..arrivalTime = DateTime.fromMillisecondsSinceEpoch(
               int.parse(channel.fields['Caller-Channel-Created-Time']) ~/ 1000)
           ..assignedTo = assignedTo
           ..bLeg = channel.fields['Other-Leg-Unique-ID']
@@ -82,102 +83,101 @@ class CallList extends IterableBase<model.Call> {
                   ? channel.fields['Caller-Orig-Caller-ID-Number']
                   : channel.fields['Caller-Caller-ID-Number']
           ..destination = channel.variables[ORPbxKey.destination]
-          ..rid = channel.variables.containsKey(ORPbxKey.receptionId)
+          ..orRid = channel.variables.containsKey(ORPbxKey.receptionId)
               ? int.parse(channel.variables[ORPbxKey.receptionId])
-              : model.Reception.noId
-          ..cid = channel.variables.containsKey(ORPbxKey.contactId)
+              : model.noId
+          ..orCid = channel.variables.containsKey(ORPbxKey.contactId)
               ? int.parse(channel.variables[ORPbxKey.contactId])
-              : model.BaseContact.noId
-          ..event.listen(this._callEvent.fire);
+              : model.noId;
       } else {
-        log.info('Ignoring local channel ${channel.uuid}');
+        _log.info('Ignoring local channel ${channel.uuid}');
       }
     }
 
     ///Extract the call state.
     calls.values.forEach((model.Call call) {
       if (call.bLeg != null) {
-        log.info('$call is bridged.');
+        _log.info('$call is bridged.');
         final esl.Channel aLeg = _channelList.get(call.channel);
         final esl.Channel bLeg = _channelList.get(call.bLeg);
 
         if (isCall(aLeg) && isCall(bLeg)) {
-          call.state = model.CallState.transferred;
+          call.state = model.CallState.transferred_;
         } else {
           call.state = aLeg.fields['Answer-State'] == 'ringing'
-              ? model.CallState.ringing
-              : model.CallState.speaking;
+              ? model.CallState.ringing_
+              : model.CallState.speaking_;
         }
       } else {
-        log.info('$call is not bridged.');
+        _log.info('$call is not bridged.');
         final String orState =
             _channelList.get(call.channel).variables[ORPbxKey.state];
 
         if (orState == 'queued') {
-          call.state = model.CallState.queued;
+          call.state = model.CallState.queued_;
         } else if (orState == 'parked') {
-          call.state = model.CallState.parked;
+          call.state = model.CallState.parked_;
         } else if (orState == 'ringing') {
-          call.state = model.CallState.ringing;
+          call.state = model.CallState.ringing_;
         } else {
-          log.severe('state of $call not updated!');
+          _log.severe('state of $call not updated!');
         }
       }
     });
 
-    this._map = calls;
+    _map = calls;
 
-    this._callEvent.fire(new event.CallStateReload());
+    _callEvent.fire(event.CallStateReload());
   }
 
   List<model.Call> callsOf(int userID) =>
-      this.where((model.Call call) => call.assignedTo == userID).toList();
+      where((model.Call call) => call.assignedTo == userID).toList();
 
   model.Call get(String callID) {
-    if (this._map.containsKey(callID)) {
-      return this._map[callID];
+    if (_map.containsKey(callID)) {
+      return _map[callID];
     } else {
-      throw new NotFound(callID);
+      throw NotFound(callID);
     }
   }
 
   void update(String callID, model.Call call) {
     if (call.id != callID) {
-      throw new ArgumentError('call.ID and callID must match!');
+      throw ArgumentError('call.ID and callID must match!');
     }
 
     if (_map.containsKey(callID)) {
       _map[callID] = call;
     } else {
-      throw new NotFound(callID);
+      throw NotFound(callID);
     }
   }
 
   void remove(String callID) {
-    if (this._map.containsKey(callID)) {
-      this._map.remove(callID);
+    if (_map.containsKey(callID)) {
+      _map.remove(callID);
     } else {
-      throw new NotFound(callID);
+      throw NotFound(callID);
     }
   }
 
-  model.Call requestCall(model.User user) => this.firstWhere(
-      (model.Call call) => call.assignedTo == model.User.noId && !call.locked,
-      orElse: () => throw new NotFound("No calls available"));
+  model.Call requestCall(model.User user) => firstWhere(
+      (model.Call call) => call.assignedTo == model.noId && !call.locked,
+      orElse: () => throw NotFound("No calls available"));
 
   model.Call requestSpecificCall(String callID, model.User user) {
-    model.Call call = this.get(callID);
+    model.Call call = get(callID);
 
-    if (![user.id, model.User.noId].contains(call.assignedTo)) {
-      log.fine('Call $callID already assigned to uid: ${call.assignedTo}');
-      throw new Forbidden(callID);
+    if (![user.id, model.noId].contains(call.assignedTo)) {
+      _log.fine('Call $callID already assigned to uid: ${call.assignedTo}');
+      throw Forbidden(callID);
     } else if (call.locked) {
       if (call.assignedTo == user.id) {
-        log.fine('Call $callID locked, but assigned. Unlocking.');
+        _log.fine('Call $callID locked, but assigned. Unlocking.');
         call.locked = false;
       } else {
-        log.fine('Uid ${user.id} requested locked call $callID');
-        throw new Conflict(callID);
+        _log.fine('Uid ${user.id} requested locked call $callID');
+        throw Conflict(callID);
       }
     }
 
@@ -185,7 +185,7 @@ class CallList extends IterableBase<model.Call> {
   }
 
   /// Determine if a channel ID is a call-channel and not an agent channel.
-  bool isCall(esl.Channel channel) => this.containsID(channel.uuid);
+  bool isCall(esl.Channel channel) => containsID(channel.uuid);
 
   /// Handle CHANNEL_BRIDGE event packets.
   void _handleBridge(esl.Event e) {
@@ -193,49 +193,46 @@ class CallList extends IterableBase<model.Call> {
     final esl.Channel otherLeg =
         _channelList.get(e.fields['Other-Leg-Unique-ID']);
 
-    log.finest('Bridging channel ${uuid.uuid} and channel ${otherLeg.uuid}');
+    _log.finest('Bridging channel ${uuid.uuid} and channel ${otherLeg.uuid}');
 
     if (isCall(uuid) && isCall(otherLeg)) {
-      log.finest(
+      _log.finest(
           'Channel ${uuid.uuid} and channel ${otherLeg.uuid} are both calls');
       get(uuid.uuid)..bLeg = otherLeg.uuid;
       get(otherLeg.uuid)..bLeg = uuid.uuid;
 
-      get(uuid.uuid).changeState(model.CallState.transferred);
-      get(otherLeg.uuid).changeState(model.CallState.transferred);
+      changeState(get(uuid.uuid), model.CallState.transferred_);
+      changeState(get(otherLeg.uuid), model.CallState.transferred_);
     } else if (isCall(uuid)) {
       model.Call call = get(uuid.uuid);
-      log.finest('Channel ${uuid.uuid} is a call');
+      _log.finest('Channel ${uuid.uuid} is a call');
 
-      call
-        ..bLeg = otherLeg.uuid
-        ..changeState(model.CallState.speaking);
+      changeState(call..bLeg = otherLeg.uuid, model.CallState.speaking_);
 
       _startRecording(call);
     } else if (isCall(otherLeg)) {
       model.Call call = get(otherLeg.uuid);
-      log.finest('Channel ${otherLeg.uuid} is a call');
-      call
-        ..bLeg = uuid.uuid
-        ..changeState(model.CallState.speaking);
+      _log.finest('Channel ${otherLeg.uuid} is a call');
+      changeState(call..bLeg = uuid.uuid, model.CallState.speaking_);
 
       _startRecording(call);
     }
 
     // Local calls??
     else {
-      log.severe('Local calls are not supported!');
+      _log.severe('Local calls are not supported!');
     }
   }
 
   void _handleChannelDestroy(esl.Event e) {
-    if (this.containsID(e.uniqueID)) {
-      final model.Call call = this.get(e.uniqueID);
-      call.hangupCause =
+    if (containsID(e.uniqueID)) {
+      final model.Call call = get(e.uniqueID);
+      final hangupCause =
           e.fields['Hangup-Cause'] != null ? e.fields['Hangup-Cause'] : '';
-      call.changeState(model.CallState.hungup);
-      log.finest('Hanging up ${e.uniqueID}');
-      this.remove(e.uniqueID);
+      _callEvent.fire(event.CallHangup(call, hangupCause: hangupCause));
+
+      _log.finest('Hanging up ${e.uniqueID}');
+      remove(e.uniqueID);
     }
   }
 
@@ -244,66 +241,65 @@ class CallList extends IterableBase<model.Call> {
 
       /// Call is created
       case (ORPbxKey.callNotify):
-        this._createCall(e);
+        _createCall(e);
 
-        this.get(e.uniqueID)
-          ..rid = e.fields.containsKey('variable_${ORPbxKey.receptionId}')
-              ? int.parse(e.fields['variable_${ORPbxKey.receptionId}'])
-              : 0
-          ..changeState(model.CallState.created);
+        changeState(
+            get(e.uniqueID)
+              ..orRid = e.fields.containsKey('variable_${ORPbxKey.receptionId}')
+                  ? int.parse(e.fields['variable_${ORPbxKey.receptionId}'])
+                  : 0,
+            model.CallState.created_);
 
         break;
 
       case (ORPbxKey.ringingStart):
-        this.get(e.uniqueID).changeState(model.CallState.ringing);
+        changeState(get(e.uniqueID),model.CallState.ringing_);
         break;
 
       case (ORPbxKey.ringingStop):
-        this.get(e.uniqueID).changeState(model.CallState.transferring);
+        changeState(get(e.uniqueID),model.CallState.transferring_);
         break;
 
       case (ORPbxKey.callLock):
         if (_map.containsKey(e.uniqueID)) {
-          //ESL.Channel channel = new ESL.Channel.fromPacket(event);
+          //ESL.Channel channel = ESL.Channel.fromPacket(event);
           final int assignedTo = get(e.uniqueID).assignedTo;
 
-          if (assignedTo == model.User.noId) {
-            log.finest('Locking ${e.uniqueID}');
+          if (assignedTo == model.noId) {
+            _log.finest('Locking ${e.uniqueID}');
             get(e.uniqueID).locked = true;
           } else {
-            log.finest('Skipping locking of assigned call ${e.uniqueID}');
+            _log.finest('Skipping locking of assigned call ${e.uniqueID}');
           }
         } else {
-          log.severe('Locked non-announced call ${e.uniqueID}');
+          _log.severe('Locked non-announced call ${e.uniqueID}');
         }
         break;
 
       case (ORPbxKey.callUnlock):
-        if (this._map.containsKey(e.uniqueID)) {
-          log.finest('Unlocking ${e.uniqueID}');
+        if (_map.containsKey(e.uniqueID)) {
+          _log.finest('Unlocking ${e.uniqueID}');
           get(e.uniqueID).locked = false;
         } else {
-          log.severe('Locked non-announced call ${e.uniqueID}');
+          _log.severe('Locked non-announced call ${e.uniqueID}');
         }
         break;
 
       /// Entering the wait queue (Playing queue music)
       case (ORPbxKey.waitQueueEnter):
-        get(e.uniqueID)
-          ..greetingPlayed = true
-          ..changeState(model.CallState.queued);
+        changeState(get(e.uniqueID)
+          ..greetingPlayed = true,model.CallState.queued_);
         break;
 
       /// Call is parked
       case (ORPbxKey.parkingLotEnter):
-        get(e.uniqueID)
-          ..bLeg = null
-          ..changeState(model.CallState.parked);
+        changeState(get(e.uniqueID)
+          ..bLeg = null,model.CallState.parked_);
         break;
 
       /// Call is unparked
       case (ORPbxKey.parkingLotLeave):
-        get(e.uniqueID)..changeState(model.CallState.transferring);
+        changeState(get(e.uniqueID),model.CallState.transferring_);
         break;
     }
   }
@@ -312,15 +308,15 @@ class CallList extends IterableBase<model.Call> {
     void dispatch() {
       switch (e.eventName) {
         case (PBXEvent.channelBridge):
-          this._handleBridge(e);
+          _handleBridge(e);
           break;
 
         case (PBXEvent.channelDestroy):
-          this._handleChannelDestroy(e);
+          _handleChannelDestroy(e);
           break;
 
         case (PBXEvent.custom):
-          this._handleCustom(e);
+          _handleCustom(e);
           break;
       }
     }
@@ -328,8 +324,8 @@ class CallList extends IterableBase<model.Call> {
     try {
       dispatch();
     } catch (error, stackTrace) {
-      log.severe('Failed to dispatch event ${e.eventName}');
-      log.severe(error, stackTrace);
+      _log.severe('Failed to dispatch event ${e.eventName}');
+      _log.severe(error, stackTrace);
     }
   }
 
@@ -357,43 +353,43 @@ class CallList extends IterableBase<model.Call> {
   void _createCall(esl.Event e) {
     /// Skip local channels
     if (e.fields.containsKey('variable_${ORPbxKey.agentChannel}')) {
-      log.finest('Skipping origination channel ${e.uniqueID}');
+      _log.finest('Skipping origination channel ${e.uniqueID}');
       return;
     }
 
     if (e.fields.containsKey('Other-Leg-Username')) {
-      log.finest('Skipping transfer channel ${e.uniqueID}');
+      _log.finest('Skipping transfer channel ${e.uniqueID}');
       return;
     }
 
-    log.finest('Creating new call ${e.uniqueID}');
+    _log.finest('Creating new call ${e.uniqueID}');
 
     int contactID = e.fields.containsKey('variable_${ORPbxKey.contactId}')
         ? int.parse(e.fields['variable_${ORPbxKey.contactId}'])
-        : model.BaseContact.noId;
+        : model.noId;
 
     int receptionID = e.fields.containsKey('variable_${ORPbxKey.receptionId}')
         ? int.parse(e.fields['variable_${ORPbxKey.receptionId}'])
-        : model.Reception.noId;
+        : model.noId;
 
     int userID = e.fields.containsKey('variable_${ORPbxKey.userId}')
         ? int.parse(e.fields['variable_${ORPbxKey.userId}'])
-        : model.User.noId;
+        : model.noId;
 
-    final esl.Channel channel = new esl.Channel.fromEvent(e);
+    final esl.Channel channel = esl.Channel.fromEvent(e);
 
-    model.Call createdCall = new model.Call.empty(e.uniqueID)
-      ..arrived = new DateTime.fromMillisecondsSinceEpoch(
+    model.Call createdCall = model.Call()
+      ..id = e.uniqueID
+      ..arrivalTime = DateTime.fromMillisecondsSinceEpoch(
           int.parse(e.fields['Caller-Channel-Created-Time']) ~/ 1000)
       ..inbound = (e.fields['Call-Direction'] == 'inbound' ? true : false)
       ..callerId = e.fields['Caller-Caller-ID-Number']
       ..destination = channel.variables[ORPbxKey.destination]
-      ..rid = receptionID
-      ..cid = contactID
-      ..assignedTo = userID
-      ..event.listen(this._callEvent.fire);
+      ..orRid = receptionID
+      ..orCid = contactID
+      ..assignedTo = userID;
 
-    this._map[e.uniqueID] = createdCall;
+    _map[e.uniqueID] = createdCall;
   }
 
   Future _startRecording(model.Call call) async {
@@ -404,7 +400,7 @@ class CallList extends IterableBase<model.Call> {
     final Iterable parts = [
       call.bLeg,
       call.id,
-      call.rid,
+      call.orRid,
       call.inbound ? 'in_${call.callerId}' : 'out_${call.destination}'
     ];
 
@@ -413,12 +409,64 @@ class CallList extends IterableBase<model.Call> {
 
     return _pbxController
         .recordChannel(call.bLeg, filename)
-        .then((_) => log.fine('Started recording call ${call.id} '
+        .then((_) => _log.fine('Started recording call ${call.id} '
             '(agent channel: ${call.bLeg})  to file $filename'))
-        .catchError((error, stackTrace) => log.severe(
+        .catchError((error, stackTrace) => _log.severe(
             'Could not start recording of '
             'call ${call.id} to file $filename',
             error,
             stackTrace));
+  }
+
+  /// Change the state of the [model.Call] object to [newState].
+  void changeState(model.Call call, model.CallState newState) {
+    final model.CallState lastState = call.state;
+
+    call.state = newState;
+
+    _log.finest('UUID: ${call.id}: $lastState => $newState');
+
+    if (lastState == model.CallState.queued_) {
+      _callEvent.fire(event.QueueLeave(call));
+    } else if (lastState == model.CallState.parked_) {
+      _callEvent.fire(event.CallUnpark(call));
+    }
+
+    switch (newState) {
+      case (model.CallState.created_):
+        _callEvent.fire(event.CallOffer(call));
+        break;
+
+      case (model.CallState.parked_):
+        _callEvent.fire(event.CallPark(call));
+        break;
+
+      case (model.CallState.unparked_):
+        _callEvent.fire(event.CallUnpark(call));
+        break;
+
+      case (model.CallState.queued_):
+        _callEvent.fire(event.QueueJoin(call));
+        break;
+
+      case (model.CallState.speaking_):
+        _callEvent.fire(event.CallPickup(call));
+        break;
+
+      case (model.CallState.transferred_):
+        _callEvent.fire(event.CallTransfer(call));
+        break;
+
+      case (model.CallState.ringing_):
+        _callEvent.fire(event.CallStateChanged(call));
+        break;
+
+      case (model.CallState.transferring_):
+        break;
+
+      default:
+        _log.severe('Changing call ${call} to Unkown state!');
+        break;
+    }
   }
 }

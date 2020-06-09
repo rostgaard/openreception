@@ -23,10 +23,10 @@ import 'package:orf/bus.dart';
 import 'package:orf/event.dart' as event;
 import 'package:orf/exceptions.dart';
 import 'package:orf/model.dart' as model;
-import 'package:orf/pbx-keys.dart';
 import 'package:orf/service.dart' as service;
 import 'package:ors/configuration.dart';
 import 'package:ors/controller/controller-pbx.dart' as controller;
+import 'package:orf/pbx-keys.dart';
 
 part 'model/model-active_recording.dart';
 part 'model/model-agent_history.dart';

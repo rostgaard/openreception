@@ -82,7 +82,7 @@ class Message {
     try {
       content = json.decode(await request.readAsString());
       message = model.Message.fromJson(content)..sender = modifier;
-      if (message.id == model.Message.noId) {
+      if (message.id == model.noId) {
         return clientError('Refusing to update a non-existing message. '
             'set messageID or use the PUT method instead.');
       }
@@ -123,7 +123,7 @@ class Message {
       await _messageStore.remove(mid, modifier);
 
       final evt = event.MessageChange.delete(
-          mid, modifier.id, model.MessageState.unknown, DateTime.now());
+          mid, modifier.id, model.MessageState.unknown_, DateTime.now());
 
       try {
         await _notification.broadcastEvent(evt);
@@ -199,7 +199,7 @@ class Message {
           model.Message.fromJson(json.decode(content) as Map<String, dynamic>)
             ..sender = user;
 
-      if ([model.Message.noId, null].contains(message.id)) {
+      if ([model.noId, null].contains(message.id)) {
         return clientError('Invalid message ID');
       }
     } catch (error, stackTrace) {
@@ -247,7 +247,7 @@ class Message {
         ..sender = modifier
         ..createdAt = DateTime.now();
 
-      if (message.id != model.Message.noId) {
+      if (message.id != model.noId) {
         return clientError('Refusing to re-create existing message. '
             'Remove messageID or use the POST method instead.');
       }

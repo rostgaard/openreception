@@ -27,7 +27,7 @@ abstract class Ivr {
   Future<model.IvrMenu> get(String menuName);
 
   /// Retrieve a list of [model.IvrMenu] objects in the store.
-  Future<Iterable<model.IvrMenu>> list();
+  Future<List<model.IvrMenu>> list();
 
   /// Updates the previously stored [model.IvrMenu] object with data
   /// from [menu].
@@ -44,5 +44,5 @@ abstract class Ivr {
 
   /// List IVR menu object changes for the store, optionally for a
   /// single [menuName].
-  Future<Iterable<model.Commit>> changes([String menuName]);
+  Future<List<model.Commit>> changes([String menuName]);
 }

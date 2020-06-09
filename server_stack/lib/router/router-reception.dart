@@ -38,7 +38,6 @@ class Reception {
   final controller.Organization organization;
   final controller.Reception reception;
 
-
   /// Validate a token by looking it up on the authentication server.
   Future<shelf.Response> _lookupToken(shelf.Request request) async {
     var token = request.requestedUri.queryParameters['token'];
@@ -84,9 +83,10 @@ class Reception {
       ..put('/reception/<rid>', reception.update)
       ..delete('/reception/<rid>', reception.remove)
       ..get('/reception/<rid>/history', reception.objectHistory)
-      ..get('/reception/<rid>/changelog', reception.changelog)     ..all('/<catch-all|.*>', (shelf.Request request) {
-      return shelf.Response.notFound('Page not found');
-    });
+      ..get('/reception/<rid>/changelog', reception.changelog)
+      ..all('/<catch-all|.*>', (shelf.Request request) {
+        return shelf.Response.notFound('Page not found');
+      });
   }
 
   /**
@@ -94,7 +94,6 @@ class Reception {
    */
   Future<io.HttpServer> listen(
       {String hostname: '0.0.0.0', int port: 4010}) async {
-
     // Authentication middleware.
     shelf.Middleware checkAuthentication = shelf.createMiddleware(
         requestHandler: _lookupToken, responseHandler: null);
@@ -105,7 +104,7 @@ class Reception {
 
     final handler = const shelf.Pipeline()
         .addMiddleware(
-        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(checkAuthentication)
         .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);

@@ -54,8 +54,8 @@ class UIReceptionSelector extends UIModel {
   @override
   HtmlElement get _root => _myRoot;
 
-  OListElement get _list => _root.querySelector('.generic-widget-list');
-  InputElement get _filter => _root.querySelector('.filter');
+  OListElement get _list => _root.querySelector('.generic-widget-list') as OListElement;
+  InputElement get _filter => _root.querySelector('.filter') as InputElement;
 
   /**
    * Construct a [reception] <li> element.
@@ -71,7 +71,7 @@ class UIReceptionSelector extends UIModel {
    * Mark the [receptionId] list item as selected.
    */
   void changeActiveReception(int receptionId) {
-    _markSelected(_list.querySelector('[data-id="$receptionId"]'));
+    _markSelected(_list.querySelector('[data-id="$receptionId"]') as LIElement);
   }
 
   /**
@@ -118,7 +118,7 @@ class UIReceptionSelector extends UIModel {
   void _handleEnter(Event _) {
     if (_filter.value.trim().isNotEmpty &&
         _list.querySelectorAll(':not(.hide)').length == 1) {
-      _markSelected(_scanForwardForVisibleElement(_list.children.first));
+      _markSelected(_scanForwardForVisibleElement(_list.children.first as LIElement));
     }
   }
 
@@ -187,7 +187,7 @@ class UIReceptionSelector extends UIModel {
    */
   void refreshReception(model.ReceptionReference reception) {
     final LIElement newLi = _buildReceptionElement(reception);
-    final LIElement oldLi = _list.querySelector('[data-id="${reception.id}"]');
+    final LIElement oldLi = _list.querySelector('[data-id="${reception.id}"]') as LIElement;
     oldLi.replaceWith(newLi);
     _markSelected(newLi);
   }
@@ -229,8 +229,9 @@ class UIReceptionSelector extends UIModel {
       /// other elements.
       event.preventDefault();
 
-      if (event.target is LIElement) {
-        _markSelected(event.target);
+      final target = event.target;
+      if (target is LIElement) {
+        _markSelected(target);
       }
     }
   }
@@ -250,7 +251,7 @@ class UIReceptionSelector extends UIModel {
   ///
   /// Return [model.Reception.empty] if no [model.Reception] is selected.
   model.ReceptionReference get selectedReception {
-    LIElement li = _list.querySelector('.selected');
+    LIElement li = _list.querySelector('.selected') as LIElement;
 
     if (li != null) {
       return new model.ReceptionReference.fromJson(

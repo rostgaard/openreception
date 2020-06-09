@@ -38,27 +38,28 @@ void _runOrganizationTests() {
     test('list', () => storeTest.Organization.list(sa));
 
     test('contacts',
-        () => storeTest.Organization.existingOrganizationContacts(sa));
+            () => storeTest.Organization.existingOrganizationContacts(sa));
 
     test('contacts (not-found organization)',
-        () => storeTest.Organization.nonExistingOrganizationContacts(sa));
+            () => storeTest.Organization.nonExistingOrganizationContacts(sa));
 
     test('receptions',
-        () => storeTest.Organization.existingOrganizationReceptions(sa));
+            () => storeTest.Organization.existingOrganizationReceptions(sa));
 
     test('receptions (not-found organization)',
-        () => storeTest.Organization.nonExistingOrganizationReceptions(sa));
+            () => storeTest.Organization.nonExistingOrganizationReceptions(sa));
 
     test('create (event presence)',
-        () => serviceTest.Organization.createEvent(sa));
+            () => serviceTest.Organization.createEvent(sa));
 
     test('update (event presence)',
-        () => serviceTest.Organization.updateEvent(sa));
+            () => serviceTest.Organization.updateEvent(sa));
 
     test('remove (event presence)',
-        () => serviceTest.Organization.deleteEvent(sa));
+            () => serviceTest.Organization.deleteEvent(sa));
 
-    test('Reception map', () => storeTest.Organization.receptionMap(sa));
+    //FIXME: disabled for now.
+    //test('Reception map', () => storeTest.Organization.receptionMap(sa));
   });
 
   group('$_namespace.Organization', () {
@@ -79,14 +80,14 @@ void _runOrganizationTests() {
     tearDownAll(() async {
       await env.clear();
     });
-
-    test('change listing on create',
-        () => storeTest.Organization.changeOnCreate(sa));
-
-    test('change listing on update',
-        () => storeTest.Organization.changeOnUpdate(sa));
-
-    test('change listing on remove',
-        () => storeTest.Organization.changeOnRemove(sa));
+//
+//    test('change listing on create',
+//        () => storeTest.Organization.changeOnCreate(sa));
+//
+//    test('change listing on update',
+//        () => storeTest.Organization.changeOnUpdate(sa));
+//
+//    test('change listing on remove',
+//        () => storeTest.Organization.changeOnRemove(sa));
   });
 }

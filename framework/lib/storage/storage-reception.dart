@@ -29,7 +29,7 @@ abstract class Reception {
 
   /// Retrieve a list of [model.ReceptionReference] to all available receptions
   /// in the store.
-  Future<Iterable<model.ReceptionReference>> list();
+  Future<List<model.ReceptionReference>> list();
 
   /// Permanently removes the previously stored [model.Reception] object
   /// identified by [rid].
@@ -46,5 +46,5 @@ abstract class Reception {
       model.Reception reception, model.User modifier);
 
   /// List reception object changes for the store, optionally for a single [rid].
-  Future<Iterable<model.Commit>> changes([int rid]);
+  Future<List<model.Commit>> changes([int rid]);
 }

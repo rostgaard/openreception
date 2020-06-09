@@ -105,7 +105,7 @@ abstract class ReceptionDialplan {
     expect(commits.first.changes.length, equals(1));
     final model.ReceptionDialplanChange change = commits.first.changes.first;
 
-    expect(change.changeType, model.ChangeType.add);
+    expect(change.changeType, model.ChangeType.add_);
     expect(change.extension, created.extension);
   }
 
@@ -144,10 +144,10 @@ abstract class ReceptionDialplan {
     final model.ReceptionDialplanChange oldestChange =
         commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.modify);
+    expect(latestChange.changeType, model.ChangeType.modify_);
     expect(latestChange.extension, created.extension);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
+    expect(oldestChange.changeType, model.ChangeType.add_);
     expect(oldestChange.extension, created.extension);
   }
 
@@ -186,10 +186,10 @@ abstract class ReceptionDialplan {
     final model.ReceptionDialplanChange oldestChange =
         commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.delete);
+    expect(latestChange.changeType, model.ChangeType.delete_);
     expect(latestChange.extension, created.extension);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
+    expect(oldestChange.changeType, model.ChangeType.add_);
     expect(oldestChange.extension, created.extension);
   }
 }

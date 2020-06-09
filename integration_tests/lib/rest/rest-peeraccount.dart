@@ -24,7 +24,7 @@ _runPeerAccountTests() {
     test(
         'CORS headers present (existingUri)',
         () async =>
-            isCORSHeadersPresent(resource.PeerAccount.list(dpServer.uri), log));
+            isCORSHeadersPresent(Uri.parse('${dpServer.uri}/peer'), log));
 
     test(
         'CORS headers present (non-existingUri)',

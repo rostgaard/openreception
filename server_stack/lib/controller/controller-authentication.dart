@@ -19,13 +19,14 @@ import 'dart:convert';
 import 'package:logging/logging.dart';
 import 'package:orf/exceptions.dart';
 import 'package:orf/model.dart' as model;
-import 'package:orf/service-io.dart' as service;
+
 import 'package:orf/storage.dart' as storage;
 import 'package:ors/configuration.dart' as conf;
 import 'package:ors/googleauth.dart';
 import 'package:ors/response_utils.dart';
 import 'package:ors/token_vault.dart';
 import 'package:shelf/shelf.dart';
+import 'package:http/http.dart' as http;
 
 class Authentication {
   Authentication(this._config, this._userStore, this._vault) {
@@ -37,7 +38,6 @@ class Authentication {
   final TokenVault _vault;
   final conf.AuthServer _config;
   final storage.User _userStore;
-  final service.Client _httpClient =  service.Client();
 
   Future<Response> invalidateToken(Request request, final String token) async {
     if (token != null && token.isNotEmpty) {
@@ -92,7 +92,7 @@ class Authentication {
       _log.finest('Redirecting to $googleOauthRequestUrl');
 
       return Response(302,
-          headers: {'location:': googleOauthRequestUrl.toString()});
+          headers: {'Location:': googleOauthRequestUrl.toString()});
     } catch (error, stacktrace) {
       _log.severe(error, stacktrace);
       return  Response.internalServerError(
@@ -124,11 +124,11 @@ class Authentication {
     _log.finest('Sending request to google. "$tokenEndpoint" body "$postBody"');
 
     //Now we have the "code" which will be exchanged to a token.
-    Map jsonBody;
+    Map<String, dynamic> jsonBody;
     try {
-      final String response = await _httpClient.postForm(
-          tokenEndpoint, postBody as Map<String, dynamic>);
-      jsonBody = json.decode(response);
+      final http.Response response = await http.post(
+          tokenEndpoint, body : postBody);
+      jsonBody = json.decode(response.body);
     } catch (error) {
       return  Response.internalServerError(
           body: 'authenticationserver.router.oauthCallback uri ${request.url} '
@@ -194,7 +194,7 @@ class Authentication {
     Uri url = Uri.parse('https://www.googleapis.com/oauth2/'
         'v1/userinfo?alt=json&access_token=$accessToken');
 
-    final Map googleProfile = json.decode(await  service.Client().get(url));
+    final Map googleProfile = json.decode((await http.get(url)).body);
 
     final model.User user =
         await _userStore.getByIdentity(googleProfile['email']);
@@ -218,7 +218,7 @@ class Authentication {
         'grant_type': 'refresh_token'
       };
 
-      final String response = await _httpClient.post(url, json.encode(body));
+      final http.Response response = await http.post(url, body: body);
 
       return  ok(
           'BODY \n ==== \n${json.encode(body)} \n\n RESPONSE '
@@ -242,7 +242,7 @@ class Authentication {
   Future<Response> userinfo(final Request request, final String token) async {
     try {
       if (token == _config.serverToken) {
-        return okJson(model.User.empty()..id = model.User.noId);
+        return okJson(model.User()..id = model.noId);
       }
 
       Map content = _vault.getToken(token);

@@ -19,114 +19,115 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class RESTMessageStore implements storage.Message {
-  final WebService _backend;
+  RESTMessageStore(Uri host, String token, dynamic backend)
+      : _client = api.MessageApi(api.ApiClient(basePath: host.toString())) {
+    _client.apiClient.getAuthentication<api.ApiKeyAuth>('ApiKeyAuth').apiKey =
+        token;
+  }
 
-  /// The uri of the connected backend.
-  final Uri host;
-
-  /// The token used for authenticating with the backed.
-  final String token;
-
-  const RESTMessageStore(Uri this.host, String this.token, this._backend);
+  final api.MessageApi _client;
 
   @override
-  Future<model.Message> get(int mid) => this
-      ._backend
-      .get(_appendToken(resource.Message.single(this.host, mid), this.token))
-      .then((String response) => new model.Message.fromJson(
-          _json.decode(response) as Map<String, dynamic>));
+  Future<model.Message> get(int mid) {
+    try {
+      return _client.getMessage(mid);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
+  }
 
   @override
-  Future<Iterable<model.Message>> getByIds(Iterable<int> ids) async {
-    Uri uri = resource.Message.list(host);
-    uri = _appendToken(uri, token);
-
-    final Iterable<Map<String, dynamic>> maps = await _backend
-        .post(uri, _json.encode(ids))
-        .then((String response) => _json.decode(response));
-
-    return maps
-        .map((Map<String, dynamic> map) => new model.Message.fromJson(map));
+  Future<List<model.Message>> getByIds(List<int> ids) async {
+    try {
+      return _client.getByIds(ids);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   Future<model.MessageQueueEntry> enqueue(model.Message message) {
-    Uri uri = resource.Message.send(this.host, message.id);
-    uri = _appendToken(uri, this.token);
-
-    return this
-        ._backend
-        .post(uri, _json.encode(message))
-        .then(_json.decode)
-        .then((queueItemMap) =>
-            new model.MessageQueueEntry.fromJson(queueItemMap));
+    try {
+      return _client.enqueueMessage(message.id);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<model.Message> create(
       model.Message message, model.User modifier) async {
-    Uri uri = resource.Message.root(this.host);
-    uri = _appendToken(uri, this.token);
-
-    final response = await _backend.post(uri, _json.encode(message));
-    return new model.Message.fromJson(_json.decode(response));
+    try {
+      return _client.createMessage(message);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<Null> remove(int mid, model.User modifier) async {
-    Uri uri = resource.Message.single(host, mid);
-    uri = _appendToken(uri, token);
-
-    await _backend.delete(uri);
+    try {
+      return _client.deleteMessage(mid);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<model.Message> update(model.Message message, model.User modifier) =>
-      _backend
-          .put(
-              _appendToken(
-                  resource.Message.single(this.host, message.id), this.token),
-              _json.encode(message))
-          .then((String response) => new model.Message.fromJson(
-              _json.decode(response) as Map<String, dynamic>));
+  Future<model.Message> update(
+      model.Message message, model.User modifier) async {
+    try {
+      return _client.updateMessage(message.id, message);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
+  }
 
-  Future<Iterable<model.Message>> list({model.MessageFilter filter}) => this
-      ._backend
-      .get(_appendToken(
-          resource.Message.list(this.host, filter: filter), this.token))
-      .then((String response) => (_json.decode(response)
-              as Iterable<Map<String, dynamic>>)
-          .map((Map<String, dynamic> map) => new model.Message.fromJson(map)));
+  Future<List<model.Message>> list({model.MessageFilter filter}) async {
+    try {
+      return _client.listByDay(DateTime.now().toIso8601String(), filter);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
+  }
 
   @override
-  Future<Iterable<model.Message>> listDay(DateTime day,
+  Future<List<model.Message>> listDay(DateTime day,
       {model.MessageFilter filter}) async {
-    Uri uri = resource.Message.listDay(host, day, filter: filter);
-    uri = _appendToken(uri, token);
-
-    return _backend.get(uri).then((String response) => (_json.decode(response)
-            as Iterable<Map<String, dynamic>>)
-        .map((Map<String, dynamic> map) => new model.Message.fromJson(map)));
+    try {
+      return _client.listByDay(day.toIso8601String(), filter);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<model.Message>> listDrafts({model.MessageFilter filter}) {
-    Uri uri = resource.Message.listDrafts(host, filter: filter);
-    uri = _appendToken(uri, token);
-
-    return _backend.get(uri).then((String response) => (_json.decode(response)
-            as Iterable<Map<String, dynamic>>)
-        .map((Map<String, dynamic> map) => new model.Message.fromJson(map)));
+  Future<List<model.Message>> listDrafts({model.MessageFilter filter}) async {
+    try {
+      return _client.listDrafts(filter);
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([int mid]) async {
-    Uri url = resource.Message.changeList(host, mid);
-    url = _appendToken(url, this.token);
-
-    final List<dynamic> maps =
-    _json.decode(await _backend.get(url)) as List<dynamic>;
-
-    return maps.map(
-            (dynamic map) => model.Commit.fromJson(map as Map<String, dynamic>));
+  Future<List<model.Commit>> changes([int mid]) async {
+    try {
+      final List<api.Commit> changes = mid != null
+          ? (await _client.messageHistories())
+          : (await _client.messageHistory(mid));
+      return changes;
+    } on api.ApiException catch (e) {
+      WebService.checkResponse(e.code, "GET", null, e.message);
+      throw e;
+    }
   }
 }

@@ -21,7 +21,7 @@ abstract class Action {
   /// throw or propagate [FormatException] on parse errors. Note: Every
   /// specialization of an [Action] _must_ override the [parse] method.
   /// Otherwise a stack overflow will occur.
-  static Action parse(String buffer) {
+  static Action parse<T>(String buffer) {
     final _ConsumedIdenBuf consumed = consumeWord(buffer);
 
     switch (consumed.iden) {

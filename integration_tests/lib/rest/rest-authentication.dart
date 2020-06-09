@@ -24,8 +24,7 @@ void _runAuthServerTests() {
 
     test(
         'CORS headers present (existingUri)',
-        () => isCORSHeadersPresent(
-            resource.Authentication.validate(aProcess.uri, ''), log));
+        () => isCORSHeadersPresent(aProcess.uri, log));
 
     test(
         'CORS headers present (non-existingUri)',

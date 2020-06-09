@@ -11,7 +11,7 @@ abstract class Call {
   /// call, also covering the possible alternate scenarios that may occur.
   static Future _receptionistRequestsCall(Receptionist r) async {
     bool callAvailable(model.Call call) =>
-        call.assignedTo == model.User.noId && !call.locked;
+        call.assignedTo == model.noId && !call.locked;
 
     await Future.doWhile(() async {
       final Iterable<model.Call> calls = await r.callFlowControl.callList();
@@ -21,9 +21,9 @@ abstract class Call {
       }
 
       final model.Call nextCall =
-          calls.firstWhere(callAvailable, orElse: () => model.Call.noCall);
+          calls.firstWhere(callAvailable, orElse: () => null);
 
-      if (nextCall == model.Call.noCall) {
+      if (nextCall == null) {
         return true;
       }
 

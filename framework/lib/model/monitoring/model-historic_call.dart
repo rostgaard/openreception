@@ -57,7 +57,7 @@ class HistoricCall {
         (Map<String, dynamic> map) => new _HistoricCallEvent.fromJson(map)));
   }
 
-  bool get unAssigned => uid == User.noId;
+  bool get unAssigned => uid == noId;
 
   Duration get answerLatency {
     if (!inbound) {

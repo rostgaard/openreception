@@ -29,8 +29,8 @@ void _runNotificationTests() {
 
     test(
         'CORS headers present (existingUri)',
-        () async => isCORSHeadersPresent(
-            resource.Notification.clientConnections(nProcess.uri), log));
+            () async => isCORSHeadersPresent(Uri.parse('${nProcess.uri}/ping'),
+            log));
 
     test(
         'CORS headers present (non-existingUri)',

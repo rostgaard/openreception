@@ -22,7 +22,6 @@ import 'package:orf/event.dart' as event;
 import 'package:orf/exceptions.dart';
 import 'package:orf/filestore.dart' as filestore;
 import 'package:orf/model.dart' as model;
-import 'package:orf/service-io.dart' as service;
 import 'package:orf/service.dart' as service;
 import 'package:ors/model.dart' as model;
 import 'package:ors/response_utils.dart';
@@ -115,7 +114,7 @@ class User {
     } catch (error) {
       _log.severe('Failed to dispatch event $e', error);
     }
-    return okJson(uRef);
+    return okJson(await _userStore.get(uRef.id));
   }
 
   /// HTTP Request handler for updating a single user resource.
@@ -145,6 +144,8 @@ class User {
     }
 
     try {
+      user.groups = user.groups.toSet().toList();
+      user.identities = user.identities.toSet().toList();
       final uRef = await _userStore.update(user, modifier);
       final e = event.UserChange.update(uRef.id, modifier.id);
 

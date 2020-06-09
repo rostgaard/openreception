@@ -62,19 +62,19 @@ abstract class _ModelClientConfiguration {
 
   /// Build an object, and check that the expected values are present.
   static model.ClientConfiguration buildObject() {
-    final Uri authServerUri = Uri.parse('http://authserver.example.com');
-    final Uri userServerUri = Uri.parse('http://userserver.example.com');
-    final Uri callFlowServerUri = Uri.parse('http://callFlow.example.com');
-    final Uri contactServerUri = Uri.parse('http://contact.example.com');
+    final String authServerUri = Uri.parse('http://authserver.example.com').toString();
+    final String userServerUri = Uri.parse('http://userserver.example.com').toString();
+    final String callFlowServerUri = Uri.parse('http://callFlow.example.com').toString();
+    final String contactServerUri = Uri.parse('http://contact.example.com').toString();
     final bool hideInboundCallerId = true;
-    final Uri messageServerUri = Uri.parse('http://message.example.com');
+    final String messageServerUri = Uri.parse('http://message.example.com').toString();
     final List<String> myIdentifiers = const <String>['123456789'];
-    final Uri dialplanServerUri = Uri.parse('http://dialplan.example.com');
-    final Uri notificationServerUri =
-        Uri.parse('http://notification.example.com');
-    final Uri notificationSocketUri =
-        Uri.parse('ws://notification.example.com');
-    final Uri receptionServerUri = Uri.parse('http://reception.example.com');
+    final String dialplanServerUri = Uri.parse('http://dialplan.example.com').toString();
+    final String notificationServerUri =
+        Uri.parse('http://notification.example.com').toString();
+    final String notificationSocketUri =
+        Uri.parse('ws://notification.example.com').toString();
+    final String receptionServerUri = Uri.parse('http://reception.example.com').toString();
     final String systemLanguage = 'en';
 
     model.ClientConfiguration config = new model.ClientConfiguration.empty()

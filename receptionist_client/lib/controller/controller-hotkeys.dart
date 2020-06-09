@@ -13,6 +13,9 @@
 
 part of orc.controller;
 
+
+typedef KeyBoardListener = void Function(html.KeyboardEvent event);
+
 /**
  * Setup global keyboard shortcuts and associated event streams.
  */
@@ -26,7 +29,7 @@ class HotKeys {
     deactivateCtrlA();
     html.window.document.onKeyDown.listen(_keyDown.press);
 
-    final Map<dynamic, html.EventListener> preventDefaultBindings = {
+    final Map<dynamic, KeyBoardListener> preventDefaultBindings = <dynamic, KeyBoardListener>{
       'Alt+Down': (event) => _altArrowDown.fire(event),
       'Alt+Up': (event) => _altArrowUp.fire(event),
       'Alt+b': (event) => _altB.fire(event),
@@ -177,11 +180,11 @@ class HotKeys {
    * key events.
    */
   void registerKeysPreventDefault(
-      Keyboard keyboard, Map<dynamic, html.EventListener> keyMap) {
-    keyMap.forEach((dynamic key, html.EventListener callback) {
+      Keyboard keyboard, Map<dynamic, KeyBoardListener> keyMap) {
+    keyMap.forEach((dynamic key, KeyBoardListener callback) {
       keyboard.register(key, (html.Event event) {
         event.preventDefault();
-        callback(event);
+        callback(event as html.KeyboardEvent);
       });
     });
   }

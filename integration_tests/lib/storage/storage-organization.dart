@@ -23,7 +23,7 @@ class Organization {
     _log.info('Asserting properties');
     expect(org, isNotNull);
     expect(org.id, isNotNull);
-    expect(org.id, isNot(equals(model.Organization.noId)));
+    expect(org.id, isNot(equals(model.noId)));
     expect(org.name, isNotEmpty);
     expect(org.name, newOrg.name);
     expect(org.notes, newOrg.notes);
@@ -45,7 +45,8 @@ class Organization {
 
     final orgStore = sa.env.organizationStore;
 
-    Map recMap = await orgStore.receptionMap();
+    Map recMap = null;
+    //await orgStore.receptionMap();
 
     expect(recMap.length, equals(2));
 
@@ -64,12 +65,14 @@ class Organization {
   /// Organization objects.
   static Future list(ServiceAgent sa) async {
     _log.info('Checking server behaviour on list of organizations.');
+    final orgRefsOriginal = await sa.organizationStore.list();
+
     final org1 = await sa.createsOrganization();
     final org2 = await sa.createsOrganization();
 
     final orgRefs = await sa.organizationStore.list();
 
-    expect(orgRefs.length, equals(2));
+    expect(orgRefs.length, equals(orgRefsOriginal.length + 2));
 
     expect(orgRefs.any((ref) => ref.id == org1.id), isTrue);
     expect(orgRefs.any((ref) => ref.id == org2.id), isTrue);
@@ -213,12 +216,12 @@ class Organization {
   /// which is invalid.
   ///
   /// The expected behaviour is that the server should return an error.
-  static void createEmpty(ServiceAgent sa) {
-    model.Organization organization = model.Organization.empty()..id = null;
+  static void createEmpty(ServiceAgent sa) async {
+    model.Organization organization = model.Organization()..id = null;
 
     _log.info('Creating a empty/invalid organization ${organization.toJson()}');
 
-    return expect(sa.organizationStore.create(organization, sa.user),
+    expect(sa.organizationStore.create(organization, sa.user),
         throwsA(const TypeMatcher<ClientError>()));
   }
 
@@ -251,7 +254,7 @@ class Organization {
     _log.info('Asserting properties');
     expect(org, isNotNull);
     expect(org.id, isNotNull);
-    expect(org.id, isNot(equals(model.Organization.noId)));
+    expect(org.id, isNot(equals(model.noId)));
     expect(org.name, isNotEmpty);
     expect(org.notes, isNotNull);
     expect(org.name, newOrg.name);
@@ -280,7 +283,7 @@ class Organization {
     _log.info('Asserting properties');
     expect(org, isNotNull);
     expect(org.id, isNotNull);
-    expect(org.id, isNot(equals(model.Organization.noId)));
+    expect(org.id, isNot(equals(model.noId)));
     expect(org.name, isNotEmpty);
     expect(org.notes, isNotNull);
     expect(org.name, newOrg.name);
@@ -300,11 +303,11 @@ class Organization {
 
     expect(fetched, isNotNull);
     expect(fetched.id, isNotNull);
-    expect(org.id, isNot(equals(model.Organization.noId)));
+    expect(org.id, isNot(equals(model.noId)));
     expect(fetched.notes, isNotNull);
     expect(updated.id, equals(fetched.id));
 
-    expect(fetched.id == model.Organization.noId, isFalse);
+    expect(fetched.id == model.noId, isFalse);
     expect(fetched.name, isNotEmpty);
     expect(updated.name, equals(fetched.name));
     expect(updated.notes, equals(fetched.notes));
@@ -317,7 +320,7 @@ class Organization {
   static Future updateInvalid(ServiceAgent sa) async {
     final org = await sa.createsOrganization();
 
-    org.id = model.Organization.noId;
+    org.id = model.noId;
 
     expect(sa.organizationStore.update(org, sa.user),
         throwsA(const TypeMatcher<ClientError>()));
@@ -368,7 +371,7 @@ class Organization {
     expect(commits.first.changes.length, equals(1));
     final model.OrganizationChange change = commits.first.changes.first;
 
-    expect(change.changeType, model.ChangeType.add);
+    expect(change.changeType, model.ChangeType.add_);
     expect(change.oid, created.id);
   }
 
@@ -403,10 +406,10 @@ class Organization {
     final model.OrganizationChange latestChange = commits.first.changes.first;
     final model.OrganizationChange oldestChange = commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.modify);
+    expect(latestChange.changeType, model.ChangeType.modify_);
     expect(latestChange.oid, created.id);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
+    expect(oldestChange.changeType, model.ChangeType.add_);
     expect(oldestChange.oid, created.id);
   }
 
@@ -443,10 +446,10 @@ class Organization {
     final model.OrganizationChange latestChange = commits.first.changes.first;
     final model.OrganizationChange oldestChange = commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.delete);
+    expect(latestChange.changeType, model.ChangeType.delete_);
     expect(latestChange.oid, created.id);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
+    expect(oldestChange.changeType, model.ChangeType.add_);
     expect(oldestChange.oid, created.id);
   }
 }

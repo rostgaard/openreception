@@ -14,11 +14,11 @@ void runBenchmarkTests() {
 }
 
 void runFilestoreTests() {
- // filestore.allTests();
+ filestore.allTests();
 }
 
 void runRestStoreTests() {
-  rest.allTests();
+  //rest.allTests();
 }
 
 void main() {

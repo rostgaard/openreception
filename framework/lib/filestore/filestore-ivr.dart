@@ -119,7 +119,7 @@ class Ivr implements storage.Ivr {
   }
 
   @override
-  Future<Iterable<model.IvrMenu>> list() async => Directory(path)
+  Future<List<model.IvrMenu>> list() async => Directory(path)
       .listSync()
       .where((FileSystemEntity fse) =>
           _isDirectory(fse) && File(fse.path + '/menu.json').existsSync())
@@ -185,7 +185,7 @@ class Ivr implements storage.Ivr {
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([String menuName]) async {
+  Future<List<model.Commit>> changes([String menuName]) async {
     if (this._git == null) {
       throw UnsupportedError(
           'Filestore is instantiated without git support');
@@ -203,7 +203,7 @@ class Ivr implements storage.Ivr {
 
     int extractUid(String message) => message.startsWith('uid:')
         ? int.parse(message.split(' ').first.replaceFirst('uid:', ''))
-        : model.User.noId;
+        : 0;
 
     model.ObjectChange convertFilechange(FileChange fc) {
       String filename = fc.filename;

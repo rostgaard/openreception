@@ -17,6 +17,7 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:logging/logging.dart';
+import 'package:ors/configuration.dart';
 import 'package:ors/controller/controller-active_recording.dart' as controller;
 import 'package:ors/controller/controller-call.dart' as controller;
 import 'package:ors/controller/controller-channel.dart' as controller;
@@ -26,8 +27,6 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
 import 'package:shelf_router/shelf_router.dart' as shelf_route;
-
-import 'package:ors/configuration.dart';
 
 const Map<String, String> corsHeaders = const {
   'Access-Control-Allow-Origin': '*',
@@ -73,11 +72,11 @@ class Call {
       ..post('/call/<callid>/park', _callController.park)
       ..post(
           '/call/originate/<extension>/dialplan/<dialplan>'
-              '/reception/<rid>/contact/<cid>',
+          '/reception/<rid>/contact/<cid>',
           _callController.originate)
       ..post(
           '/call/originate/<extension>/dialplan/<dialplan>'
-              '/reception/<rid>/contact/<cid>/call/<callId>',
+          '/reception/<rid>/contact/<cid>/call/<callId>',
           _callController.originate)
       ..post('/call/<aleg>/transfer/<bleg>', _callController.transfer)
       ..all('/<catch-all|.*>', (Request request) {
@@ -94,7 +93,7 @@ class Call {
 
     var handler = const Pipeline()
         .addMiddleware(
-        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);
 

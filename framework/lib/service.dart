@@ -23,8 +23,8 @@ import 'package:orf/exceptions.dart';
 import 'package:orf/src/constants/model.dart' as key;
 
 import 'package:orf/model.dart' as model;
-import 'package:orf/resource.dart' as resource;
 import 'package:orf/storage.dart' as storage;
+import 'package:orf/api.dart' as api;
 
 part 'service/service-auth.dart';
 part 'service/service-calendar.dart';

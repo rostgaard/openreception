@@ -23,7 +23,7 @@ void _runUserTests() {
     test(
         'CORS headers present (existingUri)',
         () async => isCORSHeadersPresent(
-            resource.User.list((await env.requestUserserverProcess()).uri),
+            Uri.parse('${uProcess.uri}/user'),
             log));
 
     test(

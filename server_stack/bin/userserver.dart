@@ -77,14 +77,13 @@ Future main(List<String> args) async {
     exit(1);
   }
 
-  final service.Authentication _authService = new service.Authentication(
+  final service.Authentication _authService = service.Authentication.withHost(
       Uri.parse(parsedArgs['auth-uri']),
-      config.userServer.serverToken,
-      new service.Client());
+      config.userServer.serverToken);
 
   final service.NotificationService _notification =
   new service.NotificationService(Uri.parse(parsedArgs['notification-uri']),
-      config.userServer.serverToken, new service.Client());
+      config.userServer.serverToken, null);
 
   final Uri notificationUri =
   Uri.parse('ws://${_notification.host.host}:${_notification.host.port}'
@@ -163,13 +162,13 @@ Future main(List<String> args) async {
  */
 Future<Iterable<int>> _loadServiceAgents(filestore.User userStore) async {
   final Iterable allUids = (await userStore.list()).map((u) => u.id);
-  final Set<String> saGroups = new Set.from(
-      [model.UserGroups.serviceAgent, model.UserGroups.administrator]);
+  final List<String> saGroups =
+      [model.UserGroups.serviceAgent, model.UserGroups.administrator];
 
   final List<int> uids = [];
   await Future.forEach(allUids, (uid) async {
-    Set<String> groups = (await userStore.get(uid)).groups;
-    Set<String> commonGroups = groups.intersection(saGroups);
+    List<String> groups = (await userStore.get(uid)).groups;
+    Set<String> commonGroups = groups.toSet().intersection(saGroups.toSet());
 
     if (commonGroups.isNotEmpty) {
       uids.add(uid);

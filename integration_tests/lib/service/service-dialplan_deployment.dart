@@ -25,7 +25,7 @@ abstract class DialplanDeployment {
         Randomizer.randomReception()
           ..enabled = true
           ..dialplan = createdDialplan.extension,
-        model.User.empty());
+        model.User());
     await rdpStore.deployDialplan(rdp.extension, r.id);
     await rdpStore.reloadConfig();
 
@@ -54,7 +54,7 @@ abstract class DialplanDeployment {
     /// Cleanup.
     _log.info('Test successful. Cleaning up.');
 
-    await rStore.remove(r.id, model.User.empty());
+    await rStore.remove(r.id, model.User());
   }
 
   /**
@@ -93,7 +93,7 @@ abstract class DialplanDeployment {
         Randomizer.randomReception()
           ..enabled = true
           ..dialplan = createdDialplan.extension,
-        model.User.empty());
+        model.User());
     await rdpStore.deployDialplan(rdp.extension, r.id);
     await rdpStore.reloadConfig();
 
@@ -121,7 +121,7 @@ abstract class DialplanDeployment {
     /// Cleanup.
     _log.info('Test successful. Cleaning up.');
 
-    await rStore.remove(r.id, model.User.empty());
+    await rStore.remove(r.id, model.User());
   }
 
   /**
@@ -181,7 +181,7 @@ abstract class DialplanDeployment {
         Randomizer.randomReception()
           ..enabled = true
           ..dialplan = firstDialplan.extension,
-        model.User.empty());
+        model.User());
     await rdpStore.deployDialplan(firstDialplan.extension, r.id);
     await rdpStore.deployDialplan(secondDialplan.extension, r.id);
     await rdpStore.reloadConfig();
@@ -210,6 +210,6 @@ abstract class DialplanDeployment {
     /// Cleanup.
     _log.info('Test successful. Cleaning up.');
 
-    await rStore.remove(r.id, model.User.empty());
+    await rStore.remove(r.id, model.User());
   }
 }

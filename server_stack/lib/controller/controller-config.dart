@@ -28,22 +28,22 @@ class Config {
   final Logger _log = Logger('controller.config');
 
   /// The current client configuration.
-  final model.ClientConfiguration clientConfig =
-      model.ClientConfiguration.empty()
-        ..authServerUri = config.configserver.authServerUri
-        ..calendarServerUri = config.configserver.calendarServerUri
-        ..callFlowServerUri = config.configserver.callFlowControlUri
-        ..cdrServerUri = config.configserver.cdrServerUri
-        ..contactServerUri = config.configserver.contactServerUri
-        ..dialplanServerUri = config.configserver.dialplanServerUri
+  final model.Configuration clientConfig =
+      model.Configuration()
+        ..authServerUri = config.configserver.authServerUri.toString()
+        ..calendarServerUri = config.configserver.calendarServerUri.toString()
+        ..callFlowServerUri = config.configserver.callFlowControlUri.toString()
+        ..cdrServerUri = config.configserver.cdrServerUri.toString()
+        ..contactServerUri = config.configserver.contactServerUri.toString()
+        ..dialplanServerUri = config.configserver.dialplanServerUri.toString()
         ..hideInboundCallerId = config.hideInboundCallerId
-        ..messageServerUri = config.configserver.messageServerUri
+        ..messageServerUri = config.configserver.messageServerUri.toString()
         ..myIdentifiers = config.myIdentifiers
-        ..notificationServerUri = config.configserver.notificationServerUri
-        ..notificationSocketUri = config.configserver.notificationSocketUri
-        ..receptionServerUri = config.configserver.receptionServerUri
+        ..notificationServerUri = config.configserver.notificationServerUri.toString()
+        ..notificationSocketUri = config.configserver.notificationSocketUri.toString()
+        ..receptionServerUri = config.configserver.receptionServerUri.toString()
         ..systemLanguage = config.systemLanguage
-        ..userServerUri = config.configserver.userServerUri;
+        ..userServerUri = config.configserver.userServerUri.toString();
 
   /// Get the client configuration.
   Future<Response> get(Request request) async => okJson(clientConfig);
@@ -58,7 +58,7 @@ class Config {
 
       for (String value in body.keys) {
         serverType = service.decodeServerType(value);
-        final uri = Uri.parse(body[value]);
+        final uri = Uri.parse(body[value]).toString();
         switch (serverType) {
           case service.ServerType.authentication:
             clientConfig.authServerUri = uri;

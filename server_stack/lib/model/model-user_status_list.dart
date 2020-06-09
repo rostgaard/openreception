@@ -15,11 +15,11 @@ part of ors.model;
 
 class UserStatusList {
   Stream<event.UserState> get onChange => _change.stream;
-  final Bus<event.UserState> _change = new Bus<event.UserState>();
+  final Bus<event.UserState> _change = Bus<event.UserState>();
 
   List toJson() => _userStatus.values.toList(growable: false);
 
-  Logger _log = new Logger('$_libraryName.UserStatusList');
+  Logger _log = Logger('$_libraryName.UserStatusList');
 
   /// Internal lookup map.
   Map<int, model.UserStatus> _userStatus = {};
@@ -27,18 +27,22 @@ class UserStatusList {
   bool has(int userID) => this._userStatus.containsKey(userID);
 
   model.UserStatus pause(int uid) {
-    model.UserStatus status = new model.UserStatus(true, uid);
+    model.UserStatus status = model.UserStatus()
+      ..paused = true
+      ..userId = uid;
     _userStatus[uid] = status;
 
-    _change.fire(new event.UserState(_userStatus[uid]));
+    _change.fire(event.UserState(_userStatus[uid]));
     return status;
   }
 
   model.UserStatus ready(int uid) {
-    model.UserStatus status = new model.UserStatus(false, uid);
+    model.UserStatus status = model.UserStatus()
+      ..paused = false
+      ..userId = uid;
     _userStatus[uid] = status;
 
-    _change.fire(new event.UserState(_userStatus[uid]));
+    _change.fire(event.UserState(_userStatus[uid]));
     return status;
   }
 
@@ -46,7 +50,7 @@ class UserStatusList {
     if (_userStatus.containsKey(uid)) {
       return _userStatus[uid];
     } else {
-      throw new NotFound();
+      throw NotFound();
     }
   }
 }

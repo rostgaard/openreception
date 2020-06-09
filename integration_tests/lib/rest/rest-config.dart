@@ -23,7 +23,7 @@ void _runConfigTests() {
     });
 
     test('CORS headers present (existingUri)',
-        () => isCORSHeadersPresent(resource.Config.get(cProcess.uri), log));
+        () => isCORSHeadersPresent(Uri.parse('${cProcess.uri}/config'), log));
 
     test(
         'CORS headers present (non-existingUri)',
@@ -36,19 +36,27 @@ void _runConfigTests() {
             nonExistingPath(Uri.parse('${cProcess.uri}/nonexistingpath'), log));
 
     test(
+        'Update config',
+            () {
+          sa.configService.register(service.ServerType.calendar, sa.configService.host);
+          
+          
+            });
+    
+    test(
         'Get',
         () => sa.configService
                 .clientConfig()
-                .then((model.ClientConfiguration configuration) {
+                .then((model.Configuration configuration) {
               expect(configuration, isNotNull);
-              expect(configuration.authServerUri, const TypeMatcher<Uri>());
-              expect(configuration.callFlowServerUri, const TypeMatcher<Uri>());
-              expect(configuration.contactServerUri, const TypeMatcher<Uri>());
-              expect(configuration.messageServerUri, const TypeMatcher<Uri>());
+              expect(configuration.authServerUri, const TypeMatcher<String>());
+              expect(configuration.callFlowServerUri, const TypeMatcher<String>());
+              expect(configuration.contactServerUri, const TypeMatcher<String>());
+              expect(configuration.messageServerUri, const TypeMatcher<String>());
               expect(configuration.notificationSocketUri,
-                  const TypeMatcher<Uri>());
+                  const TypeMatcher<String>());
               expect(
-                  configuration.receptionServerUri, const TypeMatcher<Uri>());
+                  configuration.receptionServerUri, const TypeMatcher<String>());
               expect(configuration.systemLanguage, const TypeMatcher<String>());
             }));
   });

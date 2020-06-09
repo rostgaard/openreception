@@ -22,7 +22,7 @@ void _runContactTests() {
     });
 
     test('CORS headers present (existingUri)',
-        () => isCORSHeadersPresent(resource.User.list(cProcess.uri), log));
+        () => isCORSHeadersPresent(Uri.parse('${cProcess.uri}/user'), log));
 
     test(
         'CORS headers present (non-existingUri)',

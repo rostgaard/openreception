@@ -25,8 +25,7 @@ import 'package:logging/logging.dart';
 import 'package:orf/bus.dart';
 import 'package:orf/event.dart' as event;
 import 'package:orf/exceptions.dart';
-import 'package:orf/gzip_cache.dart'
-    show unpackAndDeserializeObject, serializeAndCompressObject;
+import 'package:orf/gzip_cache.dart';
 import 'package:orf/model.dart' as model;
 import 'package:orf/storage.dart' as storage;
 import 'package:path/path.dart';
@@ -49,7 +48,8 @@ const String _libraryName = 'openreception.filestore';
 const JsonEncoder _jsonpp = const JsonEncoder.withIndent('  ');
 const JsonCodec _json = const JsonCodec();
 
-final model.User _systemUser = new model.User.empty()
+final model.User _systemUser = model.User()
+  ..id = 0
   ..name = 'System'
   ..address = 'root@localhost';
 
@@ -58,7 +58,7 @@ final model.User _systemUser = new model.User.empty()
 /// The generated author string will have the form `$name <$email>` and will
 /// be HTML-escaped.
 String _authorString(model.User user) =>
-    new HtmlEscape(HtmlEscapeMode.attribute).convert('${user.name}') +
+    HtmlEscape(HtmlEscapeMode.attribute).convert('${user.name}') +
     ' <${user.address}>';
 
 /// Convenience function for checking that a [FileSystemEntity] is a
@@ -77,24 +77,24 @@ bool _isDirectory(FileSystemEntity fse) =>
 
 /// Filestore wrapper class that encloses all the filestores.
 class DataStore {
-  /// Create a new [DataStore] in directory [path].
+  /// Create a  [DataStore] in directory [path].
   ///
   /// If [path] exists, then the [DataStore] will reuse the existing objects
   /// in it.
   /// Optionally uses a [GitEngine] for revisioning.
   factory DataStore(String path, [GitEngine ge]) {
-    Calendar calendarStore = new Calendar(path + '/calendar', ge);
-    Reception receptionStore = new Reception(path + '/reception', ge);
-    Contact contactStore = new Contact(receptionStore, path + '/contact', ge);
-    Ivr ivrStore = new Ivr(path + '/ivr', ge);
-    Message messageStore = new Message(path + '/message');
-    Organization orgStore = new Organization(
-        contactStore, receptionStore, path + '/organization', ge);
+    Calendar calendarStore = Calendar(path + '/calendar', ge);
+    Reception receptionStore = Reception(path + '/reception', ge);
+    Contact contactStore = Contact(receptionStore, path + '/contact', ge);
+    Ivr ivrStore = Ivr(path + '/ivr', ge);
+    Message messageStore = Message(path + '/message');
+    Organization orgStore =
+        Organization(contactStore, receptionStore, path + '/organization', ge);
     ReceptionDialplan receptionDialplanStore =
-        new ReceptionDialplan(path + '/dialplan', ge);
-    User userStore = new User(path + '/user', ge);
+        ReceptionDialplan(path + '/dialplan', ge);
+    User userStore = User(path + '/user', ge);
 
-    return new DataStore._internal(
+    return DataStore._internal(
         calendarStore,
         contactStore,
         ivrStore,
@@ -146,12 +146,11 @@ class DataStore {
 /// Simple file-based [ChangeLogger] class that bumps serialized objects
 /// (and the changetype) to a plain file.
 class ChangeLogger {
-  /// Create a new [ChangeLogger] in [filepath].
+  /// Create a  [ChangeLogger] in [filepath].
   ///
   /// The changelog file will be placed in a `changes.log` file within
   /// [filepath].
-  ChangeLogger(String filepath)
-      : logFile = new File(filepath + '/changes.log') {
+  ChangeLogger(String filepath) : logFile = File(filepath + '/changes.log') {
     try {
       if (!logFile.existsSync()) {
         logFile.createSync();
@@ -165,7 +164,7 @@ class ChangeLogger {
   final File logFile;
 
   /// Internal logger.
-  final Logger _log = new Logger('orf.filestore.ChangeLogger');
+  final Logger _log = Logger('orf.filestore.ChangeLogger');
 
   /// Append a [model.ChangelogEntry] to the [logFile].
   void add(model.ChangelogEntry object) {
@@ -174,7 +173,7 @@ class ChangeLogger {
   }
 
   /// Read the entire content of [logFile] into a [String] buffer.
-  Future<String> contents() async => new File(logFile.path).existsSync()
-      ? (await new File(logFile.path).readAsString())
+  Future<String> contents() async => File(logFile.path).existsSync()
+      ? (await File(logFile.path).readAsString())
       : '';
 }

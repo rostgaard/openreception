@@ -16,7 +16,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = model.MessageContext.empty()
+    final context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -50,13 +50,13 @@ abstract class Message {
     await sa.addsContactToReception(con1, rec1);
     await sa.addsContactToReception(con2, rec2);
 
-    final context1 = model.MessageContext.empty()
+    final context1 = model.MessageContext()
       ..cid = con1.id
       ..rid = rec1.id
       ..contactName = con1.name
       ..receptionName = rec1.name;
 
-    final context2 = model.MessageContext.empty()
+    final context2 = model.MessageContext()
       ..cid = con2.id
       ..rid = rec2.id
       ..contactName = con2.name
@@ -73,7 +73,7 @@ abstract class Message {
     }
 
     {
-      final filter = model.MessageFilter.empty()..contactId = con1.id;
+      final filter = model.MessageFilter()..contactId = con1.id;
       log.info('Listing with contactFilter $filter');
       final lst = (await sa.messageStore.listDay(DateTime.now()))
           .where(filter.appliesTo);
@@ -87,7 +87,7 @@ abstract class Message {
     final msg2 = await sa.createsMessage(context2);
 
     {
-      final filter = model.MessageFilter.empty()..contactId = con2.id;
+      final filter = model.MessageFilter()..contactId = con2.id;
       log.info('Listing with contactFilter $filter');
       final lst = (await sa.messageStore.listDay(DateTime.now()))
           .where(filter.appliesTo);
@@ -98,7 +98,7 @@ abstract class Message {
     }
 
     {
-      final filter = model.MessageFilter.empty()..receptionId = rec1.id;
+      final filter = model.MessageFilter()..receptionId = rec1.id;
       log.info('Listing with filter $filter');
       final lst = (await sa.messageStore.listDay(DateTime.now()))
           .where(filter.appliesTo);
@@ -109,7 +109,7 @@ abstract class Message {
     }
 
     {
-      final filter = model.MessageFilter.empty()..receptionId = rec2.id;
+      final filter = model.MessageFilter()..receptionId = rec2.id;
       log.info('Listing with filter $filter');
       final lst = (await sa.messageStore.listDay(DateTime.now()))
           .where(filter.appliesTo);
@@ -131,7 +131,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = model.MessageContext.empty()
+    final context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -151,7 +151,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = model.MessageContext.empty()
+    final context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -172,7 +172,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = model.MessageContext.empty()
+    final context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -198,7 +198,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = model.MessageContext.empty()
+    final context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -208,7 +208,7 @@ abstract class Message {
     final mRef = await sa.createsMessage(context, msg: created);
     final fetched = await sa.messageStore.get(mRef.id);
 
-    expect(fetched.id, greaterThan(model.Message.noId));
+    expect(fetched.id, greaterThan(model.noId));
     expect(fetched.body, equals(created.body));
     expect(fetched.callerInfo.toJson(), equals(created.callerInfo.toJson()));
     expect(fetched.callId, equals(created.callId));
@@ -243,7 +243,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final context = model.MessageContext.empty()
+    final context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -254,7 +254,7 @@ abstract class Message {
     final newRcps = [
       Randomizer.randomMessageEndpoint(),
       Randomizer.randomMessageEndpoint()
-    ].toSet();
+    ];
 
     final updated = Randomizer.randomMessage()
       ..id = mRef.id
@@ -265,7 +265,7 @@ abstract class Message {
 
     final fetched = await sa.messageStore.get(mRef.id);
 
-    expect(fetched.id, greaterThan(model.Message.noId));
+    expect(fetched.id, greaterThan(model.noId));
     expect(fetched.body, equals(updated.body));
     expect(fetched.callerInfo.toJson(), equals(updated.callerInfo.toJson()));
     expect(fetched.callId, equals(updated.callId));
@@ -289,7 +289,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final model.MessageContext context = model.MessageContext.empty()
+    final model.MessageContext context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -308,7 +308,7 @@ abstract class Message {
     expect(commits.first.changes.length, equals(1));
     final model.MessageChange change = commits.first.changes.first;
 
-    expect(change.changeType, model.ChangeType.add);
+    expect(change.changeType, model.ChangeType.add_);
     expect(change.mid, created.id);
   }
 
@@ -321,7 +321,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final model.MessageContext context = model.MessageContext.empty()
+    final model.MessageContext context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -354,10 +354,10 @@ abstract class Message {
     final model.MessageChange latestChange = commits.first.changes.first;
     final model.MessageChange oldestChange = commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.modify);
+    expect(latestChange.changeType, model.ChangeType.modify_);
     expect(latestChange.mid, created.id);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
+    expect(oldestChange.changeType, model.ChangeType.add_);
     expect(oldestChange.mid, created.id);
   }
 
@@ -370,7 +370,7 @@ abstract class Message {
     final con = await sa.createsContact();
     await sa.addsContactToReception(con, rec);
 
-    final model.MessageContext context = model.MessageContext.empty()
+    final model.MessageContext context = model.MessageContext()
       ..cid = con.id
       ..rid = rec.id
       ..contactName = con.name
@@ -403,10 +403,10 @@ abstract class Message {
     final model.MessageChange latestChange = commits.first.changes.first;
     final model.MessageChange oldestChange = commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.delete);
+    expect(latestChange.changeType, model.ChangeType.delete_);
     expect(latestChange.mid, created.id);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
+    expect(oldestChange.changeType, model.ChangeType.add_);
     expect(oldestChange.mid, created.id);
   }
 }

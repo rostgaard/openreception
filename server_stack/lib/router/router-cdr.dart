@@ -18,8 +18,12 @@ import 'dart:io' as io;
 import 'package:logging/logging.dart';
 import 'package:orf/exceptions.dart';
 import 'package:orf/service.dart' as Service;
+import 'package:ors/configuration.dart';
 import 'package:ors/controller/controller-cdr.dart' as controller;
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
+import 'package:shelf_router/shelf_router.dart' as shelf_route;
 
 const String libraryName = 'cdrserver.router';
 final Logger log = Logger(libraryName);
@@ -53,24 +57,19 @@ Future<io.HttpServer> start(Service.Authentication authService,
     return null;
   }
 
-  /**
-   * Authentication middleware.
-   */
+  // Authentication middleware.
   shelf.Middleware checkAuthentication = shelf.createMiddleware(
       requestHandler: _lookupToken, responseHandler: null);
 
-//  var router = shelf_route.router(fallbackHandler: send404)
-//    ..get('/from/{from}/to/{to}/kind/{kind}', cdrController.process);
-//
-//  var handler = const shelf.Pipeline()
-//      .addMiddleware(
-//          shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
-//      .addMiddleware(checkAuthentication)
-//      .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
-//      .addHandler(router.handler);
-//
-//  log.fine('Serving interfaces:');
-//  shelf_route.printRoutes(router, printer: (String item) => log.fine(item));
-//
-//  return await shelf_io.serve(handler, hostname, port);
+  var router = shelf_route.Router()
+    ..get('/from/<from>/to/<to>/kind/<kind>', cdrController.process);
+
+  var handler = const shelf.Pipeline()
+      .addMiddleware(
+          shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+      .addMiddleware(checkAuthentication)
+      .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
+      .addHandler(router.handler);
+
+  return await shelf_io.serve(handler, hostname, port);
 }

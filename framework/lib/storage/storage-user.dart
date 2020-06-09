@@ -22,11 +22,11 @@ abstract class User {
   Future<model.User> getByIdentity(String identity);
 
   /// Retrieve a list of all available groups of the system.
-  Future<Iterable<String>> groups();
+  Future<List<String>> groups();
 
   /// Retrieve a list of [model.UserReference] to all available users in
   /// the store.
-  Future<Iterable<model.UserReference>> list();
+  Future<List<model.UserReference>> list();
 
   /// Creates and stores a new [model.User] object persistently using [user] data.
   ///
@@ -49,5 +49,5 @@ abstract class User {
   Future<Null> remove(int uid, model.User modifier);
 
   /// List user object changes for the store, optionally for a single [uid].
-  Future<Iterable<model.Commit>> changes([int uid]);
+  Future<List<model.Commit>> changes([int uid]);
 }

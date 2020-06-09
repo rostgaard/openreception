@@ -95,7 +95,7 @@ class PBX {
     final int timeout = config.callFlowControl.originateTimeout;
 
     esl.Response response = await api(
-        'originate {${aLegvariables.join(',')}}user/${user.extension} '
+        'originate {${aLegvariables.join(',')}}user/${user.extension_} '
         '&bridge([${bLegvariables.join(',')}]sofia/external/$extension) '
         '$_dialplan $callerIdName $callerIdNumber $timeout');
 
@@ -119,10 +119,10 @@ class PBX {
       {Map<String, String> extravars: const {}}) async {
     final int msecs = DateTime.now().millisecondsSinceEpoch;
     final String newCallUuid = 'agent-${user.id}-$msecs';
-    final String destination = 'user/${user.extension}';
+    final String destination = 'user/${user.extension_}';
 
     _log.finest('New uuid: $newCallUuid');
-    _log.finest('Dialing receptionist at user/${user.extension}');
+    _log.finest('Dialing receptionist at user/${user.extension_}');
 
     final String callerIdNumber = config.callFlowControl.callerIdNumber;
 
@@ -178,20 +178,18 @@ class PBX {
     }
   }
 
-  /**
-   * Spawns a channel to an agent.
-   *
-   * By first dialing the agent, and parking him/her.
-   *
-   * Returns the UUID of the channel.
-   */
+  /// Spawns a channel to an agent.
+  ///
+  /// By first dialing the agent, and parking him/her.
+  ///
+  /// Returns the UUID of the channel.
   Future<String> createAgentChannelBg(model.User user) async {
     final int msecs = DateTime.now().millisecondsSinceEpoch;
     final String newCallUuid = 'agent-${user.id}-$msecs';
-    final String destination = 'user/${user.extension}';
+    final String destination = 'user/${user.extension_}';
 
     _log.finest('New uuid: $newCallUuid');
-    _log.finest('Dialing receptionist at user/${user.extension}');
+    _log.finest('Dialing receptionist at user/${user.extension_}');
 
     final String callerIdNumber = config.callFlowControl.callerIdNumber;
 
@@ -257,7 +255,7 @@ class PBX {
 
   Future transferUUIDToExtension(
       String uuid, String extension, model.User user, String context) async {
-    await api('uuid_setvar $uuid effective_caller_id_number ${user.extension}');
+    await api('uuid_setvar $uuid effective_caller_id_number ${user.extension_}');
     await api('uuid_setvar $uuid effective_caller_id_name ${user.address}');
     final esl.Reply reply = await bgapi(
         'uuid_transfer $uuid external_transfer_$extension xml reception-$context');
@@ -290,7 +288,7 @@ class PBX {
     final int timeout = config.callFlowControl.originateTimeout;
 
     final String command =
-        'originate {${variables.join(',')}}user/${user.extension} $recordExtension $_dialplan $callerIdName $callerIdNumber $timeout';
+        'originate {${variables.join(',')}}user/${user.extension_} $recordExtension $_dialplan $callerIdName $callerIdNumber $timeout';
     return api(command).then((esl.Response response) {
       if (!response.isOk) {
         throw StateError('ESL returned ${response.content}');
@@ -414,7 +412,7 @@ class PBX {
     final acceptedPeers = loadedList.where(_model.peerIsInAcceptedContext);
 
     for (esl.Peer eslPeer in acceptedPeers) {
-      final model.Peer peer = model.Peer(eslPeer.id)
+      final model.Peer peer = model.Peer()..name = eslPeer.id
         ..registered = eslPeer.registered;
       peerList.add(peer);
     }
@@ -426,6 +424,7 @@ class PBX {
   /// Request a reload of peers.
   Future loadPeers(_model.PeerList peerList) async {
     esl.Response response = await api('list_users');
+    print(response.content);
 
     _loadPeerListFromPacket(response, peerList);
   }
@@ -436,10 +435,11 @@ class PBX {
 
   /// Loads the channel list from an [esl.Response].
   Future _loadChannelListFromPacket(esl.Response response) {
+    print(response.content);
     Map responseBody = json.decode(response.content);
     Iterable<String> channelUUIDs = responseBody.containsKey('rows')
-        ? List.from(
-            json.decode(response.content)['rows'].map((Map m) => m['uuid']))
+        ? (json.decode(response.content)['rows'] as List<dynamic>).cast<Map<String,dynamic>>()
+          .map((m) => m['uuid'])
         : [];
 
     return Future.forEach(channelUUIDs, (String channelUUID) {

@@ -6,7 +6,7 @@ abstract class Peer {
   /// Test for the presence of hangup events when a peer
   /// changes registration status.
   static Future eventPresence(Receptionist receptionist) async {
-    String peerName = receptionist.user.extension;
+    String peerName = receptionist.user.extension_;
 
     log.info('Unregistering peer $peerName to assert state');
 
@@ -28,7 +28,7 @@ abstract class Peer {
     log.info('Waiting for peer state event');
 
     event.PeerState peerStateEvent =
-        await receptionist.waitForPeerState(receptionist.user.extension);
+        await receptionist.waitForPeerState(receptionist.user.extension_);
     log.info('Got event $peerStateEvent');
     expect(peerStateEvent.peer.registered, isTrue);
     expect(peerStateEvent.peer.name, equals(peerName));
@@ -41,7 +41,7 @@ abstract class Peer {
     log.info('Waiting for peer state event');
 
     peerStateEvent =
-        await receptionist.waitForPeerState(receptionist.user.extension);
+        await receptionist.waitForPeerState(receptionist.user.extension_);
 
     log.info('Got event $peerStateEvent');
     expect(peerStateEvent.peer.registered, isFalse);

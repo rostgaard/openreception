@@ -570,7 +570,7 @@ abstract class Contact {
     expect(commits.first.changes.length, equals(1));
     final model.ContactChange change = commits.first.changes.first;
 
-    expect(change.changeType, model.ChangeType.add);
+    expect(change.changeType, model.ChangeType.add_);
     expect(change.cid, created.id);
   }
 
@@ -605,10 +605,10 @@ abstract class Contact {
     final model.ContactChange latestChange = commits.first.changes.first;
     final model.ContactChange oldestChange = commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.modify);
+    expect(latestChange.changeType, model.ChangeType.modify_);
     expect(latestChange.cid, created.id);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
+    expect(oldestChange.changeType, model.ChangeType.add_);
     expect(oldestChange.cid, created.id);
   }
 
@@ -645,10 +645,10 @@ abstract class Contact {
     final model.ContactChange latestChange = commits.first.changes.first;
     final model.ContactChange oldestChange = commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.delete);
+    expect(latestChange.changeType, model.ChangeType.delete_);
     expect(latestChange.cid, created.id);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
+    expect(oldestChange.changeType, model.ChangeType.add_);
     expect(oldestChange.cid, created.id);
   }
 
@@ -683,7 +683,7 @@ abstract class Contact {
       expect(commits.first.changes.length, equals(1));
       final model.ReceptionAttributeChange change = commits.first.changes.first;
 
-      expect(change.changeType, model.ChangeType.add);
+      expect(change.changeType, model.ChangeType.add_);
       expect(change.cid, con.id);
       expect(change.rid, rec.id);
     }
@@ -701,7 +701,7 @@ abstract class Contact {
       expect(commits.first.changes.length, equals(1));
       final model.ReceptionAttributeChange change = commits.first.changes.first;
 
-      expect(change.changeType, model.ChangeType.add);
+      expect(change.changeType, model.ChangeType.add_);
       expect(change.cid, con.id);
       expect(change.rid, rec.id);
     }
@@ -739,7 +739,7 @@ abstract class Contact {
       expect(commits.first.changes.length, equals(1));
       final model.ReceptionAttributeChange change = commits.first.changes.first;
 
-      expect(change.changeType, model.ChangeType.modify);
+      expect(change.changeType, model.ChangeType.modify_);
       expect(change.cid, con.id);
       expect(change.rid, rec.id);
     }
@@ -757,7 +757,7 @@ abstract class Contact {
       expect(commits.first.changes.length, equals(1));
       final model.ReceptionAttributeChange change = commits.first.changes.first;
 
-      expect(change.changeType, model.ChangeType.modify);
+      expect(change.changeType, model.ChangeType.modify_);
       expect(change.cid, con.id);
       expect(change.rid, rec.id);
     }
@@ -796,7 +796,7 @@ abstract class Contact {
       expect(commits.first.changes.length, equals(1));
       final model.ReceptionAttributeChange change = commits.first.changes.first;
 
-      expect(change.changeType, model.ChangeType.delete);
+      expect(change.changeType, model.ChangeType.delete_);
       expect(change.cid, con.id);
       expect(change.rid, rec.id);
     }
@@ -814,7 +814,7 @@ abstract class Contact {
       expect(commits.first.changes.length, equals(1));
       final model.ReceptionAttributeChange change = commits.first.changes.first;
 
-      expect(change.changeType, model.ChangeType.delete);
+      expect(change.changeType, model.ChangeType.delete_);
       expect(change.cid, con.id);
       expect(change.rid, rec.id);
     }

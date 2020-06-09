@@ -60,7 +60,7 @@ abstract class Hangup {
 
   /// Tests the hangup interface using an invalid call id.
   static Future interfaceCallNotFound(ServiceAgent sa) async {
-    await expect(sa.callflow.hangup(model.Call.noId),
+    await expect(sa.callflow.hangup('<not-found>'),
         throwsA(const TypeMatcher<NotFound>()));
   }
 }

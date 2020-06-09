@@ -85,7 +85,7 @@ class User implements storage.User {
   int get _nextId => _sequencer.nextInt();
 
   @override
-  Future<Iterable<String>> groups() async => <String>[
+  Future<List<String>> groups() async => <String>[
         model.UserGroups.administrator,
         model.UserGroups.receptionist,
         model.UserGroups.serviceAgent
@@ -125,19 +125,19 @@ class User implements storage.User {
   }
 
   @override
-  Future<Iterable<model.UserReference>> list() async => Directory(path)
+  Future<List<model.UserReference>> list() async => Directory(path)
       .listSync()
       .where((FileSystemEntity fse) =>
           _isDirectory(fse) && File(fse.path + '/user.json').existsSync())
       .map((FileSystemEntity fse) => model.User.fromJson(
               _json.decode(File(fse.path + '/user.json').readAsStringSync())
-                  as Map<String, dynamic>)
-          .reference);
+                  as Map<String, dynamic>).reference
+          ).toList();
 
   @override
   Future<model.UserReference> create(model.User user, model.User modifier,
       {bool enforceId: false}) async {
-    user.id = user.id != model.User.noId && enforceId ? user.id : _nextId;
+    user.id = user.id != 0 && enforceId ? user.id : _nextId;
 
     final Directory userdir = Directory('$path/${user.id}')..createSync();
     final File file = File('${userdir.path}/user.json');
@@ -167,7 +167,7 @@ class User implements storage.User {
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([int uid]) async {
+  Future<List<model.Commit>> changes([int uid]) async {
     if (this._git == null) {
       throw UnsupportedError(
           'Filestore is instantiated without git support');
@@ -181,11 +181,11 @@ class User implements storage.User {
       fse = File('$path/$uid/user.json');
     }
 
-    Iterable<Change> gitChanges = await _git.changes(fse);
+    List<Change> gitChanges = await _git.changes(fse);
 
     int extractUid(String message) => message.startsWith('uid:')
         ? int.parse(message.split(' ').first.replaceFirst('uid:', ''))
-        : model.User.noId;
+        : 0;
 
     model.UserChange convertFilechange(FileChange fc) {
       String filename = fc.filename;
@@ -204,7 +204,7 @@ class User implements storage.User {
       return model.UserChange(fc.changeType, id);
     }
 
-    Iterable<model.Commit> changes = gitChanges.map((Change change) =>
+    List<model.Commit> changes = gitChanges.map((Change change) =>
         model.Commit()
           ..uid = extractUid(change.message)
           ..changedAt = change.changeTime

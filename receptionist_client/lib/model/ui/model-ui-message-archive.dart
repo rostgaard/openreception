@@ -48,14 +48,14 @@ class UIMessageArchive extends UIModel {
   HtmlElement get _root => _myRoot;
 
   DivElement get _archiveTableContainer =>
-      _tableContainer.querySelector('.message-archive-tables');
-  DivElement get _body => _root.querySelector('.generic-widget-body');
+      _tableContainer.querySelector('.message-archive-tables') as DivElement;
+  DivElement get _body => _root.querySelector('.generic-widget-body') as DivElement;
   String get header => _root.querySelector('h4 span.extra-header').text;
   ButtonElement get _loadMoreButton =>
-      _body.querySelector('button.messages-load-more');
+      _body.querySelector('button.messages-load-more') as ButtonElement;
   TableSectionElement get _draftsTbody =>
-      _tableContainer.querySelector('tbody.drafts-messages-tbody');
-  DivElement get _tableContainer => _body.querySelector('div');
+      _tableContainer.querySelector('tbody.drafts-messages-tbody') as TableSectionElement;
+  DivElement get _tableContainer => _body.querySelector('div') as DivElement;
 
   /**
    * Return an archive table element, with headers.
@@ -264,7 +264,7 @@ class UIMessageArchive extends UIModel {
       _archiveTableContainer.dataset['rid'] = '';
     } else {
       _messagesTable = _archiveTableContainer
-          .querySelector('[data-contact="${context.contactString}"]');
+          .querySelector('[data-contact="${context.contactString}"]') as TableElement;
 
       if (_messagesTable == null) {
         _messagesTable = _archiveTable();
@@ -373,7 +373,7 @@ class UIMessageArchive extends UIModel {
    */
   void moveMessage(model.Message message) {
     final TableRowElement tr =
-        _draftsTbody.querySelector('[data-message-id="${message.id}"]');
+        _draftsTbody.querySelector('[data-message-id="${message.id}"]') as TableRowElement;
 
     if (tr != null) {
       tr.classes.add('fade-out');
@@ -383,7 +383,7 @@ class UIMessageArchive extends UIModel {
           _draftsTbody.parent.hidden = _draftsTbody.children.isEmpty;
           if (currentContext == message.context) {
             TableSectionElement _messagesTbody =
-                _messagesTable.querySelector('tbody.messages-tbody');
+                _messagesTable.querySelector('tbody.messages-tbody') as TableSectionElement;
             _messagesTbody.insertBefore(
                 _buildRow(message, false), _messagesTbody.firstChild);
           }
@@ -433,7 +433,7 @@ class UIMessageArchive extends UIModel {
    */
   void removeMessage(model.Message message) {
     TableRowElement tr =
-        _root.querySelector('table [data-message-id="${message.id}"]');
+        _root.querySelector('table [data-message-id="${message.id}"]') as TableRowElement;
 
     if (tr != null) {
       tr.classes.add('fade-out');
@@ -454,7 +454,7 @@ class UIMessageArchive extends UIModel {
    */
   void setMessages(Iterable<model.Message> list, {bool addToExisting: false}) {
     TableSectionElement _messagesTbody =
-        _messagesTable.querySelector('tbody.messages-tbody');
+        _messagesTable.querySelector('tbody.messages-tbody') as TableSectionElement;
     final List<TableRowElement> rows = new List<TableRowElement>();
 
     list.forEach((model.Message msg) {

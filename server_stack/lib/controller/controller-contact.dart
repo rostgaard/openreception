@@ -198,7 +198,7 @@ class Contact {
   /// Gives a lists of every contact in an reception.
   Future<Response> listByReception(Request request, final String rid) async {
     try {
-      return okJson(_contactStore.receptionContacts(int.parse(rid)));
+      return okJson((await _contactStore.receptionContacts(int.parse(rid))).toList(growable: false));
     } on NotFound catch (e) {
       return notFound(e.toString());
     }

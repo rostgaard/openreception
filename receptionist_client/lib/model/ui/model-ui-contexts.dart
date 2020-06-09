@@ -34,10 +34,10 @@ class UIContexts {
   }
 
   HtmlElement get contextCalendarEdit =>
-      querySelector('#context-calendar-edit');
-  HtmlElement get contextHome => querySelector('#context-home');
-  HtmlElement get contextHomeplus => querySelector('#context-homeplus');
-  HtmlElement get contextMessages => querySelector('#context-messages');
+      querySelector('#context-calendar-edit') as HtmlElement;
+  HtmlElement get contextHome => querySelector('#context-home') as HtmlElement;
+  HtmlElement get contextHomeplus => querySelector('#context-homeplus') as HtmlElement;
+  HtmlElement get contextMessages => querySelector('#context-messages') as HtmlElement;
 
   /**
    * Make [destination].context visible and all other contexts invisible.

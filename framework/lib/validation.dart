@@ -36,11 +36,11 @@ List<ValidationException> validateOriginationContext(
     OriginationContext context) {
   List<ValidationException> errors = <ValidationException>[];
 
-  if (context.contactId == BaseContact.noId) {
+  if (context.contactId == 0) {
     errors.add(InvalidId('cid'));
   }
 
-  if (context.receptionId == Reception.noId) {
+  if (context.receptionId == 0) {
     errors.add(InvalidId('rid'));
   }
 
@@ -108,7 +108,7 @@ List<ValidationException> validateMessage(Message msg) {
     errors.add(IsEmpty('recipients'));
   }
 
-  if (msg.state == MessageState.unknown || msg.state == null) {
+  if (msg.state == MessageState.unknown_ || msg.state == null) {
     errors.add(BadType('state', msg.state.toString()));
   }
 
@@ -153,8 +153,9 @@ List<ValidationException> validateMessageRecipients(
   List<ValidationException> errors = <ValidationException>[];
 
   for (MessageEndpoint recipient in recipients) {
-    if (!MessageEndpointType.types.contains(recipient.type)) {
-      errors.add(BadType('type', recipient.type));
+    final validTypes = ['sms','email-to',  'email-cc',  'email-bcc'];
+    if (!validTypes.contains(recipient.type)) {
+      errors.add(BadType('type', recipient.type.toString()));
     }
 
     if (recipient.name.isEmpty) {
@@ -176,11 +177,11 @@ List<ValidationException> validateMessageRecipients(
 List<ValidationException> validateMessageContext(MessageContext context) {
   List<ValidationException> errors = <ValidationException>[];
 
-  if (context.cid <= BaseContact.noId) {
+  if (context.cid <= 0) {
     errors.add(InvalidId('cid'));
   }
 
-  if (context.rid <= Reception.noId) {
+  if (context.rid <= 0) {
     errors.add(InvalidId('rid'));
   }
 
@@ -206,7 +207,7 @@ List<ValidationException> validateOwner(Owner owner) {
     errors.add(NullValue('id'));
   }
 
-  if (owner.id < BaseContact.noId) {
+  if (owner.id < 0) {
     errors.add(InvalidId('id'));
   }
 
@@ -220,7 +221,7 @@ List<ValidationException> validateOwner(Owner owner) {
 List<ValidationException> validatePhonenumber(PhoneNumber pn) {
   final List<ValidationException> errors = <ValidationException>[];
 
-  if (pn.normalizedDestination.isEmpty) {
+  if (pn.normalizedExtension.isEmpty) {
     errors.add(IsEmpty('destination'));
   }
 
@@ -234,11 +235,11 @@ List<ValidationException> validatePhonenumber(PhoneNumber pn) {
 List<ValidationException> validateReceptionAttribute(ReceptionAttributes attr) {
   final List<ValidationException> errors = <ValidationException>[];
 
-  if (attr.cid <= BaseContact.noId) {
+  if (attr.cid <= 0) {
     errors.add(InvalidId('cid'));
   }
 
-  if (attr.receptionId < Reception.noId) {
+  if (attr.receptionId < 0) {
     errors.add(InvalidId('rid'));
   }
 
@@ -256,11 +257,11 @@ List<ValidationException> validateReception(Reception rec) {
     errors.add(IsEmpty('name'));
   }
 
-  if (rec.oid <= Organization.noId) {
+  if (rec.oid <= 0) {
     errors.add(InvalidId('oid'));
   }
 
-  if (rec.id < Reception.noId) {
+  if (rec.id < 0) {
     errors.add(InvalidId('id'));
   }
 
@@ -286,7 +287,7 @@ List<ValidationException> validateOrganization(Organization org) {
     errors.add(NullValue('name'));
   }
 
-  if (org.name.isEmpty) {
+  if (org.name != null && org.name.isEmpty) {
     errors.add(IsEmpty('name'));
   }
 
@@ -312,7 +313,7 @@ List<ValidationException> validateUser(User user) {
     errors.add(IsEmpty('address'));
   }
 
-  if (user.id < User.noId) {
+  if (user.id < 0) {
     errors.add(InvalidId('id'));
   }
 
@@ -342,7 +343,7 @@ List<ValidationException> validateCalendarEntry(CalendarEntry entry) {
     errors.add(NullValue('id'));
   }
 
-  if (entry.id < CalendarEntry.noId) {
+  if (entry.id < 0) {
     errors.add(InvalidId('id'));
   }
 
@@ -368,7 +369,7 @@ List<ValidationException> validateBaseContact(BaseContact bc) {
     errors.add(NullValue('id'));
   }
 
-  if (bc.id < BaseContact.noId) {
+  if (bc.id < 0) {
     errors.add(InvalidId('id'));
   }
 

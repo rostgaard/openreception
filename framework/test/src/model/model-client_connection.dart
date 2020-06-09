@@ -29,7 +29,7 @@ abstract class _ModelClientConnection {
         _json.decode(serializedObject) as Map<String, dynamic>);
 
     expect(builtObject.connectionCount, equals(decodedCall.connectionCount));
-    expect(builtObject.userID, equals(decodedCall.userID));
+    expect(builtObject.userId, equals(decodedCall.userId));
 
     expect(builtObject.toJson(), equals(decodedCall.toJson()));
   }
@@ -47,10 +47,10 @@ abstract class _ModelClientConnection {
 
     model.ClientConnection builtObject = new model.ClientConnection.empty()
       ..connectionCount = connectionCount
-      ..userID = userId;
+      ..userId = userId;
 
     expect(builtObject.connectionCount, equals(connectionCount));
-    expect(builtObject.userID, equals(userId));
+    expect(builtObject.userId, equals(userId));
 
     return builtObject;
   }

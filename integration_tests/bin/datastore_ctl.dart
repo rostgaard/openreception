@@ -25,7 +25,7 @@ dynamic randomChoice(List pool) {
   return pool[index];
 }
 
-final model.User _systemUser = model.User.empty()..name = 'datastore_ctl';
+final model.User _systemUser = model.User()..name = 'datastore_ctl';
 
 /**
  * Logs [record] to STDOUT | STDERR depending on [record] level.
@@ -325,10 +325,10 @@ class _ManageCommand extends Command {
       throw UsageException(
           'User with identity ${adminIdentity} already exists', '');
     } on NotFound {
-      final user = model.User.empty()
+      final user = model.User()
         ..address = adminIdentity
-        ..identities = Set.from([adminIdentity])
-        ..groups = Set.from([model.UserGroups.administrator]);
+        ..identities = List.from([adminIdentity])
+        ..groups = List.from([model.UserGroups.administrator]);
 
       await datastore.userStore.create(user, _systemUser);
     }
@@ -370,9 +370,9 @@ class _CreateCommand extends Command {
     final datastore = filestore.DataStore(fileStorePath);
     _log.info('Created filestore in $fileStorePath');
 
-    final user = model.User.empty()
+    final user = model.User()
       ..address = ''
-      ..groups = Set.from([model.UserGroups.administrator]);
+      ..groups = List.from([model.UserGroups.administrator]);
 
     await datastore.userStore.create(user, _systemUser);
   }

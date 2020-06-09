@@ -24,7 +24,7 @@ dependencies:
   logging: '>= 0.11.0 < 1.0.0'
   oauth2: any
   orf:
-    path: ../framework
+    path: ../../dart_api
   web_socket_channel: any
 
 dev_dependencies:

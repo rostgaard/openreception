@@ -28,5 +28,5 @@ abstract class MessageQueue {
   Future<Null> remove(int mqid);
 
   /// List every [model.MessageQueueEntry] currently stored.
-  Future<Iterable<model.MessageQueueEntry>> list();
+  Future<List<model.MessageQueueEntry>> list();
 }

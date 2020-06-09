@@ -19,121 +19,109 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class RESTOrganizationStore implements storage.Organization {
-  final WebService _backend;
 
-  /// The uri of the connected backend.
-  final Uri host;
+  RESTOrganizationStore(Uri host, String token, dynamic backend) : _client =
+  api.OrganizationApi(api.ApiClient(basePath: host.toString())) {
+    _client.apiClient.getAuthentication<api.ApiKeyAuth>('ApiKeyAuth').apiKey =
+        token;
+  }
 
-  /// The token used for authenticating with the backed.
-  final String token;
-
-  RESTOrganizationStore(Uri this.host, String this.token, this._backend);
+  final api.OrganizationApi _client;
 
   @override
-  Future<Iterable<model.BaseContact>> contacts(int oid) async {
-    Uri url = resource.Organization.contacts(this.host, oid);
-    url = _appendToken(url, this.token);
-
-    final List<dynamic> maps =
-        _json.decode(await _backend.get(url)) as List<dynamic>;
-
-    return maps.map((dynamic map) =>
-        model.BaseContact.fromJson(map as Map<String, dynamic>));
+  Future<List<model.BaseContact>> contacts(int oid) async {
+    try {
+      return await _client.organizationContacts(oid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<model.ReceptionReference>> receptions(int oid) async {
-    Uri url = resource.Organization.receptions(host, oid);
-    url = _appendToken(url, this.token);
-
-    final List<dynamic> maps =
-        _json.decode(await _backend.get(url)) as List<dynamic>;
-
-    return maps.map((dynamic map) =>
-        model.ReceptionReference.fromJson(map as Map<String, dynamic>));
+  Future<List<model.ReceptionReference>> receptions(int oid) async {
+    try {
+      return await _client.organizationReceptions(oid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
-  @override
-  Future<Map<String, dynamic>> receptionMap() async {
-    Uri url = resource.Organization.receptionMap(host);
-    url = _appendToken(url, this.token);
-
-    return (await _json.decode(await _backend.get(url)))
-        as Map<String, dynamic>;
-  }
 
   @override
   Future<model.Organization> get(int oid) async {
-    Uri url = resource.Organization.single(this.host, oid);
-    url = _appendToken(url, this.token);
-
-    final String response = await _backend.get(url);
-
-    return model.Organization.fromJson(
-        _json.decode(response) as Map<String, dynamic>);
+    try {
+      return await _client.fetch(oid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<model.OrganizationReference> create(
       model.Organization organization, model.User modifier) async {
-    Uri url = resource.Organization.root(this.host);
-    url = _appendToken(url, this.token);
-
-    final String response =
-        await _backend.post(url, _json.encode(organization));
-
-    return model.OrganizationReference.fromJson(
-        _json.decode(response) as Map<String, dynamic>);
+    try {
+      return await _client.createOrg(organization);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<model.OrganizationReference> update(
       model.Organization organization, model.User modifier) async {
-    Uri url = resource.Organization.single(this.host, organization.id);
-    url = _appendToken(url, this.token);
-
-    final String response = await _backend.put(url, _json.encode(organization));
-
-    return model.OrganizationReference.fromJson(
-        _json.decode(response) as Map<String, dynamic>);
+    try {
+      return await _client.update(organization.id, organization);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Null> remove(int organizationID, model.User modifier) async {
-    Uri url = resource.Organization.single(this.host, organizationID);
-    url = _appendToken(url, this.token);
-
-    await _backend.delete(url);
+  Future<Null> remove(int oid, model.User modifier) async {
+    try {
+      await _client.delete(oid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<model.OrganizationReference>> list() async {
-    Uri url = resource.Organization.list(this.host, token: this.token);
-    url = _appendToken(url, this.token);
-
-    final List<dynamic> maps =
-        _json.decode(await _backend.get(url)) as List<dynamic>;
-
-    return maps.map((dynamic map) =>
-        model.OrganizationReference.fromJson(map as Map<String, dynamic>));
+  Future<List<model.OrganizationReference>> list() async {
+    try {
+      return await _client.orgs();
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([int oid]) async {
-    Uri url = resource.Organization.changeList(host, oid);
-    url = _appendToken(url, this.token);
+  Future<List<model.Commit>> changes([int oid]) async {
+    try {
+      if (oid != 0 ) {
+        return await _client.organizationHistory(oid);
 
-    final List<dynamic> maps =
-        _json.decode(await _backend.get(url)) as List<dynamic>;
-
-    return maps.map(
-        (dynamic map) => model.Commit.fromJson(map as Map<String, dynamic>));
+      } else {
+        return await _client.organizationHistories();
+      }
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
-  Future<String> changelog(int oid) {
-    Uri url = resource.Organization.changelog(host, oid);
-    url = _appendToken(url, this.token);
-
-    return _backend.get(url);
+  Future<String> changelog(int oid) async {
+    try {
+      return await _client.organizationChangelog(oid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 }

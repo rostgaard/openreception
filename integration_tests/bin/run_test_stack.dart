@@ -90,7 +90,7 @@ Future main(args) async {
   final userserver = env.requestUserserverProcess();
   final configserver = env.requestConfigServerProcess();
   final configClient = (await configserver).createClient(env.httpClient);
-  final cdrServer = env.requestCdrServerProcess();
+  //final cdrServer = env.requestCdrServerProcess();
 
   configClient.register(
       service.ServerType.authentication, (await authserver).uri);
@@ -109,7 +109,7 @@ Future main(args) async {
   configClient.register(service.ServerType.user, (await userserver).uri);
   configClient.register(
       service.ServerType.reception, (await receptionserver).uri);
-  configClient.register(service.ServerType.cdr, (await cdrServer).uri);
+  //configClient.register(service.ServerType.cdr, (await cdrServer).uri);
 
   final clientConfig = await configClient.clientConfig();
   final JsonEncoder jsonpp = JsonEncoder.withIndent('  ');
@@ -122,6 +122,16 @@ Future main(args) async {
 
   timer.stop();
   print('Stack startup time: ${timer.elapsedMilliseconds}ms');
+
+  final sa = await env.createsServiceAgent();
+
+  final r = sa.createsReceptionist();
+
+  final c = await sa.spawnCustomer();
+
+  final dialplan = await sa.createsDialplan(mustBeValid: true);
+
+  c.dial(dialplan.extension);
 
   ProcessSignal.sigint.watch().listen((_) async {
     final teardownTimer = Stopwatch()..start();

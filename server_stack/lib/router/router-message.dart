@@ -35,7 +35,6 @@ class Message {
 
   final controller.Message _msgController;
 
-
   /**
    *
    */
@@ -66,7 +65,7 @@ class Message {
 
     final handler = const shelf.Pipeline()
         .addMiddleware(
-        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);
 

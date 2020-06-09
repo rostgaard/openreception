@@ -32,5 +32,7 @@ class Reception {
   /**
    * List [model.Reception]'s
    */
-  Future<Iterable<model.ReceptionReference>> list() => _store.list();
+  Future<List<model.ReceptionReference>> list() async {
+    return (await _store.list()).toList(growable: false);
+  }
 }

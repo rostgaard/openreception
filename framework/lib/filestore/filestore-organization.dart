@@ -103,33 +103,7 @@ class Organization implements storage.Organization {
   }
 
   @override
-  Future<Map<String, Map<String, String>>> receptionMap() async {
-    final Map<String, Map<String, String>> map =
-        <String, Map<String, String>>{};
-
-    Iterable<model.ReceptionReference> rRefs = await _receptionFileStore.list();
-
-    await Future.forEach(rRefs, (model.ReceptionReference rRef) async {
-      try {
-        final model.Reception reception =
-            await _receptionFileStore.get(rRef.id);
-        final model.Organization org = await get(reception.oid);
-
-        map[rRef.id.toString()] = <String, String>{
-          'organization': org.name,
-          'reception': reception.name
-        };
-      } catch (e, s) {
-        _log.warning(
-            'Failed to map reception ${rRef.name} (rid: ${rRef.id})', e, s);
-      }
-    });
-
-    return map;
-  }
-
-  @override
-  Future<Iterable<model.BaseContact>> contacts(int oid) async {
+  Future<List<model.BaseContact>> contacts(int oid) async {
     List<model.BaseContact> cRefs = <model.BaseContact>[];
     List<model.ReceptionReference> rRefs = await receptions(oid);
 
@@ -148,7 +122,7 @@ class Organization implements storage.Organization {
       throw ClientError(
           ArgumentError.notNull(org.id.toString()).toString());
     }
-    org.id = org.id != model.Organization.noId && enforceId ? org.id : _nextId;
+    org.id = org.id != 0 && enforceId ? org.id : _nextId;
 
     final Directory orgDir = Directory('$path/${org.id}')..createSync();
     final File file = File('$path/${org.id}/organization.json');
@@ -196,7 +170,7 @@ class Organization implements storage.Organization {
   }
 
   @override
-  Future<Iterable<model.OrganizationReference>> list() async =>
+  Future<List<model.OrganizationReference>> list() async =>
       Directory(path)
           .listSync()
           .where((FileSystemEntity fse) =>
@@ -204,8 +178,7 @@ class Organization implements storage.Organization {
               File(fse.path + '/organization.json').existsSync())
           .map((FileSystemEntity fse) => model.Organization.fromJson(
                   _json.decode((File(fse.path + '/organization.json'))
-                      .readAsStringSync()) as Map<String, dynamic>)
-              .reference);
+                      .readAsStringSync()) as Map<String, dynamic>).reference).toList(growable: false);
 
   @override
   Future<Null> remove(int oid, model.User modifier) async {
@@ -240,7 +213,7 @@ class Organization implements storage.Organization {
     final Directory orgDir = Directory('$path/${org.id}');
     final File file = File('$path/${org.id}/organization.json');
 
-    if (org.id == model.Organization.noId) {
+    if (org.id == 0) {
       throw ClientError('uuid may not be "noId"');
     }
 
@@ -269,11 +242,11 @@ class Organization implements storage.Organization {
   }
 
   @override
-  Future<Iterable<model.ReceptionReference>> receptions(int oid) =>
+  Future<List<model.ReceptionReference>> receptions(int oid) =>
       _receptionFileStore._receptionsOfOrg(oid);
 
   @override
-  Future<Iterable<model.Commit>> changes([int oid]) async {
+  Future<List<model.Commit>> changes([int oid]) async {
     if (this._git == null) {
       throw UnsupportedError(
           'Filestore is instantiated without git support');
@@ -291,7 +264,7 @@ class Organization implements storage.Organization {
 
     int extractUid(String message) => message.startsWith('uid:')
         ? int.parse(message.split(' ').first.replaceFirst('uid:', ''))
-        : model.User.noId;
+        : 0;
 
     model.OrganizationChange convertFilechange(FileChange fc) {
       String filename = fc.filename;

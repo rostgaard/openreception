@@ -86,5 +86,5 @@ class Client extends service.WebService {
 }
 
 String mapToUrlFormEncodedPostBody(Map<String, dynamic> body) => body.keys
-    .map((String key) => '$key=${Uri.encodeQueryComponent(body[key])}')
+    .map((String key) => '$key=${Uri.encodeQueryComponent(body[key] as String)}')
     .join('&');

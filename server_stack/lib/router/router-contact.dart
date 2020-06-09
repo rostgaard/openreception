@@ -41,13 +41,11 @@ class Contact {
 
   final service.NotificationService _notification;
 
-
   /**
    *
    */
   void bindRoutes(dynamic router) {
     router
-      ..get('/contact/history', _contactController.history)
       ..get('/contact/list/reception/<rid>', _contactController.listByReception)
       ..post(
           '/contact/<cid>/reception/<rid>', _contactController.addToReception)
@@ -55,18 +53,29 @@ class Contact {
           _contactController.updateInReception)
       ..delete('/contact/<cid>/reception/<rid>',
           _contactController.removeFromReception)
-      ..get('/contact/<cid>/reception/<rid>/history',
-          _contactController.receptionHistory)
-      ..get('/contact/<cid>/reception/changelog',
-          _contactController.receptionChangelog)
+
+
+
+
       ..get('/contact/<cid>/reception/<rid>', _contactController.get)
       ..get('/contact/<cid>/reception', _contactController.receptions)
       ..get('/contact/<cid>/organization', _contactController.organizations)
       ..get('/contact/<cid>', _contactController.base)
       ..put('/contact/<cid>', _contactController.update)
       ..delete('/contact/<cid>', _contactController.remove)
+
+      ..get('/contact/history', _contactController.history)
+
       ..get('/contact/<cid>/history', _contactController.objectHistory)
       ..get('/contact/<cid>/changelog', _contactController.changelog)
+
+      ..get('/contact/<cid>/reception/<rid>/history',
+          _contactController.receptionHistory)
+      ..get('/contact/<cid>/reception/changelog',
+          _contactController.receptionChangelog)
+
+
+
       ..get('/contact', _contactController.listBase)
       ..post('/contact', _contactController.create)
       ..get(
@@ -87,7 +96,7 @@ class Contact {
 
     var handler = const shelf.Pipeline()
         .addMiddleware(
-        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);
 

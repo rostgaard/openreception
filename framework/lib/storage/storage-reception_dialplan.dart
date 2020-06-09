@@ -30,7 +30,7 @@ abstract class ReceptionDialplan {
 
   /// Retrieve a list of [model.ReceptionDialplan] to all available dialplans
   /// in the store.
-  Future<Iterable<model.ReceptionDialplan>> list();
+  Future<List<model.ReceptionDialplan>> list();
 
   /// Updates the previously stored [model.ReceptionDialplan] object with data
   /// from [rdp].
@@ -48,5 +48,5 @@ abstract class ReceptionDialplan {
 
   /// List dialplan object changes for the store, optionally for a
   /// single [extension].
-  Future<Iterable<model.Commit>> changes([String extension]);
+  Future<List<model.Commit>> changes([String extension]);
 }

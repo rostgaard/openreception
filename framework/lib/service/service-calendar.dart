@@ -19,91 +19,73 @@ part of orf.service;
 /// communication, such as serialization/deserialization, method choice
 /// (GET, PUT, POST, DELETE) and resource uri building.
 class RESTCalendarStore implements storage.Calendar {
-  RESTCalendarStore(this.host, this.token, this._backend);
 
-  final WebService _backend;
-
-  /// The uri of the connected backend.
-  final Uri host;
-
-  /// The token used for authenticating with the backed.
-  final String token;
-
-  Future<String> changelog(model.Owner owner) {
-    Uri url = resource.Calendar.changelog(host, owner);
-    url = _appendToken(url, token);
-
-    return _backend.get(url);
+  RESTCalendarStore(Uri host, String token, dynamic _backend) : _client =
+  api.CalendarApi(api.ApiClient(basePath: host.toString())) {
+    _client.apiClient.getAuthentication<api.ApiKeyAuth>('ApiKeyAuth').apiKey =
+        token;
   }
 
-  @override
-  Future<Iterable<model.Commit>> changes(model.Owner owner, [int eid]) async {
-    Uri url = resource.Calendar.changeList(host, owner, eid);
-    url = _appendToken(url, token);
+  final api.CalendarApi _client;
 
-    final String body = await _backend.get(url);
-    final List<dynamic> maps =
-        _json.decode(body) as List<dynamic>;
-
-    return maps.map((dynamic map) => model.Commit.fromJson(map as Map<String, dynamic>));
-  }
 
   @override
   Future<model.CalendarEntry> create(
       model.CalendarEntry entry, model.Owner owner, model.User user) async {
-    Uri url = resource.Calendar.ownerBase(host, owner);
-    url = _appendToken(url, token);
-
-    final String response = await _backend.post(url, _json.encode(entry));
-
-    return model.CalendarEntry.fromJson(
-        _json.decode(response) as Map<String, dynamic>);
-
+    try {
+      return _client.createCalendarEntry(owner.toString(), entry);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
-  @override
-  Future<model.CalendarEntry> get(int id, model.Owner owner) async {
-    Uri url = resource.Calendar.single(host, id, owner);
-    url = _appendToken(url, token);
 
-    final String response = await _backend.get(url);
-
-    return model.CalendarEntry.fromJson(
-        _json.decode(response) as Map<String, dynamic>);
-
-  }
 
   @override
-  Future<Iterable<model.CalendarEntry>> list(model.Owner owner) async {
-    Uri url = resource.Calendar.ownerBase(host, owner);
-
-    url = _appendToken(url, token);
-
-    final List<dynamic> maps =
-        _json.decode(await _backend.get(url)) as List<dynamic>;
-
-    return maps
-        .map<model.CalendarEntry>((dynamic map)
-    => model.CalendarEntry.fromJson(map as Map<String, dynamic>));
+  Future<List<model.CalendarEntry>> list(model.Owner owner) async {
+    try {
+      return _client.listCalendarEntries(owner.toString());
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<Null> remove(int eid, model.Owner owner, model.User user) async {
-    Uri url = resource.Calendar.single(host, eid, owner);
-    url = _appendToken(url, token);
-
-    await _backend.delete(url);
+    try {
+      return _client.deleteCalendarEntry(owner.toString(), eid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
   }
 
   @override
   Future<model.CalendarEntry> update(
       model.CalendarEntry entry, model.Owner owner, model.User modifier) async {
-    Uri url = resource.Calendar.single(host, entry.id, owner);
-    url = _appendToken(url, token);
+    try {
+      return _client.updateCalendarEntry(owner.toString(), entry.id, entry);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
+  }
 
-    final String response = await _backend.put(url, _json.encode(entry));
+  @override
+  Future<model.CalendarEntry> get(int eid, model.Owner owner) {
+    try {
+      return _client.getCalendarEntry(owner.toString(), eid);
+    } on api.ApiException catch(e) {
+      WebService.checkResponse(e.code,"GET" , null, e.message);
+      throw e;
+    }
+  }
 
-    return model.CalendarEntry.fromJson(
-        _json.decode(response) as Map<String, dynamic>);
+  @override
+  Future<List<model.Commit>> changes(model.Owner owner, [int eid]) {
+    // TODO: implement changes
+    return null;
   }
 }

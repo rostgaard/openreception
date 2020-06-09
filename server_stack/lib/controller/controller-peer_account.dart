@@ -99,7 +99,7 @@ class PeerAccount {
         .first
         .value;
 
-    return okJson(model.PeerAccount(user, password, callGroup));
+    return okJson(model.PeerAccount()..username = user..password = password..context = callGroup);
   }
 
   /**

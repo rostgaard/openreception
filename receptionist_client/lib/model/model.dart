@@ -90,12 +90,12 @@ class CalendarEntry {
   CalendarEntry.fromJson(Map<String, dynamic> map) {
     calendarEntry = new model.CalendarEntry.fromJson(
         map['calendarEntry'] as Map<String, dynamic>);
-    editable = map['editable'];
-    owner = new model.Owner.parse(map['owner']);
+    editable = map['editable'] as bool;
+    owner = new model.Owner.parse(map['owner'] as String);
   }
 
   Map<String, dynamic> toJson() =>
-      {'calendarEntry': calendarEntry, 'editable': editable, 'owner': owner};
+      <String, dynamic> {'calendarEntry': calendarEntry, 'editable': editable, 'owner': owner};
 }
 
 /**
@@ -236,22 +236,22 @@ abstract class UIModel {
       _lastKeyUpDown = now;
 
       final LIElement selected =
-          _listTarget.querySelector('.selected:not(.hide)');
+          _listTarget.querySelector('.selected:not(.hide)') as LIElement;
 
       if (selected == null) {
         _markSelected(
-            _scanForwardForVisibleElement(_listTarget.children.first));
+            _scanForwardForVisibleElement(_listTarget.children.first  as LIElement) );
         return;
       }
 
       switch (event.keyCode) {
         case KeyCode.DOWN:
           _markSelected(
-              _scanForwardForVisibleElement(selected.nextElementSibling));
+              _scanForwardForVisibleElement(selected.nextElementSibling as LIElement));
           break;
         case KeyCode.UP:
           _markSelected(
-              _scanBackwardForVisibleElement(selected.previousElementSibling));
+              _scanBackwardForVisibleElement(selected.previousElementSibling as LIElement));
           break;
       }
     }
@@ -260,7 +260,7 @@ abstract class UIModel {
   /**
    * Return the header element.
    */
-  SpanElement get _header => _root.querySelector('h4 > span');
+  SpanElement get _header => _root.querySelector('h4 > span') as SpanElement;
 
   /**
    * Set the widget header.
@@ -272,7 +272,7 @@ abstract class UIModel {
   /**
    * Return the headerExtra element.
    */
-  SpanElement get _headerExtra => _root.querySelector('h4 span.extra-header');
+  SpanElement get _headerExtra => _root.querySelector('h4 span.extra-header') as SpanElement;
 
   /**
    * Set the widgets extra header. This one can be used for a bit of extra data
@@ -285,7 +285,7 @@ abstract class UIModel {
   /**
    * Return the hint element.
    */
-  DivElement get _hint => _root.querySelector('div.hint');
+  DivElement get _hint => _root.querySelector('div.hint') as DivElement;
 
   /**
    * Return true if the widget is in focus.
@@ -330,7 +330,7 @@ abstract class UIModel {
    */
   LIElement _scanForwardForVisibleElement(LIElement li) {
     if (li != null && li.classes.contains('hide')) {
-      return _scanForwardForVisibleElement(li.nextElementSibling);
+      return _scanForwardForVisibleElement(li.nextElementSibling as LIElement);
     } else {
       return li;
     }
@@ -342,7 +342,7 @@ abstract class UIModel {
    */
   LIElement _scanBackwardForVisibleElement(LIElement li) {
     if (li != null && li.classes.contains('hide')) {
-      return _scanBackwardForVisibleElement(li.previousElementSibling);
+      return _scanBackwardForVisibleElement(li.previousElementSibling as LIElement);
     } else {
       return li;
     }

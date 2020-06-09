@@ -38,8 +38,7 @@ class Organization {
   Future<Response> list(Request request) async =>
       okJson(List.from(await _orgStore.list()));
 
-  Future<Response> receptionMap(Request request) async =>
-      okJson(await _orgStore.receptionMap());
+  Future<Response> receptionMap(Request request) async =>throw UnimplementedError();
 
   Future<Response> get(Request request, String oidParam) async {
     final int oid = int.parse(oidParam);

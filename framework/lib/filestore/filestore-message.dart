@@ -157,7 +157,7 @@ class Message implements storage.Message {
       uidList.add(msg.id);
       ridList.add(msg.id);
 
-      if (msg.isDraft) {
+      if (msg.state == model.MessageState.draft_) {
         _draftsIndex.add(msg.id);
       }
     });
@@ -194,7 +194,7 @@ class Message implements storage.Message {
   }
 
   @override
-  Future<Iterable<model.Message>> getByIds(Iterable<int> ids) async {
+  Future<List<model.Message>> getByIds(Iterable<int> ids) async {
     List<model.Message> list = List<model.Message>();
 
     await Future.forEach(ids, (int id) async {
@@ -230,7 +230,7 @@ class Message implements storage.Message {
   }
 
   @override
-  Future<Iterable<model.Message>> listDay(DateTime day) async {
+  Future<List<model.Message>> listDay(DateTime day) async {
     final Directory dateDir = _dateDir(day);
 
     if (!await dateDir.exists()) {
@@ -243,7 +243,7 @@ class Message implements storage.Message {
   }
 
   @override
-  Future<Iterable<model.Message>> listDrafts() async {
+  Future<List<model.Message>> listDrafts() async {
     Set<int> ids = Set<int>()..addAll(_draftsIndex);
 
     return getByIds(ids);
@@ -281,7 +281,7 @@ class Message implements storage.Message {
       {bool enforceId: false}) async {
     Directory dateDir = _dateDir(msg.createdAt)..createSync();
 
-    if (!(msg.id != model.Message.noId && enforceId)) {
+    if (!(msg.id != 0 && enforceId)) {
       msg
         ..id = _nextId
         ..createdAt = DateTime.now();
@@ -313,7 +313,7 @@ class Message implements storage.Message {
     uidList.add(msg.id);
     ridList.add(msg.id);
 
-    if (msg.isDraft) {
+    if (msg.state == model.MessageState.draft_) {
       _draftsIndex.add(msg.id);
     }
 
@@ -349,7 +349,7 @@ class Message implements storage.Message {
           _authorString(modifier));
     }
 
-    if (msg.isDraft) {
+    if (msg.state == model.MessageState.draft_) {
       _draftsIndex.add(msg.id);
     } else {
       _draftsIndex.remove(msg.id);
@@ -388,7 +388,7 @@ class Message implements storage.Message {
   }
 
   @override
-  Future<Iterable<model.Commit>> changes([int mid]) async {
+  Future<List<model.Commit>> changes([int mid]) async {
     if (this._git == null) {
       throw UnsupportedError(
           'Filestore is instantiated without git support');
@@ -406,7 +406,7 @@ class Message implements storage.Message {
 
     int extractUid(String message) => message.startsWith('uid:')
         ? int.parse(message.split(' ').first.replaceFirst('uid:', ''))
-        : model.User.noId;
+        : 0;
 
     model.MessageChange convertFilechange(FileChange fc) {
       String filename = fc.filename;
@@ -463,7 +463,7 @@ class Message implements storage.Message {
 
     int extractUid(String message) => message.startsWith('uid:')
         ? int.parse(message.split(' ').first.replaceFirst('uid:', ''))
-        : model.User.noId;
+        : 0;
 
     model.MessageChange convertFilechange(FileChange fc) {
       final int id = int.parse(fc.filename.split('.').first);

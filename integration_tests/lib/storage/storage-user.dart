@@ -27,7 +27,7 @@ abstract class User {
     expect(created.address, equals(fetched.address));
     expect(created.id, equals(fetched.id));
     expect(created.name, equals(fetched.name));
-    expect(created.extension, equals(fetched.extension));
+    expect(created.extension_, equals(fetched.extension_));
     expect(created.portrait, equals(fetched.portrait));
     expect(created.groups, equals(fetched.groups));
     expect(created.identities, equals(fetched.identities));
@@ -44,9 +44,9 @@ abstract class User {
 
     expect(created.address, equals(newUser.address));
     expect(created.id, isNotNull);
-    expect(created.id, greaterThan(model.User.noId));
+    expect(created.id, greaterThan(model.noId));
     expect(created.name, equals(newUser.name));
-    expect(created.extension, equals(newUser.extension));
+    expect(created.extension_, equals(newUser.extension_));
     expect(created.portrait, equals(newUser.portrait));
     expect(created.groups, equals(newUser.groups));
     expect(created.identities, equals(newUser.identities));
@@ -71,7 +71,7 @@ abstract class User {
     expect(changed.address, equals(fetched.address));
     expect(changed.id, equals(fetched.id));
     expect(changed.name, equals(fetched.name));
-    expect(changed.extension, equals(fetched.extension));
+    expect(changed.extension_, equals(fetched.extension_));
     expect(changed.portrait, equals(fetched.portrait));
     expect(changed.groups, equals(fetched.groups));
     expect(changed.identities, equals(fetched.identities));
@@ -81,7 +81,7 @@ abstract class User {
     _log.info('Checking server behaviour on an user removal.');
 
     model.User created = await sa.createsUser();
-    expect(created.id, greaterThan(model.User.noId));
+    expect(created.id, greaterThan(model.noId));
 
     await sa.userStore.remove(created.id, sa.user);
 
@@ -170,7 +170,7 @@ abstract class User {
     final model.User user = await sa.createsUser();
     _log.info('Clearing user groups');
     if (user.groups.isNotEmpty) {
-      user.groups = [].toSet();
+      user.groups = [];
       await sa.userStore.update(user, sa.user);
     }
 
@@ -218,7 +218,7 @@ abstract class User {
     final model.User user = await sa.createsUser();
     _log.info('Clearing user groups');
     if (user.groups.isNotEmpty) {
-      user.groups = [].toSet();
+      user.groups = [];
       await sa.userStore.update(user, sa.user);
     }
 
@@ -265,7 +265,7 @@ abstract class User {
     final model.User created = await sa.createsUser();
     _log.info('Clearing user identities');
     if (created.identities.isNotEmpty) {
-      created.identities = [].toSet();
+      created.identities = [];
       await sa.userStore.update(created, sa.user);
     }
 
@@ -289,7 +289,7 @@ abstract class User {
     expect(created.address, equals(fetched.address));
     expect(created.id, equals(fetched.id));
     expect(created.name, equals(fetched.name));
-    expect(created.extension, equals(fetched.extension));
+    expect(created.extension_, equals(fetched.extension_));
     expect(created.portrait, equals(fetched.portrait));
     expect(created.groups, equals(fetched.groups));
     expect(created.identities, equals(fetched.identities));
@@ -300,7 +300,7 @@ abstract class User {
     final model.User user = await sa.createsUser();
     _log.info('Clearing user identities');
     if (user.identities.isNotEmpty) {
-      user.identities = [].toSet();
+      user.identities = [];
       await sa.userStore.update(user, sa.user);
     }
 
@@ -348,7 +348,7 @@ abstract class User {
     final model.User user = await sa.createsUser();
     _log.info('Clearing user identities');
     if (user.identities.isNotEmpty) {
-      user.identities = [].toSet();
+      user.identities = [];
       await sa.userStore.update(user, sa.user);
     }
 
@@ -410,7 +410,7 @@ abstract class User {
     expect(commits.first.changes.length, equals(1));
     final model.UserChange change = commits.first.changes.first;
 
-    expect(change.changeType, model.ChangeType.add);
+    expect(change.changeType, model.ChangeType.add_);
     expect(change.uid, created.id);
   }
 
@@ -445,10 +445,10 @@ abstract class User {
     final model.UserChange latestChange = commits.first.changes.first;
     final model.UserChange oldestChange = commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.modify);
+    expect(latestChange.changeType, model.ChangeType.modify_);
     expect(latestChange.uid, created.id);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
+    expect(oldestChange.changeType, model.ChangeType.add_);
     expect(oldestChange.uid, created.id);
   }
 
@@ -485,10 +485,10 @@ abstract class User {
     final model.UserChange latestChange = commits.first.changes.first;
     final model.UserChange oldestChange = commits.last.changes.first;
 
-    expect(latestChange.changeType, model.ChangeType.delete);
+    expect(latestChange.changeType, model.ChangeType.delete_);
     expect(latestChange.uid, created.id);
 
-    expect(oldestChange.changeType, model.ChangeType.add);
+    expect(oldestChange.changeType, model.ChangeType.add_);
     expect(oldestChange.uid, created.id);
   }
 }

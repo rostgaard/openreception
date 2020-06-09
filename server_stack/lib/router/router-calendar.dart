@@ -36,7 +36,6 @@ class Calendar {
   final service.NotificationService _notification;
   final controller.Calendar _calendarController;
 
-
   /// Validate a token by looking it up on the authentication server.
   Future<shelf.Response> _lookupToken(shelf.Request request) async {
     var token = request.requestedUri.queryParameters['token'];
@@ -84,7 +83,6 @@ class Calendar {
    */
   Future<io.HttpServer> listen(
       {String hostname: '0.0.0.0', int port: 4110}) async {
-
     // Authentication middleware
     shelf.Middleware checkAuthentication = shelf.createMiddleware(
         requestHandler: _lookupToken, responseHandler: null);
@@ -94,7 +92,7 @@ class Calendar {
 
     var handler = const shelf.Pipeline()
         .addMiddleware(
-        shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
+            shelf_cors.createCorsHeadersMiddleware(corsHeaders: corsHeaders))
         .addMiddleware(checkAuthentication)
         .addMiddleware(shelf.logRequests(logger: config.accessLog.onAccess))
         .addHandler(router.handler);

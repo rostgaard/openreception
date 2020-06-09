@@ -8,8 +8,8 @@ void _runCallTests() {
 //  _runPeerRegistrationTests();
 //  _runCallParkTests();
 //  _runCallOriginateTests();
-  _runCallUserStateTests();
-//  _runCallStateReloadTests();
+//  _runCallUserStateTests();
+  _runCallStateReloadTests();
 //  _runCallTransferTests();
 }
 
@@ -95,28 +95,28 @@ void _runCallStateReloadTests() {
     });
 
     tearDown(() async {
-      Logger.root.finest(
-          'FSLOG:\n ${(await env.requestFreeswitchProcess()).latestLog.readAsStringSync()}');
+   //   Logger.root.finest(
+     //     'FSLOG:\n ${(await env.requestFreeswitchProcess()).latestLog.readAsStringSync()}');
       await env.clear();
     });
 
     test('inboundCallUnanswered',
         () => serviceTest.StateReload.inboundUnansweredCall(context, r, c));
 
-    test('inboundAnsweredCall',
-        () => serviceTest.StateReload.inboundAnsweredCall(context, r, c));
-
-    test('inboundParkedCall',
-        () => serviceTest.StateReload.inboundParkedCall(context, r, c));
-
-    test('inboundUnparkedCall',
-        () => serviceTest.StateReload.inboundUnparkedCall(context, r, c));
-
-    test('outboundUnansweredCall',
-        () => serviceTest.StateReload.outboundUnansweredCall(context, r, c));
-
-    test('outboundAnsweredCall',
-        () => serviceTest.StateReload.outboundAnsweredCall(context, r, c));
+//    test('inboundAnsweredCall',
+//        () => serviceTest.StateReload.inboundAnsweredCall(context, r, c));
+//
+//    test('inboundParkedCall',
+//        () => serviceTest.StateReload.inboundParkedCall(context, r, c));
+//
+//    test('inboundUnparkedCall',
+//        () => serviceTest.StateReload.inboundUnparkedCall(context, r, c));
+//
+//    test('outboundUnansweredCall',
+//        () => serviceTest.StateReload.outboundUnansweredCall(context, r, c));
+//
+//    test('outboundAnsweredCall',
+//        () => serviceTest.StateReload.outboundAnsweredCall(context, r, c));
   });
 
   group('$_namespace.Call.StateReload', () {
@@ -153,8 +153,8 @@ void _runCallStateReloadTests() {
       await env.clear();
     });
 
-    test('transferredCalls',
-        () => serviceTest.StateReload.transferredCalls(context, r, c, c2));
+//    test('transferredCalls',
+//        () => serviceTest.StateReload.transferredCalls(context, r, c, c2));
   });
 }
 
@@ -436,6 +436,7 @@ void _runCallHangupTests() {
     TestEnvironment env;
     Receptionist r;
     Customer c;
+    process.CallFlowControl cfProcess;
 
     /// Transient object
     model.ReceptionDialplan rdp;
@@ -451,6 +452,7 @@ void _runCallHangupTests() {
 
       r = await sa.createsReceptionist();
       c = await sa.spawnCustomer();
+      cfProcess = await env.requestCallFlowProcess();
     });
 
     tearDown(() async {
@@ -461,9 +463,7 @@ void _runCallHangupTests() {
 
     test(
         'CORS headers present (existingUri)',
-        () async => isCORSHeadersPresent(
-            resource.CallFlowControl.list(
-                (await env.requestCallFlowProcess()).uri),
+        () async => isCORSHeadersPresent(Uri.parse('${cfProcess.uri}/ping'),
             log));
 
     test(
